@@ -1,0 +1,28 @@
+canvas {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: absolute;
+}
+
+#controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  
+}
+button {
+  background: none;
+  border: 1px solid white;
+  color: white;
+  padding: 10px;
+  margin: 10px;
+  cursor: pointer;
+
+  width: 100px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+}
