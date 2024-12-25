@@ -1,5 +1,5 @@
-  // const goldenRatio = 1.61803398875;
-  // const scaleRatio = (1-(1/goldenRatio)/branches);
+// const goldenRatio = 1.61803398875;
+// const scaleRatio = (1-(1/goldenRatio)/branches);
 class Config {
   constructor() {
     this.sides = 6;
@@ -7,7 +7,24 @@ class Config {
     this.scaleRatio = 0.52;
     this.spread = 0.6;
     this.lineWidth = 20;
-    this.color = '#39FF14';
+    this._colorHue = 120;
+    this.randOnce = 0.5;
+  }
+
+  get(id) {
+    return this[id];
+  }
+
+  set(id, value) {
+    if (id === 'sides' || id === 'branches' || id === 'lineWidth') {
+      this[id] = parseInt(value);
+    } else {
+      this[id] = parseFloat(value);
+    }
+  }
+
+  color(hue = this._colorHue) {
+    return `hsl(${hue}, 100%, 50%)`;
   }
 
   randomize() {
@@ -16,11 +33,17 @@ class Config {
     this.scaleRatio = Math.random() * 0.2 + 0.4;
     this.spread = Math.random() * 2.9 + 0.1;
     this.lineWidth = Math.floor(Math.random() * 20 + 10);
-    this.color = 'hsl(' + Math.random() * 360 + ', 100%, 50%)';
+    this._colorHue = Math.floor(Math.random() * 360);
+    this.randOnce = Math.random() * 0.5 + 0.5;
+  }
+
+  shiftColor(amount) {
+    return this.color(this._colorHue + amount);
   }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  const sliders = document.querySelectorAll('input[type=range]');
   var canvas = document.getElementById('canvas1');
   var ctx = canvas.getContext('2d');
 
@@ -49,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.stroke();
 
     for (var i = 0; i < config.branches; i++) {
+      ctx.strokeStyle = config.shiftColor(config.randOnce * 20 * level);
       ctx.save();
       ctx.translate(size - (size / config.branches) * i, 0);
       ctx.scale(config.scaleRatio, config.scaleRatio);
@@ -70,10 +94,9 @@ document.addEventListener('DOMContentLoaded', function() {
   function drawFractal(config) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-
     // Drawing settings
     ctx.lineWidth = config.lineWidth;
-    ctx.strokeStyle = config.color;
+    ctx.strokeStyle = config.color();
     ctx.lineCap = 'round';
 
     ctx.save();
@@ -85,14 +108,40 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.restore();
   }
 
+  function updateSliders(config) {
+    sliders.forEach(function(slider) {
+      const value = config.get(slider.id);
+      const sliderLabel = document.querySelector(`label[for=${slider.id}]`);
+      sliderLabel.value = value;
+      const humanName = sliderLabel.innerText.split(':')[0];
+      if (typeof value === 'float') {
+        humanValue = value.toFixed(2); 
+      } else {
+        humanValue = value;
+      }
+
+      sliderLabel.innerText = `${humanName}: ${humanValue}`;
+    });
+  }
+
   var config = new Config();
+  updateSliders(config);
   drawFractal(config);
 
   randomizeButton = document.getElementById('randomize');
   randomizeButton.addEventListener('click', function() {
     config.randomize();
 
+    updateSliders(config);
     drawFractal(config);
+  });
+
+  sliders.forEach(function(slider) {
+    slider.addEventListener('change', function() {
+      updateSliders(config);
+      config.set(this.id, this.value);
+      drawFractal(config);
+    });
   });
 });
 

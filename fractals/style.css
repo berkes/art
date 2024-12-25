@@ -15,6 +15,7 @@ canvas {
   
 }
 button {
+  display: block;
   background: none;
   border: 1px solid white;
   color: white;
@@ -25,4 +26,9 @@ button {
   width: 100px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 5px;
+}
+label, input {
+  display: block;
+  color: white;
+  margin: 10px;
 }
