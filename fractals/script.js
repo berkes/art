@@ -8,7 +8,7 @@ class Config {
     this.spread = 0.6;
     this.lineWidth = 20;
     this._colorHue = 120;
-    this.randOnce = 0.5;
+    this.symmetric = true;
   }
 
   get(id) {
@@ -34,7 +34,7 @@ class Config {
     this.spread = Math.random() * 2.9 + 0.1;
     this.lineWidth = Math.floor(Math.random() * 20 + 10);
     this._colorHue = Math.floor(Math.random() * 360);
-    this.randOnce = Math.random() * 0.5 + 0.5;
+    this.symmetric = Math.random() > 0.5;
   }
 
   shiftColor(amount) {
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.stroke();
 
     for (var i = 0; i < config.branches; i++) {
-      ctx.strokeStyle = config.shiftColor(config.randOnce * 20 * level);
+      ctx.strokeStyle = config.shiftColor(20 * level);
       ctx.save();
       ctx.translate(size - (size / config.branches) * i, 0);
       ctx.scale(config.scaleRatio, config.scaleRatio);
@@ -82,10 +82,12 @@ document.addEventListener('DOMContentLoaded', function() {
       drawBranch(level + 1, config);
       ctx.restore();
 
-      ctx.save();
-      ctx.rotate(-config.spread);
-      drawBranch(level + 1, config);
-      ctx.restore();
+      if (config.symmetric) {
+        ctx.save();
+        ctx.rotate(-config.spread);
+        drawBranch(level + 1, config);
+        ctx.restore();
+      }
 
       ctx.restore();
     }
