@@ -146,4 +146,10 @@ document.addEventListener('DOMContentLoaded', function() {
       drawFractal(config);
     });
   });
+
+  window.addEventListener('resize', function() {
+    canvas.width = window.innerWidth * padRatio;
+    canvas.height = window.innerHeight * padRatio;
+    drawFractal(config);
+  });
 });
