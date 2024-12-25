@@ -206,12 +206,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const animateCheckbox = document.getElementById('animate');
   animateCheckbox.addEventListener('change', function() {
     if (this.checked) {
-      var interval = setInterval(function() {
+      this.dataset.mainAnimInterval = setInterval(function() {
         requestAnimationFrame(nextAnimationFrame);
       }, 100);
-      this.dataset.interval = interval;
     } else {
-      clearInterval(this.dataset.interval);
+      clearInterval(this.dataset.mainAnimInterval);
     }
   });
 
