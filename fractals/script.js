@@ -132,6 +132,12 @@ document.addEventListener('DOMContentLoaded', function() {
     updateSliders(config);
     drawFractal(config);
   });
+  resetButton = document.getElementById('reset');
+  resetButton.addEventListener('click', function() {
+    config = new Config();
+    updateSliders(config);
+    drawFractal(config);
+  });
 
   sliders.forEach(function(slider) {
     slider.addEventListener('change', function() {
@@ -141,4 +147,3 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
-
