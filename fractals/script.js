@@ -3,12 +3,13 @@
 class Config {
   constructor(size) {
     this.size = size;
-    this.sides = 15;
-    this.branches = 2;
+    this.sides = 14;
+    this.branches = 1;
     this.scaleRatio = 0.85;
     this.spread = -0.2;
     this.lineWidth = 30;
     this._colorHue = 120;
+
     this.symmetric = false;
   }
 
@@ -31,8 +32,6 @@ class Config {
   randomize() {
     // We don't randomize size
     this.sides = Math.floor(Math.random() * 18 + 2);
-    // this.branches = Math.floor(Math.random() * 3 + 2);
-    // this.scaleRatio = Math.random() * 0.2 + 0.4;
     this.spread = Math.random() * 0.6 - 0.3;
     this._colorHue = Math.floor(Math.random() * 360);
     this.lineWidth = Math.floor(Math.random() * 30 + 20);
@@ -56,7 +55,7 @@ class Config {
     const easedValue = Math.sin(this._animationProgress);
 
     // Map eased value to the range [-3.1, 3.1]
-    this.spread = easedValue * 3.1;
+    this.spread = easedValue * 0.3;
 
     if (this._animationProgress >= Math.PI * 2) {
       this._animationProgress -= Math.PI * 2;
@@ -104,7 +103,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const centerY = canvas.height / 2;
 
   // Effect settings
-  const maxLevel = 8;
+  const maxLevel = 10;
+
+  let pointX = 0;
+  let pointY = size;
 
   function drawBranch(level, config) {
     if (level >= maxLevel) {
@@ -112,35 +114,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(config.size, 0);
+    ctx.moveTo(pointX, pointY);
+    ctx.bezierCurveTo(
+      0, config.size * config.spread * -1,
+      config.size * 5, config.size * 10 * config.spread,
+      0, 0
+    );
+
     ctx.stroke();
 
     for (var i = 0; i < config.branches; i++) {
-      ctx.strokeStyle = config.shiftColor(20 * level);
       ctx.save();
-      ctx.translate(config.size - (config.size / config.branches) * i, 0);
-      ctx.scale(config.scaleRatio, config.scaleRatio);
+      ctx.strokeStyle = config.shiftColor(10 * level);
 
-      ctx.save();
+      ctx.translate(pointX, pointY);
+      ctx.scale(config.scaleRatio, config.scaleRatio);
+      // Get a random adjustment between -0.3 and 0.3
       ctx.rotate(config.spread);
       drawBranch(level + 1, config);
-      ctx.restore();
-
-      if (config.symmetric) {
-        ctx.save();
-        ctx.rotate(-config.spread);
-        drawBranch(level + 1, config);
-        ctx.restore();
-      }
 
       ctx.restore();
+
+      ctx.beginPath();
+      ctx.arc(-(config.size) * 0.8, 0, config.size/3, 0, Math.PI * 2);
+      ctx.fillStyle = config.shiftColor(8 * level);
+      ctx.fill();
     }
-
-    ctx.beginPath();
-    ctx.arc(0, config.size, config.size * 0.1, 0, Math.PI * 2);
-    ctx.fillStyle = config.color();
-    ctx.fill();
   }
 
   function drawFractal(config) {
@@ -150,10 +149,10 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.lineWidth = config.lineWidth;
     ctx.strokeStyle = config.color();
     ctx.lineCap = 'round';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetX = 10;
-    ctx.shadowOffsetY = 5;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 20;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
 
     ctx.save();
     ctx.translate(centerX, centerY);
