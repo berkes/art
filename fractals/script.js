@@ -3,11 +3,11 @@
 class Config {
   constructor(size) {
     this.size = size;
-    this.sides = 6;
+    this.sides = 15;
     this.branches = 2;
-    this.scaleRatio = 0.52;
-    this.spread = 0.6;
-    this.lineWidth = 20;
+    this.scaleRatio = 0.85;
+    this.spread = -0.2;
+    this.lineWidth = 30;
     this._colorHue = 120;
     this.symmetric = false;
   }
@@ -30,12 +30,12 @@ class Config {
 
   randomize() {
     // We don't randomize size
-    this.sides = Math.floor(Math.random() * 7 + 2);
-    this.branches = Math.floor(Math.random() * 3 + 2);
-    this.scaleRatio = Math.random() * 0.2 + 0.4;
-    this.spread = Math.random() * 2.9 + 0.1;
-    this.lineWidth = Math.floor(Math.random() * 20 + 10);
+    this.sides = Math.floor(Math.random() * 18 + 2);
+    // this.branches = Math.floor(Math.random() * 3 + 2);
+    // this.scaleRatio = Math.random() * 0.2 + 0.4;
+    this.spread = Math.random() * 0.6 - 0.3;
     this._colorHue = Math.floor(Math.random() * 360);
+    this.lineWidth = Math.floor(Math.random() * 30 + 20);
     this.symmetric = Math.random() > 0.5;
   }
 
@@ -97,14 +97,14 @@ document.addEventListener('DOMContentLoaded', function() {
   canvas.width = window.innerWidth * padRatio;
   canvas.height = window.innerHeight * padRatio;
   canvas.style.backgroundColor = 'black';
-  const size = canvas.width > canvas.height ? canvas.height * 0.25 : canvas.width * 0.25;
+  const size = canvas.width > canvas.height ? canvas.height * 0.1 : canvas.width * 0.1;
 
   // Useful variables
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;
 
   // Effect settings
-  const maxLevel = 5;
+  const maxLevel = 8;
 
   function drawBranch(level, config) {
     if (level >= maxLevel) {
@@ -181,6 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   randomizeButton = document.getElementById('randomize');
   randomizeButton.addEventListener('click', function() {
+    clearInterval(animateCheckbox.dataset.mainAnimInterval);
     config.randomize();
 
     updateSliders(config);
@@ -188,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   resetButton = document.getElementById('reset');
   resetButton.addEventListener('click', function() {
+    clearInterval(animateCheckbox.dataset.mainAnimInterval);
     config = new Config(size);
     updateSliders(config);
     drawFractal(config);
