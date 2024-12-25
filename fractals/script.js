@@ -8,7 +8,7 @@ class Config {
     this.spread = 0.6;
     this.lineWidth = 20;
     this._colorHue = 120;
-    this.symmetric = true;
+    this.symmetric = false;
   }
 
   get(id) {
@@ -42,27 +42,23 @@ class Config {
   }
 
   nextColor() {
-    this._colorHue = (this._colorHue) % 360;
+    this._colorHue = (this._colorHue + 1) % 360;
   }
+
   nextSpread() {
-    this._spreadAnimDirection = this._spreadAnimDirection || 1;
+    // loop between -3.1 and 3.1 and then back. Ease in and out, so near the ends it slows/
+    this._animationProgress = this._animationProgress || 0;
+    this._animationProgress += 0.03;
 
-    if (this.spread >= 3.1) {
-      this._spreadAnimDirection = -1;
-    } else if (this.spread <= -3.1) {
-      this._spreadAnimDirection = 1;
-    }
-    this.spread = (this.spread + (this._spreadAnimDirection * 0.1));
-  }
-  nextScaleRatio() {
-    this._scaleRatioAnimDirection = this._scaleRatioAnimDirection || 1;
+    // Use sine wave for easing (value ranges between -1 and 1)
+    const easedValue = Math.sin(this._animationProgress);
 
-    if (this.scaleRatio >= 0.6) {
-      this._scaleRatioAnimDirection = -1;
-    } else if (this.scaleRatio <= 0.4) {
-      this._scaleRatioAnimDirection = 1;
+    // Map eased value to the range [-3.1, 3.1]
+    this.spread = easedValue * 3.1;
+
+    if (this._animationProgress >= Math.PI * 2) {
+      this._animationProgress -= Math.PI * 2;
     }
-    this.scaleRatio = (this.scaleRatio + this._scaleRatioAnimDirection * 0.01);
   }
 
   clone() {
@@ -75,8 +71,7 @@ class Config {
     clone._colorHue = this._colorHue;
     clone.symmetric = this.symmetric;
 
-    clone._spreadAnimDirection = this._spreadAnimDirection;
-    clone._scaleRatioAnimDirection = this._scaleRatioAnimDirection;
+    clone._animationProgress = this._animationProgress;
 
     return clone;
   }
@@ -85,8 +80,7 @@ class Config {
     const next = this.clone();
     next.nextColor();
     next.nextSpread();
-    next.nextScaleRatio();
-  
+
     return next;
   }
 }
@@ -140,6 +134,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
       ctx.restore();
     }
+
+    ctx.beginPath();
+    ctx.arc(0, size, size * 0.1, 0, Math.PI * 2);
+    ctx.fillStyle = config.color();
+    ctx.fill();
   }
 
   function drawFractal(config) {
