@@ -1,7 +1,8 @@
 // const goldenRatio = 1.61803398875;
 // const scaleRatio = (1-(1/goldenRatio)/branches);
 class Config {
-  constructor() {
+  constructor(size) {
+    this.size = size;
     this.sides = 6;
     this.branches = 2;
     this.scaleRatio = 0.52;
@@ -28,6 +29,7 @@ class Config {
   }
 
   randomize() {
+    // We don't randomize size
     this.sides = Math.floor(Math.random() * 7 + 2);
     this.branches = Math.floor(Math.random() * 3 + 2);
     this.scaleRatio = Math.random() * 0.2 + 0.4;
@@ -62,7 +64,7 @@ class Config {
   }
 
   clone() {
-    const clone = new Config();
+    const clone = new Config(this.size);
     clone.sides = this.sides;
     clone.branches = this.branches;
     clone.scaleRatio = this.scaleRatio;
@@ -95,13 +97,13 @@ document.addEventListener('DOMContentLoaded', function() {
   canvas.width = window.innerWidth * padRatio;
   canvas.height = window.innerHeight * padRatio;
   canvas.style.backgroundColor = 'black';
+  const size = canvas.width > canvas.height ? canvas.height * 0.25 : canvas.width * 0.25;
 
   // Useful variables
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;
 
   // Effect settings
-  const size = canvas.width > canvas.height ? canvas.height * 0.25 : canvas.width * 0.25;
   const maxLevel = 5;
 
   function drawBranch(level, config) {
@@ -111,13 +113,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.lineTo(size, 0);
+    ctx.lineTo(config.size, 0);
     ctx.stroke();
 
     for (var i = 0; i < config.branches; i++) {
       ctx.strokeStyle = config.shiftColor(20 * level);
       ctx.save();
-      ctx.translate(size - (size / config.branches) * i, 0);
+      ctx.translate(config.size - (config.size / config.branches) * i, 0);
       ctx.scale(config.scaleRatio, config.scaleRatio);
 
       ctx.save();
@@ -136,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     ctx.beginPath();
-    ctx.arc(0, size, size * 0.1, 0, Math.PI * 2);
+    ctx.arc(0, config.size, config.size * 0.1, 0, Math.PI * 2);
     ctx.fillStyle = config.color();
     ctx.fill();
   }
@@ -169,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  var config = new Config();
+  var config = new Config(size);
   updateSliders(config);
   drawFractal(config);
 
@@ -182,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   resetButton = document.getElementById('reset');
   resetButton.addEventListener('click', function() {
-    config = new Config();
+    config = new Config(size);
     updateSliders(config);
     drawFractal(config);
   });
