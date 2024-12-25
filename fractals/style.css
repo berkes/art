@@ -30,5 +30,17 @@ button {
 label, input {
   display: block;
   color: white;
+  font-size: 12px;
   margin: 10px;
+}
+.formLine {
+  display: flex;
+  align-items: center;
+}
+
+label:after {
+  content: attr(data-value);
+  display: inline-block;
+  margin-left: 10px;
+  color: white;
 }

@@ -112,15 +112,10 @@ document.addEventListener('DOMContentLoaded', function() {
     sliders.forEach(function(slider) {
       const value = config.get(slider.id);
       const sliderLabel = document.querySelector(`label[for=${slider.id}]`);
-      sliderLabel.value = value;
-      const humanName = sliderLabel.innerText.split(':')[0];
-      if (typeof value === 'float') {
-        humanValue = value.toFixed(2); 
-      } else {
-        humanValue = value;
-      }
+      slider.value = value;
 
-      sliderLabel.innerText = `${humanName}: ${humanValue}`;
+      const humanValue = Number.isInteger(value) ? value : value.toFixed(2);
+      sliderLabel.dataset.value = humanValue;
     });
   }
 
@@ -138,8 +133,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   sliders.forEach(function(slider) {
     slider.addEventListener('change', function() {
-      updateSliders(config);
       config.set(this.id, this.value);
+      updateSliders(config);
       drawFractal(config);
     });
   });
