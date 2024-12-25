@@ -150,6 +150,10 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.lineWidth = config.lineWidth;
     ctx.strokeStyle = config.color();
     ctx.lineCap = 'round';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 10;
+    ctx.shadowOffsetY = 5;
 
     ctx.save();
     ctx.translate(centerX, centerY);
