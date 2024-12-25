@@ -40,6 +40,55 @@ class Config {
   shiftColor(amount) {
     return this.color(this._colorHue + amount);
   }
+
+  nextColor() {
+    this._colorHue = (this._colorHue) % 360;
+  }
+  nextSpread() {
+    this._spreadAnimDirection = this._spreadAnimDirection || 1;
+
+    if (this.spread >= 3.1) {
+      this._spreadAnimDirection = -1;
+    } else if (this.spread <= -3.1) {
+      this._spreadAnimDirection = 1;
+    }
+    this.spread = (this.spread + (this._spreadAnimDirection * 0.1));
+  }
+  nextScaleRatio() {
+    this._scaleRatioAnimDirection = this._scaleRatioAnimDirection || 1;
+
+    if (this.scaleRatio >= 0.6) {
+      this._scaleRatioAnimDirection = -1;
+    } else if (this.scaleRatio <= 0.4) {
+      this._scaleRatioAnimDirection = 1;
+    }
+    this.scaleRatio = (this.scaleRatio + this._scaleRatioAnimDirection * 0.01);
+  }
+
+  clone() {
+    const clone = new Config();
+    clone.sides = this.sides;
+    clone.branches = this.branches;
+    clone.scaleRatio = this.scaleRatio;
+    clone.spread = this.spread;
+    clone.lineWidth = this.lineWidth;
+    clone._colorHue = this._colorHue;
+    clone.symmetric = this.symmetric;
+
+    clone._spreadAnimDirection = this._spreadAnimDirection;
+    clone._scaleRatioAnimDirection = this._scaleRatioAnimDirection;
+
+    return clone;
+  }
+
+  nextFrame() {
+    const next = this.clone();
+    next.nextColor();
+    next.nextSpread();
+    next.nextScaleRatio();
+  
+    return next;
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -145,6 +194,20 @@ document.addEventListener('DOMContentLoaded', function() {
       updateSliders(config);
       drawFractal(config);
     });
+  });
+
+  const animateCheckbox = document.getElementById('animate');
+  animateCheckbox.addEventListener('change', function() {
+    if (this.checked) {
+      var interval = setInterval(function() {
+        config = config.nextFrame();
+        updateSliders(config);
+        drawFractal(config);
+      }, 100);
+      this.dataset.interval = interval;
+    } else {
+      clearInterval(this.dataset.interval);
+    }
   });
 
   window.addEventListener('resize', function() {
