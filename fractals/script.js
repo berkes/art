@@ -197,13 +197,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  function nextAnimationFrame() {
+    config = config.nextFrame();
+    updateSliders(config);
+    drawFractal(config);
+  }
+
   const animateCheckbox = document.getElementById('animate');
   animateCheckbox.addEventListener('change', function() {
     if (this.checked) {
       var interval = setInterval(function() {
-        config = config.nextFrame();
-        updateSliders(config);
-        drawFractal(config);
+        requestAnimationFrame(nextAnimationFrame);
       }, 100);
       this.dataset.interval = interval;
     } else {
