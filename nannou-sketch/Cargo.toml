@@ -1,0 +1,8 @@
+[package]
+name = "nannou-sketch"
+version = "0.1.0"
+authors = ["Bèr Kessels <ber@berk.es>"]
+edition = "2021"
+
+[dependencies]
+nannou = "0.19"
