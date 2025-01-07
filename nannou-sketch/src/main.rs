@@ -1,4 +1,4 @@
-use nannou::prelude::*;
+use nannou::{prelude::*, rand::{seq::SliceRandom, thread_rng}};
 
 fn main() {
     nannou::app(model)
@@ -8,8 +8,6 @@ fn main() {
         .run();
 }
 
-const NUM_DOTS: usize = 1000;
-
 /// Things that can be drawn on the screen.
 trait Nannou {
     fn view(&self, draw: &Draw);
@@ -18,87 +16,88 @@ trait Nannou {
 
 struct Model {
     bg_color: Srgb<u8>,
-    current_bg: usize,
-    dots: Vec<Dot>,
+    seed_segment: Segment,
 }
 
 impl Default for Model {
     fn default() -> Self {
         Self {
-            bg_color: HONEYDEW,
-            current_bg: usize::default(),
-            dots: Model::init_dots(),
+            bg_color: Srgb::new(255, 255, 255),
+            seed_segment: Segment::new(200.0, 20.0, 10, false),
         }
     }
 }
 
 impl Nannou for Model {
     fn update(&mut self) {
-        self.dots.iter_mut().for_each(|d| d.update());
+        let angles = [0.0, 8.0 / PI,  7.0 / PI, 6.0 / PI];
+        for angle in angles {
+            self.seed_segment = Segment::new(200.0, angle / PI, 10, false)
+        }
     }
 
     fn view(&self, draw: &Draw) {
         draw.background().color(self.bg_color);
-        self.dots.iter().for_each(|d| d.view(draw));
+        self.seed_segment.view(draw);
     }
 }
 
-impl Model {
-    fn init_dots() -> Vec<Dot> {
-        let mut dots = Vec::with_capacity(NUM_DOTS);
-        for _ in 0..NUM_DOTS {
-            let x = random_range(-500.0, 500.0);
-            let y = random_range(-500.0, 500.0);
-            dots.push(Dot::new(pt2(x, y)));
-        }
-        dots
-    }
-}
-
-/// A circle with a position, radius, and color.
+/// A simple line segment.
 #[derive(Debug, Clone, Copy)]
-struct Dot {
-    color: Srgb<u8>,
-    origin: Point2,
-    radius: f32,
-    max_radius: f32,
-    growth_rate: f32,
+struct Line {
+    start: Point2,
+    end: Point2,
 }
 
-impl Dot {
-    fn new(point: Point2) -> Self {
-        Self {
-            origin: point,
-            ..Default::default()
-        }
-    }
+/// A seed segment that's the seed for a mandala.
+#[derive(Debug, Clone)]
+struct Segment {
+    lines: Vec<Line>,
+    connected_points: Vec<Point2>,
 }
 
-impl Nannou for Dot {
-    fn update(&mut self) {
-        if self.radius < self.max_radius {
-            self.radius += self.growth_rate;
-        } else {
-            self.radius = 0.0;
-        }
-    }
-
+impl Nannou for Segment {
     fn view(&self, draw: &Draw) {
-        draw.ellipse()
-            .x_y(self.origin.x, self.origin.y)
-            .radius(self.radius)
-            .color(self.color);
+        for line in &self.lines {
+            draw.line()
+                .start(line.start)
+                .end(line.end)
+                .color(BLACK);
+        }
+
+        draw.polyline()
+            .weight(1.0)
+            .points(self.connected_points.iter().cloned())
+            .color(GRAY);
+    }
+
+    fn update(&mut self) {
+        // noop
     }
 }
 
-impl Default for Dot {
-    fn default() -> Self {
+impl Segment {
+    fn new(radius: f32, angle: f32, n: usize, keep_grid_points: bool) -> Self {
+        let mut lines = Vec::new();
+        let mut points = Vec::new();
+
+        for r in 0..=n {
+            let factor = r as f32 / n as f32;
+            let start = pt2(radius * factor * angle.cos(), radius * factor * angle.sin());
+            let end = pt2(radius * factor, 0.0);
+            lines.push(Line { start, end });
+            points.push(start);
+            points.push(end);
+        }
+        let connected_points = if keep_grid_points {
+            points.clone()
+        } else {
+            points.shuffle(&mut thread_rng());
+            points.clone()
+        };
         Self {
-            color: STEELBLUE,
-            origin: Point2::default(),
-            radius: 10.0,
-            max_radius: 200.0,
-            growth_rate: 1.0,
+            lines,
+            connected_points,
         }
     }
 }

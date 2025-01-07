@@ -1,4 +1,4 @@
-use nannou::noise::{BasicMulti, NoiseFn, Seedable};
+use nannou::noise::{BasicMulti, MultiFractal, NoiseFn, Seedable};
 use nannou::prelude::*;
 
 fn main() {
@@ -16,8 +16,6 @@ struct Model {
 
 impl Model {
     fn new(layers: Vec<Layer>) -> Self {
-        // let foreground = rgb(0.855, 0.31, 0.671);
-        // let background = rgb(0.439, 0.039, 0.467);
         let background = SKYBLUE;
         Self {
             layers,
@@ -54,7 +52,7 @@ impl Viewable for Model {
 
 struct Layer {
     z: u8,
-    color: Hsl,
+    color: Hsla,
     points: Vec<Point2>,
     point_idx: usize,
     noise: BasicMulti,
@@ -63,8 +61,9 @@ struct Layer {
 impl Layer {
     fn new(z: u8, width: usize, height: f32) -> Self {
         let noise = BasicMulti::new();
-        let noise = noise.set_seed(z as u32);
-        // let noise = noise.set_octaves(map_range(z as f64, 0.0, 6.0, 6, 3));
+        let seed = random_range(0, 1000);
+        let noise = noise.set_seed(seed);
+        let noise = noise.set_octaves(map_range(z as f64, 0.0, 6.0, 6, 4));
 
         // Make the foreground fill color washed out based on the layer number, z.
         // layer 0 is the closest to the viewer, so it should be the most saturated
@@ -89,7 +88,7 @@ impl Layer {
             points: vec![],
             point_idx,
             noise,
-            color: *color,
+            color,
         };
 
         for _i in 0..width {
@@ -145,13 +144,19 @@ impl Viewable for Layer {
     }
 }
 
-const NUM_LAYERS: u8 = 6;
+const NUM_LAYERS: u8 = 9;
 const NOISE_STEP: f64 = 500.;
+const PERSPECTIVE: f32 = 800.0;
 
 fn model(app: &App) -> Model {
     let win_rect = app.window_rect();
     let layers = (0..NUM_LAYERS)
-        .map(|i| Layer::new(i, win_rect.w() as usize, win_rect.h()))
+        .map(|i| {
+            // Adjust height based on layer number, so that the farthest layer is shorter and
+            // higher up on the screen
+            let height = map_range(i as f32, 0.0, NUM_LAYERS as f32, win_rect.h() + PERSPECTIVE, (win_rect.h() * 0.8) + PERSPECTIVE);
+            Layer::new(i, win_rect.w() as usize, height)
+        })
         .collect();
     Model::new(layers)
 }
@@ -176,13 +181,13 @@ fn update(app: &App, model: &mut Model, _update: Update) {
 
 const BASE_FREQUENCY: usize = 1;
 const FREQUENCY_MULTIPLIER: usize = 2; // Multiplier for each subsequent layer
-fn should_add_point(layer_index: usize, elapsed_frames: usize) -> bool {
-    // Calculate the frame interval for the layer
-    let frame_interval = BASE_FREQUENCY * FREQUENCY_MULTIPLIER.pow(layer_index as u32);
-    // Add a point if the elapsed frames are divisible by the interval
-    elapsed_frames % frame_interval == 0
-}
-
+// fn should_add_point(layer_index: usize, elapsed_frames: usize) -> bool {
+//     // Calculate the frame interval for the layer
+//     let frame_interval = BASE_FREQUENCY * FREQUENCY_MULTIPLIER.pow(layer_index as u32);
+//     // Add a point if the elapsed frames are divisible by the interval
+//     elapsed_frames % frame_interval == 0
+// }
+//
 
 fn view(app: &App, model: &Model, frame: Frame) {
     // set up containing rectangles
