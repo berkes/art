@@ -10,6 +10,7 @@ license = "MIT"
 
 [dependencies]
 nannou = "0.19"
+chrono = "0.4"
 
 [lib]
 
