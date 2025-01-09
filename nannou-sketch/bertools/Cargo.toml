@@ -1,0 +1,15 @@
+[package]
+name = "bertools"
+version = "0.1.0"
+authors = ["Bèr Kessels <ber@berk.es>"]
+edition = "2021"
+
+description = "Art experiments: Bèrs Shared Libs"
+keywords = ["creative", "sketch", "graphics", "art"]
+license = "MIT"
+
+[dependencies]
+nannou = "0.19"
+
+[lib]
+

@@ -1,8 +1,9 @@
-[package]
-name = "nannou-sketch"
-version = "0.1.0"
-authors = ["Bèr Kessels <ber@berk.es>"]
-edition = "2021"
+[workspace]
+members = [
+  "bertools",
+  "perlin",
+  "maze-ish-round"
+]
 
-[dependencies]
-nannou = "0.19"
+resolver = "2"
+
