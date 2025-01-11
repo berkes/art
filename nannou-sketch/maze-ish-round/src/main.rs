@@ -51,21 +51,42 @@ struct Model {
 struct Tile {
     line_color: Hsla,
     orientation: f32,
+    resolution: usize,
+    tile_size: f32,
 }
 
 impl Default for Model {
     fn default() -> Self {
+        let n_tiles = 2000;
+
         let mut rng = thread_rng();
-        let angles = [0., 90., 180., 270.];
-        let tiles = (0..N_TILES)
-            .map(|_| Tile {
-                orientation: *angles.choose(&mut rng).unwrap(),
-                line_color: Hsla::new(100., 0.5, 0.1, 1.),
-            })
-            .collect();
+        let orientation = [0., 90.].choose(&mut rng).unwrap();
+        let tiles = (0..n_tiles).map(|_| Tile::new(*orientation)).collect();
+
         Self {
-            background_color: Hsla::new(200., 0.0, 0.9, 1.),
+            background_color: hsla(0., 0., 0.92, 1.0),
             tiles,
+        }
+    }
+}
+
+impl Default for Tile {
+    fn default() -> Self {
+        Self {
+            line_color: hsla(210., 0.25, 0.14, 1.0),
+            orientation: 0.,
+            resolution: 100,
+            tile_size: 100.,
+            points: Vec::default(),
+        }
+    }
+}
+
+impl Tile {
+    fn new(orientation: f32) -> Self {
+        Self {
+            orientation,
+            ..Self::default()
         }
     }
 }
@@ -73,14 +94,22 @@ impl Default for Model {
 impl Nannou for Model {
     fn view(&self, app: &App, draw: &Draw) {
         draw.background().color(self.background_color);
-        let row_size = (app.window_rect().w() / TILE_SIZE) + 1.;
+
+        let tile_size = self.tiles[0].tile_size;
+        let row_size = (app.window_rect().w() / tile_size) + 1.;
+
+        let max_rows = (app.window_rect().h() / tile_size) as u32;
+
         self.tiles
             .chunks(row_size as usize)
             .enumerate()
             .for_each(|(i, row)| {
-                let draw = draw.y(i as f32 * -TILE_SIZE);
+                if i as u32 > max_rows {
+                    return;
+                }
+                let draw = draw.y(i as f32 * -tile_size);
                 row.iter().enumerate().for_each(|(j, tile)| {
-                    let draw = draw.x(j as f32 * TILE_SIZE);
+                    let draw = draw.x(j as f32 * tile_size);
                     tile.view(app, &draw);
                 });
             });
@@ -91,27 +120,24 @@ impl Nannou for Model {
     }
 }
 
-const N_TILES: usize = 1000;
-const RESOLUTION: usize = 300;
-const TILE_SIZE: f32 = 60.;
-
 impl Nannou for Tile {
     fn view(&self, _app: &App, draw: &Draw) {
-        let half_tile: f32 = TILE_SIZE / 2.;
+        let half_tile: f32 = self.tile_size / 2.;
         // Move the tile to the left
         // Rotate around the center of the tile
         let draw = draw.rotate(deg_to_rad(self.orientation));
 
-        let ellipse_center = pt2(0., -half_tile);
+        let bottom_left = pt2(-half_tile, -half_tile);
+        let top_right = pt2(half_tile, half_tile);
 
-        let radius = TILE_SIZE / 2.;
+        let radius = self.tile_size / 2.;
         let start_angle = deg_to_rad(0.);
-        let end_angle = deg_to_rad(180.);
+        let end_angle = deg_to_rad(90.);
 
-        let points = (0..=RESOLUTION).map(|i| {
-            let t = map_range(i, 0, RESOLUTION, start_angle, end_angle);
-            let x = ellipse_center.x + t.cos() * radius;
-            let y = ellipse_center.y + t.sin() * radius;
+        let points = (0..=self.resolution).map(|i| {
+            let t = map_range(i, 0, self.resolution, start_angle, end_angle);
+            let x = bottom_left.x + t.cos() * radius;
+            let y = bottom_left.y + t.sin() * radius;
 
             pt2(x, y)
         });
@@ -121,31 +147,22 @@ impl Nannou for Tile {
             .points(points)
             .color(self.line_color);
 
-        draw.ellipse()
-            .x_y(ellipse_center.x, ellipse_center.y)
-            .radius(TILE_SIZE / 8.)
-            .color(LIGHTPINK);
-        draw.ellipse()
-            .x_y(ellipse_center.x, ellipse_center.y)
-            .radius(TILE_SIZE / 16.)
-            .color(PINK);
+        let start_angle = deg_to_rad(180.);
+        let end_angle = deg_to_rad(270.);
 
-        // draw.polyline()
-        //     .weight(2.)
-        //     .points(vec![
-        //         pt2(ellipse_center.x, ellipse_center.y + radius),
-        //         ellipse_center,
-        //         pt2(ellipse_center.x + radius, ellipse_center.y),
-        //     ])
-        //      .color(RED);
+        let points = (0..=self.resolution).map(|i| {
+            let t = map_range(i, 0, self.resolution, start_angle, end_angle);
+            let x = top_right.x + t.cos() * radius;
+            let y = top_right.y + t.sin() * radius;
 
-        // draw.rect()
-        //     .w_h(TILE_SIZE, TILE_SIZE)
-        //     .no_fill()
-        //     .stroke_color(self.line_color).stroke_weight(2.);
+            pt2(x, y)
+        });
+
+        draw.polyline()
+            .weight(2.)
+            .points(points)
+            .color(self.line_color);
     }
 
-    fn update(&mut self) {
-        // self.orientation += 2.;
-    }
+    fn update(&mut self) {}
 }
