@@ -9,20 +9,32 @@ use bertools::Nannou;
 fn main() {
     nannou::app(model)
         .update(update)
-        .simple_window(view)
         .event(event)
+        .loop_mode(LoopMode::Wait)
         .run();
 }
 
-fn model(_app: &App) -> Model {
+fn model(app: &App) -> Model {
+    let _window = app
+        .new_window()
+        .title("Bers tile pattern")
+        .size(800, 800)
+        .view(view)
+        .build()
+        .unwrap();
+
     Model::default()
 }
 
-fn event(app: &App, _model: &mut Model, event: Event) {
+fn event(app: &App, model: &mut Model, event: Event) {
     match event {
         Event::WindowEvent { id: _id, simple } => {
             if let Some(KeyPressed(Key::S)) = simple {
                 do_save(app);
+            }
+
+            if let Some(KeyPressed(Key::Space)) = simple {
+                do_resize(model);
             }
         }
         _ => (),
@@ -37,6 +49,20 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
     model.view(app, &draw);
     draw.to_frame(app, &frame).unwrap();
+}
+
+fn do_resize(model: &mut Model) {
+    let sizes = vec![800., 400., 200., 100., 50., 25.];
+
+    let current_size = model.tiles[0].tile_size;
+    let next_size = sizes
+        .iter()
+        .find(|&&s| s < current_size)
+        .unwrap_or(&sizes.first().unwrap());
+
+    model.tiles.iter_mut().for_each(|t| {
+        t.tile_size = *next_size;
+    });
 }
 
 struct Model {
@@ -78,7 +104,7 @@ impl Default for Tile {
             line_color: hsla(210., 0.25, 0.14, 1.0),
             orientation: 0.,
             resolution: 100,
-            tile_size: 25.,
+            tile_size: 800.,
         }
     }
 }
