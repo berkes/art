@@ -60,8 +60,11 @@ impl Default for Model {
         let n_tiles = 2000;
 
         let mut rng = thread_rng();
-        let orientation = [0., 90.].choose(&mut rng).unwrap();
-        let tiles = (0..n_tiles).map(|_| Tile::new(*orientation)).collect();
+        let orientations = [0., 90.,];
+        let tiles = (0..n_tiles).map(|_| {
+            let orientation = orientations.choose(&mut rng).unwrap();
+            Tile::new(*orientation)
+        }).collect();
 
         Self {
             background_color: hsla(0., 0., 0.92, 1.0),
@@ -77,7 +80,6 @@ impl Default for Tile {
             orientation: 0.,
             resolution: 100,
             tile_size: 100.,
-            points: Vec::default(),
         }
     }
 }
