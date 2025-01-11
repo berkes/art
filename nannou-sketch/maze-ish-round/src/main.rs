@@ -35,9 +35,6 @@ fn update(_app: &App, model: &mut Model, _update: Update) {
 
 fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
-    // Move to top-left
-    let top_left = app.window_rect().top_left();
-    let draw = draw.xy(top_left);
     model.view(app, &draw);
     draw.to_frame(app, &frame).unwrap();
 }
@@ -57,14 +54,16 @@ struct Tile {
 
 impl Default for Model {
     fn default() -> Self {
-        let n_tiles = 2000;
+        let n_tiles = 3000;
 
         let mut rng = thread_rng();
-        let orientations = [0., 90.,];
-        let tiles = (0..n_tiles).map(|_| {
-            let orientation = orientations.choose(&mut rng).unwrap();
-            Tile::new(*orientation)
-        }).collect();
+        let orientations = [0., 90.];
+        let tiles = (0..n_tiles)
+            .map(|_| {
+                let orientation = orientations.choose(&mut rng).unwrap();
+                Tile::new(*orientation)
+            })
+            .collect();
 
         Self {
             background_color: hsla(0., 0., 0.92, 1.0),
@@ -79,7 +78,7 @@ impl Default for Tile {
             line_color: hsla(210., 0.25, 0.14, 1.0),
             orientation: 0.,
             resolution: 100,
-            tile_size: 100.,
+            tile_size: 25.,
         }
     }
 }
@@ -95,22 +94,33 @@ impl Tile {
 
 impl Nannou for Model {
     fn view(&self, app: &App, draw: &Draw) {
+        let tile_size = self
+            .tiles
+            .iter()
+            .map(|t| t.tile_size as usize)
+            .max()
+            .unwrap() as f32;
+
+        // Move to top-left
+        let top_left = app.window_rect().top_left();
+        let draw = draw.xy(top_left - vec2(tile_size / 2., -tile_size / 2.));
+
         draw.background().color(self.background_color);
 
-        let tile_size = self.tiles[0].tile_size;
-        let row_size = (app.window_rect().w() / tile_size) + 1.;
-
-        let max_rows = (app.window_rect().h() / tile_size) as u32;
+        let row_size = (app.window_rect().w() / tile_size) + 2.; // Add 2 to make sure we cover the whole window
+        let max_rows = (app.window_rect().h() / tile_size) + 1.; // Add 1 to make sure we cover the whole window
 
         self.tiles
             .chunks(row_size as usize)
             .enumerate()
             .for_each(|(i, row)| {
-                if i as u32 > max_rows {
+                if i > max_rows as usize {
                     return;
                 }
+                // Move the row down one tile
                 let draw = draw.y(i as f32 * -tile_size);
                 row.iter().enumerate().for_each(|(j, tile)| {
+                    // Move the tile to the right
                     let draw = draw.x(j as f32 * tile_size);
                     tile.view(app, &draw);
                 });
