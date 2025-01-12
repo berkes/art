@@ -3,6 +3,8 @@ use nannou::{
     rand::{seq::SliceRandom, thread_rng},
 };
 
+mod models;
+use crate::models::{Model, Tile};
 use bertools::do_save;
 use bertools::Nannou;
 
@@ -65,35 +67,13 @@ fn do_resize(model: &mut Model) {
     });
 }
 
-struct Model {
-    background_color: Hsla,
-    tiles: Vec<Tile>,
-}
-
-#[derive(Debug)]
-struct Tile {
-    line_color: Hsla,
-    orientation: f32,
-    resolution: usize,
-    tile_size: f32,
-}
-
 impl Default for Model {
     fn default() -> Self {
         let n_tiles = 3000;
 
-        let mut rng = thread_rng();
-        let orientations = [0., 90.];
-        let tiles = (0..n_tiles)
-            .map(|_| {
-                let orientation = orientations.choose(&mut rng).unwrap();
-                Tile::new(*orientation)
-            })
-            .collect();
-
         Self {
             background_color: hsla(0., 0., 0.92, 1.0),
-            tiles,
+            tiles: Tile::n_instances(n_tiles),
         }
     }
 }
@@ -103,18 +83,58 @@ impl Default for Tile {
         Self {
             line_color: hsla(210., 0.25, 0.14, 1.0),
             orientation: 0.,
-            resolution: 100,
             tile_size: 800.,
+            resolution: 100,
         }
     }
 }
 
 impl Tile {
-    fn new(orientation: f32) -> Self {
-        Self {
-            orientation,
-            ..Self::default()
-        }
+    fn n_instances(n: usize) -> Vec<Self> {
+        let mut rng = thread_rng();
+        let orientations = [0., 90.];
+        (0..n)
+            .map(|_| {
+                let orientation = orientations.choose(&mut rng).unwrap();
+                Tile::new(*orientation)
+            })
+            .collect()
+    }
+
+    fn generate_points(tile_size: f32, resolution: usize) -> Vec<Vec<Point2>> {
+        let half_tile: f32 = tile_size / 2.;
+
+        let bottom_left = pt2(-half_tile, -half_tile);
+        let top_right = pt2(half_tile, half_tile);
+
+        let radius = tile_size / 2.;
+        let start_angle = deg_to_rad(0.);
+        let end_angle = deg_to_rad(90.);
+
+        let bottom_left_points = (0..=resolution)
+            .map(|i| {
+                let t = map_range(i, 0, resolution, start_angle, end_angle);
+                let x = bottom_left.x + t.cos() * radius;
+                let y = bottom_left.y + t.sin() * radius;
+
+                pt2(x, y)
+            })
+            .collect();
+
+        let start_angle = deg_to_rad(180.);
+        let end_angle = deg_to_rad(270.);
+
+        let top_right_points = (0..=resolution)
+            .map(|i| {
+                let t = map_range(i, 0, resolution, start_angle, end_angle);
+                let x = top_right.x + t.cos() * radius;
+                let y = top_right.y + t.sin() * radius;
+
+                pt2(x, y)
+            })
+            .collect();
+
+        vec![bottom_left_points, top_right_points]
     }
 }
 
@@ -132,9 +152,10 @@ impl Nannou for Model {
         let draw = draw.xy(top_left - vec2(tile_size / 2., -tile_size / 2.));
 
         draw.background().color(self.background_color);
-
-        let row_size = (app.window_rect().w() / tile_size) + 2.; // Add 2 to make sure we cover the whole window
-        let max_rows = (app.window_rect().h() / tile_size) + 1.; // Add 1 to make sure we cover the whole window
+        // Add 2 to make sure we cover the whole window
+        let row_size = (app.window_rect().w() / tile_size) + 2.;
+        // Add 1 to make sure we cover the whole window
+        let max_rows = (app.window_rect().h() / tile_size) + 1.;
 
         self.tiles
             .chunks(row_size as usize)
@@ -160,46 +181,14 @@ impl Nannou for Model {
 
 impl Nannou for Tile {
     fn view(&self, _app: &App, draw: &Draw) {
-        let half_tile: f32 = self.tile_size / 2.;
-        // Move the tile to the left
         // Rotate around the center of the tile
         let draw = draw.rotate(deg_to_rad(self.orientation));
-
-        let bottom_left = pt2(-half_tile, -half_tile);
-        let top_right = pt2(half_tile, half_tile);
-
-        let radius = self.tile_size / 2.;
-        let start_angle = deg_to_rad(0.);
-        let end_angle = deg_to_rad(90.);
-
-        let points = (0..=self.resolution).map(|i| {
-            let t = map_range(i, 0, self.resolution, start_angle, end_angle);
-            let x = bottom_left.x + t.cos() * radius;
-            let y = bottom_left.y + t.sin() * radius;
-
-            pt2(x, y)
-        });
-
-        draw.polyline()
-            .weight(2.)
-            .points(points)
-            .color(self.line_color);
-
-        let start_angle = deg_to_rad(180.);
-        let end_angle = deg_to_rad(270.);
-
-        let points = (0..=self.resolution).map(|i| {
-            let t = map_range(i, 0, self.resolution, start_angle, end_angle);
-            let x = top_right.x + t.cos() * radius;
-            let y = top_right.y + t.sin() * radius;
-
-            pt2(x, y)
-        });
-
-        draw.polyline()
-            .weight(2.)
-            .points(points)
-            .color(self.line_color);
+        for points in Self::generate_points(self.tile_size, self.resolution) {
+            draw.polyline()
+                .weight(2.)
+                .points(points.iter().cloned())
+                .color(self.line_color);
+        }
     }
 
     fn update(&mut self) {}
