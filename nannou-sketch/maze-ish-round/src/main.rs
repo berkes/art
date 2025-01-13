@@ -1,12 +1,34 @@
-use nannou::{
-    prelude::*,
-    rand::{seq::SliceRandom, thread_rng},
-};
+use models::TileType;
+use nannou::prelude::*;
 
 mod models;
 use crate::models::{Model, Tile};
 use bertools::do_save;
 use bertools::Nannou;
+
+impl Default for Model {
+    fn default() -> Self {
+        let n_tiles = 3000;
+        let background_color = hsla(0., 0., 0.92, 1.0);
+
+        Self {
+            background_color,
+            tiles: Tile::n_instances(n_tiles),
+        }
+    }
+}
+
+impl Default for Tile {
+    fn default() -> Self {
+        Self {
+            line_color: hsla(0., 0.15, 0.14, 1.0),
+            orientation: 0,
+            tile_size: 800.,
+            resolution: 100,
+            tile_type: TileType::Rounded,
+        }
+    }
+}
 
 fn main() {
     nannou::app(model)
@@ -67,27 +89,6 @@ fn do_resize(model: &mut Model) {
     });
 }
 
-impl Default for Model {
-    fn default() -> Self {
-        let n_tiles = 3000;
-
-        Self {
-            background_color: hsla(0., 0., 0.92, 1.0),
-            tiles: Tile::n_instances(n_tiles),
-        }
-    }
-}
-
-impl Default for Tile {
-    fn default() -> Self {
-        Self {
-            line_color: hsla(210., 0.25, 0.14, 1.0),
-            orientation: 0.,
-            tile_size: 800.,
-            resolution: 100,
-        }
-    }
-}
 
 impl Tile {
     fn n_instances(n: usize) -> Vec<Self> {
