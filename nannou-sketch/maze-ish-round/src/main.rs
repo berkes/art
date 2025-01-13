@@ -60,6 +60,22 @@ fn event(app: &App, model: &mut Model, event: Event) {
             if let Some(KeyPressed(Key::Space)) = simple {
                 do_resize(model);
             }
+
+            if let Some(KeyPressed(Key::T)) = simple {
+                model.tiles.iter_mut().for_each(|t| {
+                    t.tile_type = match t.tile_type {
+                        TileType::Rounded => TileType::StraightEdge,
+                        TileType::StraightEdge => TileType::Chamfered,
+                        TileType::Chamfered => TileType::Rounded,
+                    };
+                });
+            }
+
+            if let Some(KeyPressed(Key::R)) = simple {
+                model.tiles.iter_mut().for_each(|t| {
+                    t.orientation = random_range(0, 2);
+                });
+            }
         }
         _ => (),
     }
@@ -92,17 +108,15 @@ fn do_resize(model: &mut Model) {
 
 impl Tile {
     fn n_instances(n: usize) -> Vec<Self> {
-        let mut rng = thread_rng();
-        let orientations = [0., 90.];
         (0..n)
             .map(|_| {
-                let orientation = orientations.choose(&mut rng).unwrap();
-                Tile::new(*orientation)
+                let orientation = random_range(0, 2);
+                Tile::new(orientation)
             })
             .collect()
     }
 
-    fn generate_points(tile_size: f32, resolution: usize) -> Vec<Vec<Point2>> {
+    fn halve_circles(tile_size: f32, resolution: usize) -> Vec<Vec<Point2>> {
         let half_tile: f32 = tile_size / 2.;
 
         let bottom_left = pt2(-half_tile, -half_tile);
@@ -134,6 +148,34 @@ impl Tile {
                 pt2(x, y)
             })
             .collect();
+
+        vec![bottom_left_points, top_right_points]
+    }
+
+    fn straight_edge(tile_size: f32, _resolution: usize) -> Vec<Vec<Point2>> {
+        let half_tile: f32 = tile_size / 2.;
+
+        let bottom_left_points = vec![pt2(0., -half_tile), pt2(-half_tile, 0.)];
+        let top_right_points = vec![pt2(half_tile, 0.), pt2(0., half_tile)];
+
+        vec![bottom_left_points, top_right_points]
+    }
+
+    fn chamfered(tile_size: f32, _resolution: usize) -> Vec<Vec<Point2>> {
+        let half_tile: f32 = tile_size / 2.;
+
+        let bottom_left_points = vec![
+            pt2(0., -half_tile),
+            pt2(0., -half_tile / 2.),
+            pt2(-half_tile / 2., 0.),
+            pt2(-half_tile, 0.),
+        ];
+        let top_right_points = vec![
+            pt2(half_tile, 0.),
+            pt2(half_tile / 2., 0.),
+            pt2(0., half_tile / 2.),
+            pt2(0., half_tile),
+        ];
 
         vec![bottom_left_points, top_right_points]
     }
@@ -183,10 +225,16 @@ impl Nannou for Model {
 impl Nannou for Tile {
     fn view(&self, _app: &App, draw: &Draw) {
         // Rotate around the center of the tile
-        let draw = draw.rotate(deg_to_rad(self.orientation));
-        for points in Self::generate_points(self.tile_size, self.resolution) {
+        let draw = draw.rotate(deg_to_rad(self.orientation as f32 * 90.));
+        let lines = match self.tile_type {
+            TileType::Rounded => Self::halve_circles(self.tile_size, self.resolution),
+            TileType::StraightEdge => Self::straight_edge(self.tile_size, self.resolution),
+            TileType::Chamfered => Self::chamfered(self.tile_size, self.resolution),
+        };
+
+        for points in lines {
             draw.polyline()
-                .weight(2.)
+                .weight(3.0)
                 .points(points.iter().cloned())
                 .color(self.line_color);
         }
