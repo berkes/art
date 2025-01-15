@@ -2,7 +2,8 @@
 members = [
   "bertools",
   "perlin",
-  "maze-ish-round"
+  "maze-ish-round",
+  "mandala",
 ]
 
 resolver = "2"
