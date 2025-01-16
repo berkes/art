@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "bertools",
+  "boobies",
   "perlin",
   "maze-ish-round",
   "mandala",
