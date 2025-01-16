@@ -1,4 +1,8 @@
+use nannou::geom;
+use nannou::lyon;
 use nannou::prelude::*;
+use nannou::rand::seq::SliceRandom;
+use nannou::rand::thread_rng;
 
 mod models;
 use crate::models::Model;
@@ -20,7 +24,8 @@ fn main() {
     nannou::app(model)
         .update(update)
         .event(event)
-        .loop_mode(LoopMode::refresh_sync())
+        // .loop_mode(LoopMode::refresh_sync())
+        .loop_mode(LoopMode::Wait)
         .run();
 }
 
@@ -42,6 +47,7 @@ fn event(app: &App, _model: &mut Model, event: Event) {
             if let Some(KeyPressed(Key::S)) = simple {
                 do_save(app);
             }
+            if let Some(KeyPressed(Key::R)) = simple {}
         }
         _ => (),
     }
@@ -57,31 +63,59 @@ fn view(app: &App, model: &Model, frame: Frame) {
     draw.to_frame(app, &frame).unwrap();
 }
 
+const ANGLE: f32 = 15.;
+
 impl Nannou for Model {
     fn view(&self, _app: &App, draw: &Draw) {
         draw.background().color(self.background_color);
 
-        let start = Point2::new(-200.0, 0.0);
-        let end = Point2::new(200.0, 0.0);
-        let path = self.bezier_curve(start, self.ctrl1, self.ctrl2, end);
-        draw.path()
-            .stroke()
-            .tolerance(0.001)
-            .weight(self.stroke_width)
-            .color(BLACK)
-            .events(path.iter());
+        // Draw the slice
+        let slice = self.slice(pt2(0., 0.), ANGLE, 200.0);
 
-        // Debug: Draw the control points, and the lines to the curve
-        draw.ellipse()
-            .x_y(self.ctrl1.x, self.ctrl1.y)
-            .radius(5.0)
-            .color(RED);
-        draw.line().start(start).end(self.ctrl1).color(PINK);
-        draw.ellipse()
-            .x_y(self.ctrl2.x, self.ctrl2.y)
-            .radius(5.0)
-            .color(RED);
-        draw.line().start(end).end(self.ctrl2).color(PINK);
+        // mirror the slice
+        let mirrored_slice = slice
+            .into_iter()
+            .map(|evt| match evt {
+                lyon::path::Event::Begin { at } => lyon::path::Event::Begin {
+                    at: pt2(at.x, -at.y).to_array().into(),
+                },
+                lyon::path::Event::Line { from, to } => lyon::path::Event::Line {
+                    from: pt2(from.x, -from.y).to_array().into(),
+                    to: pt2(to.x, -to.y).to_array().into(),
+                },
+                lyon::path::Event::Cubic {
+                    from,
+                    ctrl1,
+                    ctrl2,
+                    to,
+                } => lyon::path::Event::Cubic {
+                    from: pt2(from.x, -from.y).to_array().into(),
+                    ctrl1: pt2(ctrl1.x, -ctrl1.y).to_array().into(),
+                    ctrl2: pt2(ctrl2.x, -ctrl2.y).to_array().into(),
+                    to: pt2(to.x, -to.y).to_array().into(),
+                },
+                lyon::path::Event::End { last, first, close } => lyon::path::Event::End {
+                    last: pt2(last.x, -last.y).to_array().into(),
+                    first: pt2(first.x, -first.y).to_array().into(),
+                    close,
+                },
+                lyon::path::Event::Quadratic { from, ctrl, to } => lyon::path::Event::Quadratic {
+                    from: pt2(from.x, -from.y).to_array().into(),
+                    ctrl: pt2(ctrl.x, -ctrl.y).to_array().into(),
+                    to: pt2(to.x, -to.y).to_array().into(),
+                },
+            })
+            .collect::<Vec<_>>();
+
+        let _ = (0..(360./ANGLE) as usize).map(|i| {
+            let draw = draw.rotate(deg_to_rad(i as f32 * ANGLE));
+
+            draw.polygon().events(slice.into_iter()).color(STEELBLUE);
+            draw.polygon()
+                .events(mirrored_slice.clone().into_iter())
+                .color(STEELBLUE);
+        }).collect::<Vec<_>>();
+
     }
 
     fn update(&mut self) {}
@@ -94,14 +128,45 @@ impl Model {
         ctrl1: Point2,
         ctrl2: Point2,
         end: Point2,
-    ) -> nannou::geom::Path {
-        let mut builder = nannou::geom::path::Builder::new().with_svg();
+    ) -> nannou::lyon::path::builder::WithSvg<geom::path::Builder> {
+        let mut builder = geom::path::Builder::new().with_svg();
         builder.move_to(start.to_array().into());
         builder.cubic_bezier_to(
             ctrl1.to_array().into(),
             ctrl2.to_array().into(),
             end.to_array().into(),
         );
+        builder
+    }
+
+    fn slice(&self, origin: Point2, angle: f32, length: f32) -> geom::Path {
+        //              B
+        //
+        //   angle (degrees)
+        // A  length    C
+
+        let a = origin;
+        let c = pt2(origin.x + length, origin.y);
+        let b = pt2(c.x, origin.y + (deg_to_rad(angle).tan() * length));
+
+        let ac1 = a.lerp(c, random_range(0., 0.5));
+        let ac2 = a.lerp(c, random_range(0.5, 1.0));
+        let ab1 = a.lerp(b, random_range(0., 0.5));
+        let ab2 = a.lerp(b, random_range(0.5, 1.0));
+        let bc1 = b.lerp(c, random_range(0., 0.5));
+        let bc2 = b.lerp(c, random_range(0.5, 1.0));
+
+        let mut points = vec![a, b, c, ac1, ac2, ab1, ab2, bc1, bc2];
+        points.shuffle(&mut thread_rng());
+
+        // let mut builder = self.bezier_curve(origin, b, b, c);
+
+        let mut builder = geom::path::Builder::new().with_svg();
+        builder.move_to(origin.to_array().into());
+
+        points.iter().for_each(|point| {
+            builder.line_to(point.to_array().into());
+        });
 
         builder.build()
     }
