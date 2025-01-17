@@ -5,6 +5,7 @@ members = [
   "perlin",
   "maze-ish-round",
   "mandala",
+  "waves",
 ]
 
 resolver = "2"
