@@ -2,6 +2,7 @@
 members = [
   "bertools",
   "boobies",
+  "find-love-maze",
   "perlin",
   "maze-ish-round",
   "mandala",
