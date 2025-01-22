@@ -36,7 +36,7 @@ fn main() {
     nannou::app(model)
         .update(update)
         .event(event)
-        .loop_mode(LoopMode::rate_fps(1.0))
+        .loop_mode(LoopMode::default())
         .run();
 }
 
@@ -51,7 +51,7 @@ fn model(app: &App) -> Model {
         .build()
         .unwrap();
 
-    Model::new(window_height, window_width, 20, 20)
+    Model::new(window_height, window_width, 6, 6)
 }
 
 fn event(app: &App, _model: &mut Model, event: Event) {
@@ -85,8 +85,12 @@ impl Nannou for Model {
 
     fn update(&mut self) {
         if let Some(current_idx) = self.current {
-            self.cells.iter_mut().for_each(|cell| cell.current = false);
-            self.cells[current_idx as usize].current = true;
+            self.cells.iter_mut().for_each(|cell| {
+                if cell.decay > 0.0 {
+                    cell.decay -= 0.1;
+                }
+            });
+            self.cells[current_idx as usize].decay = 1.0;
 
             let (next_col, next_row) = (current_idx % self.cols, current_idx / self.cols);
 
@@ -149,27 +153,25 @@ impl Nannou for Cell {
         let bottom = pt2(x + self.width, y + self.height);
         let left = pt2(x, y + self.height);
 
-        // let center = pt2(x + self.width / 2.0, y + self.height / 2.0);
-        // let color = if self.visited {
-        //     WHITE
-        // } else {
-        //     BLACK
-        // };
-        // draw.rect()
-        //     .xy(center)
-        //     .w_h(self.width - 2.0, self.height - 2.0)
-        //     .color(color)
-        //     .stroke_weight(0.0);
-        // if self.current {
-        //     draw.ellipse()
-        //         .xy(center)
-        //         .w_h(self.width, self.height)
-        //         .color(RED)
-        //         .stroke_weight(0.0);
-        // }
-
         let stroke_weight = self.width / 2.0;
-        let color = schemes::navy()[0];
+        let color = Model::default().foreground_color;
+
+        let highlight_color = if self.visited {
+            if self.decay > 0.1 {
+                hsla(0.0, 0.0, 0.0, self.decay)
+            } else {
+                Model::default().background_color
+            }
+        } else {
+            Model::default().foreground_color
+        };
+
+        // Draw the background based on the decay, to show the path taken
+        let center = pt2(x + self.width / 2.0, y + self.height / 2.0);
+        draw.rect()
+            .xy(center)
+            .w_h(self.width, self.height)
+            .color(highlight_color);
 
         let draw_line = |draw: &Draw, start: Point2, end: Point2| {
             draw.line()
