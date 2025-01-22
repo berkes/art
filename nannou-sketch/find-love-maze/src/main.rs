@@ -13,8 +13,8 @@ use nannou::rand::thread_rng;
 
 impl Default for Model {
     fn default() -> Self {
-        let cols = 0;
-        let rows = 0;
+        let cols = 20;
+        let rows = 20;
         let foreground_color = schemes::navy()[0];
         let background_color = schemes::navy()[1];
 
@@ -51,7 +51,7 @@ fn model(app: &App) -> Model {
         .build()
         .unwrap();
 
-    Model::new(window_height, window_width, 6, 6)
+    Model::new(window_height, window_width)
 }
 
 fn event(app: &App, _model: &mut Model, event: Event) {
@@ -157,11 +157,7 @@ impl Nannou for Cell {
         let color = Model::default().foreground_color;
 
         let highlight_color = if self.visited {
-            if self.decay > 0.1 {
-                hsla(0.0, 0.0, 0.0, self.decay)
-            } else {
-                Model::default().background_color
-            }
+            hsla(0.0, 0.0, 0.0, self.decay)
         } else {
             Model::default().foreground_color
         };

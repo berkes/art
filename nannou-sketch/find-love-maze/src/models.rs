@@ -44,14 +44,15 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn new(height: f32, width: f32, cols: i32, rows: i32) -> Self {
-        let cell_height = height / rows as f32;
-        let cell_width = width / cols as f32;
+    pub fn new(height: f32, width: f32) -> Self {
+        let default = Self::default();
+        let cell_height = height / default.rows as f32;
+        let cell_width = width / default.cols as f32;
 
         let mut cells = vec![];
 
-        for row in 0..rows {
-            for col in 0..cols {
+        for row in 0..default.rows {
+            for col in 0..default.cols {
                 cells.push(Cell::new(col, row, cell_height, cell_width));
             }
         }
@@ -59,8 +60,6 @@ impl Model {
         Self {
             height,
             width,
-            cols,
-            rows,
             cells,
             current: Some(0),
             ..Self::default()
