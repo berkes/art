@@ -21,10 +21,10 @@ impl Default for Model {
         Self {
             background_color,
             foreground_color,
-            cols,
-            rows,
             height: 0.0,
             width: 0.0,
+            cols,
+            rows,
             cells: Vec::default(),
             stack: Vec::default(),
             current: None,
@@ -36,20 +36,22 @@ fn main() {
     nannou::app(model)
         .update(update)
         .event(event)
-        .loop_mode(LoopMode::rate_fps(60.0))
+        .loop_mode(LoopMode::rate_fps(1.0))
         .run();
 }
 
 fn model(app: &App) -> Model {
+    let window_height = 800.0;
+    let window_width = 800.0;
     let _window = app
         .new_window()
         .title("Find Love in Chaos")
-        .size(800, 800)
+        .size(window_height as u32, window_width as u32)
         .view(view)
         .build()
         .unwrap();
 
-    Model::default().fill(800.0, 800.0, 10, 10)
+    Model::new(window_height, window_width, 20, 20)
 }
 
 fn event(app: &App, _model: &mut Model, event: Event) {
@@ -75,16 +77,67 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
 impl Nannou for Model {
     fn view(&self, app: &App, draw: &Draw) {
-        let draw = draw.translate(pt3(-400.0, -400.0, 0.0));
+        let draw = draw.translate(pt3(-self.height / 2.0, -self.width / 2.0, 0.0));
 
         draw.background().color(self.background_color);
         self.cells.iter().for_each(|cell| cell.view(app, &draw));
     }
 
     fn update(&mut self) {
+        if let Some(current_idx) = self.current {
+            self.cells.iter_mut().for_each(|cell| cell.current = false);
+            self.cells[current_idx as usize].current = true;
+
+            let (next_col, next_row) = (current_idx % self.cols, current_idx / self.cols);
+
+            let neighbors = self.unvisited_neighbors(next_col, next_row);
+
+            if !neighbors.is_empty() {
+                let (next_col, next_row) = neighbors.iter().choose(&mut thread_rng()).unwrap();
+                let next_idx = self.index(*next_col, *next_row).unwrap();
+
+                self.stack.push(current_idx);
+
+                if let Some(next_idx) = self.index(*next_col, *next_row) {
+                    // First, get the values we need to compare
+                    let current_col = self.cells[current_idx as usize].col;
+                    let current_row = self.cells[current_idx as usize].row;
+                    let next_col = self.cells[next_idx].col;
+                    let next_row = self.cells[next_idx].row;
+
+                    self.cells[next_idx].visited = true;
+
+                    let x = next_col - current_col;
+                    let y = next_row - current_row;
+
+                    match (x, y) {
+                        (1, 0) => {
+                            self.cells[current_idx as usize].right_wall = false;
+                            self.cells[next_idx].left_wall = false;
+                        }
+                        (-1, 0) => {
+                            self.cells[current_idx as usize].left_wall = false;
+                            self.cells[next_idx].right_wall = false;
+                        }
+                        (0, 1) => {
+                            self.cells[current_idx as usize].bottom_wall = false;
+                            self.cells[next_idx].top_wall = false;
+                        }
+                        (0, -1) => {
+                            self.cells[current_idx as usize].top_wall = false;
+                            self.cells[next_idx].bottom_wall = false;
+                        }
+                        _ => (),
+                    };
+                }
+
+                self.current = Some(next_idx as i32);
+            } else if let Some(back) = self.stack.pop() {
+                self.current = Some(back);
+            }
+        }
     }
 }
-
 
 impl Nannou for Cell {
     fn view(&self, _app: &App, draw: &Draw) {
@@ -96,34 +149,58 @@ impl Nannou for Cell {
         let bottom = pt2(x + self.width, y + self.height);
         let left = pt2(x, y + self.height);
 
-        let center = pt2(x + self.width / 2.0, y + self.height / 2.0);
+        // let center = pt2(x + self.width / 2.0, y + self.height / 2.0);
+        // let color = if self.visited {
+        //     WHITE
+        // } else {
+        //     BLACK
+        // };
+        // draw.rect()
+        //     .xy(center)
+        //     .w_h(self.width - 2.0, self.height - 2.0)
+        //     .color(color)
+        //     .stroke_weight(0.0);
+        // if self.current {
+        //     draw.ellipse()
+        //         .xy(center)
+        //         .w_h(self.width, self.height)
+        //         .color(RED)
+        //         .stroke_weight(0.0);
+        // }
 
-        let color = if self.visited { GRAY } else { WHITE };
+        let stroke_weight = self.width / 2.0;
+        let color = schemes::navy()[0];
 
-        draw.ellipse().xy(center).w_h(10.0, 10.0).color(RED);
-
-        draw.rect()
-            .xy(center)
-            .w_h(self.width, self.height)
-            .color(color);
+        let draw_line = |draw: &Draw, start: Point2, end: Point2| {
+            draw.line()
+                .start(start)
+                .end(end)
+                .color(color)
+                .stroke_weight(stroke_weight);
+            // Start and End Caps. Somehow the caps_square() method is not working?
+            draw.rect()
+                .xy(start)
+                .w_h(stroke_weight, stroke_weight)
+                .color(color)
+                .stroke_weight(0.0);
+            draw.rect()
+                .xy(end)
+                .w_h(stroke_weight, stroke_weight)
+                .color(color)
+                .stroke_weight(0.0);
+        };
 
         if self.top_wall {
-            draw.line().start(top).end(right).color(schemes::navy()[0]);
+            draw_line(draw, top, right);
         }
         if self.right_wall {
-            draw.line()
-                .start(right)
-                .end(bottom)
-                .color(schemes::navy()[0]);
+            draw_line(draw, right, bottom);
         }
         if self.bottom_wall {
-            draw.line()
-                .start(bottom)
-                .end(left)
-                .color(schemes::navy()[0]);
+            draw_line(draw, bottom, left);
         }
         if self.left_wall {
-            draw.line().start(left).end(top).color(schemes::navy()[0]);
+            draw_line(draw, left, top);
         }
     }
 

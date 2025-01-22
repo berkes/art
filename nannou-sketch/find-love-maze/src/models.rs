@@ -7,6 +7,7 @@ pub struct Cell {
     pub bottom_wall: bool,
     pub left_wall: bool,
     pub visited: bool,
+    pub current: bool,
     pub height: f32,
     pub width: f32,
     pub col: i32,
@@ -21,50 +22,29 @@ impl Cell {
             bottom_wall: true,
             left_wall: true,
             visited: false,
+            current: false,
             height,
             width,
             col,
             row,
         }
     }
-
-    pub(crate) fn visit(&mut self) {
-        self.visited = true;
-    }
-
-    pub(crate) fn remove_wall(&mut self, other: &Cell) {
-        let x = self.col as i32 - other.col as i32;
-        let y = self.row as i32 - other.row as i32;
-
-        match (x, y) {
-            (1, 0) => self.left_wall = false,
-            (-1, 0) => self.right_wall = false,
-            (0, 1) => self.top_wall = false,
-            (0, -1) => self.bottom_wall = false,
-            _ => (),
-        };
-    }
 }
 
 pub struct Model {
     pub background_color: Hsla,
     pub foreground_color: Hsla,
-    pub cols: i32,
-    pub rows: i32,
     pub height: f32,
     pub width: f32,
+    pub cols: i32,
+    pub rows: i32,
     pub cells: Vec<Cell>,
     pub stack: Vec<i32>,
     pub current: Option<i32>,
 }
 
 impl Model {
-    pub fn fill(&mut self, height: f32, width: f32, cols: i32, rows: i32) -> Self {
-        self.cols = cols;
-        self.rows = rows;
-        self.height = height;
-        self.width = width;
-
+    pub fn new(height: f32, width: f32, cols: i32, rows: i32) -> Self {
         let cell_height = height / rows as f32;
         let cell_width = width / cols as f32;
 
@@ -77,21 +57,19 @@ impl Model {
         }
 
         Self {
-            background_color: self.background_color,
-            foreground_color: self.foreground_color,
-            stack: self.stack.clone(),
-            current: self.current,
-            cols,
-            rows,
             height,
             width,
+            cols,
+            rows,
             cells,
+            current: Some(0),
+            ..Self::default()
         }
     }
 
-    fn index(&self, col: i32, row: i32) -> Option<usize> {
+    pub fn index(&self, col: i32, row: i32) -> Option<usize> {
         // Detect borders
-        if col > self.cols - 1 || row > self.rows - 1 {
+        if col < 0 || row < 0 || col > self.cols - 1 || row > self.rows - 1 {
             None
         } else {
             // Return the index
@@ -104,15 +82,16 @@ impl Model {
     }
 
     pub fn cell_at_mut(&mut self, col: i32, row: i32) -> Option<&mut Cell> {
-        self.index(col, row).map(move |index| &mut self.cells[index])
+        self.index(col, row)
+            .map(move |index| &mut self.cells[index])
     }
 
-    pub(crate) fn unvisited_neighbors(&self, col: i32 , row: i32) -> Vec<(i32, i32)> {
+    pub(crate) fn unvisited_neighbors(&self, col: i32, row: i32) -> Vec<(i32, i32)> {
         let mut neighbors = vec![];
         let directions = vec![
             (0, -1), // top
-            (1, 0), // right
-            (0, 1), // bottom
+            (1, 0),  // right
+            (0, 1),  // bottom
             (-1, 0), // left
         ];
 
@@ -161,6 +140,3 @@ impl Direction {
         }
     }
 }
-
-
-
