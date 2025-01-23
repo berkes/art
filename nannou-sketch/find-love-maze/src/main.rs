@@ -169,12 +169,21 @@ impl Nannou for Cell {
             foreground_color, ..
         } = Model::default();
 
+        if !self.visited {
+            draw.rect()
+                .xy(pt2(x + self.width / 2.0, y + self.height / 2.0))
+                .w_h(self.width, self.height)
+                .color(foreground_color)
+                .stroke_weight(0.0);
+        }
+
         let draw_line = |draw: &Draw, start: Point2, end: Point2| {
             draw.line()
                 .start(start)
                 .end(end)
                 .color(foreground_color)
                 .stroke_weight(stroke_weight);
+
             // Start and End Caps. Somehow the caps_square() method is not working?
             draw.rect()
                 .xy(start)
