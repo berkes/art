@@ -1,4 +1,4 @@
-use nannou::{color::Hsla, rand::random_range};
+use nannou::color::Hsla;
 
 #[derive(Debug, Clone)]
 pub struct Cell {
@@ -34,6 +34,7 @@ impl Cell {
 pub struct Model {
     pub background_color: Hsla,
     pub foreground_color: Hsla,
+    pub highlight_color: Hsla,
     pub height: f32,
     pub width: f32,
     pub cols: i32,
@@ -80,11 +81,6 @@ impl Model {
         self.index(col, row).map(|index| &self.cells[index])
     }
 
-    pub fn cell_at_mut(&mut self, col: i32, row: i32) -> Option<&mut Cell> {
-        self.index(col, row)
-            .map(move |index| &mut self.cells[index])
-    }
-
     pub(crate) fn unvisited_neighbors(&self, col: i32, row: i32) -> Vec<(i32, i32)> {
         let mut neighbors = vec![];
         let directions = vec![
@@ -106,36 +102,5 @@ impl Model {
         }
 
         neighbors
-    }
-
-    pub(crate) fn has_unvisited_cells(&self) -> bool {
-        self.cells.iter().any(|cell| !cell.visited)
-    }
-}
-
-enum Direction {
-    Right,
-    Up,
-    Left,
-    Down,
-}
-
-impl Direction {
-    fn next(&self) -> Direction {
-        match self {
-            Direction::Right => Direction::Up,
-            Direction::Up => Direction::Left,
-            Direction::Left => Direction::Down,
-            Direction::Down => Direction::Right,
-        }
-    }
-
-    fn random() -> Direction {
-        match random_range(0, 4) {
-            0 => Direction::Right,
-            1 => Direction::Up,
-            2 => Direction::Left,
-            _ => Direction::Down,
-        }
     }
 }

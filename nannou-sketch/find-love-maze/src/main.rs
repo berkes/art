@@ -13,14 +13,16 @@ use nannou::rand::thread_rng;
 
 impl Default for Model {
     fn default() -> Self {
-        let cols = 20;
-        let rows = 20;
-        let foreground_color = schemes::navy()[0];
-        let background_color = schemes::navy()[1];
+        let cols = 40;
+        let rows = 40;
+        let foreground_color = *schemes::CHOCOLATE_COSMOS;
+        let background_color = *schemes::SANDY_BROWN;
+        let highlight_color = *schemes::CLARET;
 
         Self {
             background_color,
             foreground_color,
+            highlight_color,
             height: 0.0,
             width: 0.0,
             cols,
@@ -81,6 +83,10 @@ impl Nannou for Model {
 
         draw.background().color(self.background_color);
         self.cells.iter().for_each(|cell| cell.view(app, &draw));
+
+        if self.current.is_none() {
+            app.set_loop_mode(LoopMode::loop_once());
+        }
     }
 
     fn update(&mut self) {
@@ -138,6 +144,11 @@ impl Nannou for Model {
                 self.current = Some(next_idx as i32);
             } else if let Some(back) = self.stack.pop() {
                 self.current = Some(back);
+            } else {
+                self.cells.iter_mut().for_each(|cell| {
+                    cell.decay = 0.0;
+                });
+                self.current = None;
             }
         }
     }
@@ -154,37 +165,26 @@ impl Nannou for Cell {
         let left = pt2(x, y + self.height);
 
         let stroke_weight = self.width / 2.0;
-        let color = Model::default().foreground_color;
-
-        let highlight_color = if self.visited {
-            hsla(0.0, 0.0, 0.0, self.decay)
-        } else {
-            Model::default().foreground_color
-        };
-
-        // Draw the background based on the decay, to show the path taken
-        let center = pt2(x + self.width / 2.0, y + self.height / 2.0);
-        draw.rect()
-            .xy(center)
-            .w_h(self.width, self.height)
-            .color(highlight_color);
+        let Model {
+            foreground_color, ..
+        } = Model::default();
 
         let draw_line = |draw: &Draw, start: Point2, end: Point2| {
             draw.line()
                 .start(start)
                 .end(end)
-                .color(color)
+                .color(foreground_color)
                 .stroke_weight(stroke_weight);
             // Start and End Caps. Somehow the caps_square() method is not working?
             draw.rect()
                 .xy(start)
                 .w_h(stroke_weight, stroke_weight)
-                .color(color)
+                .color(foreground_color)
                 .stroke_weight(0.0);
             draw.rect()
                 .xy(end)
                 .w_h(stroke_weight, stroke_weight)
-                .color(color)
+                .color(foreground_color)
                 .stroke_weight(0.0);
         };
 
