@@ -1,5 +1,8 @@
 use chrono;
+use nannou::rand::random_range;
 use nannou::{App, Draw};
+
+pub mod schemes;
 
 const IMAGE_LOCATION: &str = "../saves/";
 
@@ -21,14 +24,29 @@ pub fn do_save(app: &App) {
     ));
 }
 
-pub mod schemes {
-    use nannou::color::Hsla;
+pub enum Direction {
+    Right,
+    Up,
+    Left,
+    Down,
+}
 
-    pub fn navy() -> [Hsla; 3] {
-        [
-            Hsla::new(212.0, 0.856, 0.3, 1.0), // #0B498E
-            Hsla::new(23.0, 0.25, 0.937, 1.0), // #f3eeeb
-            Hsla::new(212.0, 0.856, 0.1, 1.0), // #rgb(4 24 47)
-        ]
+impl Direction {
+    pub fn next(&self) -> Direction {
+        match self {
+            Direction::Right => Direction::Up,
+            Direction::Up => Direction::Left,
+            Direction::Left => Direction::Down,
+            Direction::Down => Direction::Right,
+        }
+    }
+
+    pub fn random() -> Direction {
+        match random_range(0, 4) {
+            0 => Direction::Right,
+            1 => Direction::Up,
+            2 => Direction::Left,
+            _ => Direction::Down,
+        }
     }
 }
