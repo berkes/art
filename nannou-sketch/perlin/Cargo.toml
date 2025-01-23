@@ -1,17 +1,13 @@
 [package]
-name = "nannou-sketch"
+name = "perlin"
 version = "0.1.0"
 authors = ["Bèr Kessels <ber@berk.es>"]
 edition = "2021"
 
-description = "Art experiments"
+description = "Art experiments: Parallax scrolling perlin generated landscape"
 readme = "README.md"
-keywords = ["creative", "sketch", "graphics", "art"]
+keywords = ["creative", "sketch", "graphics", "art", "perlin"]
 license = "MIT"
 
 [dependencies]
 nannou = "0.19"
-
-[[example]]
-name = "maze-ish-round"
-path = "maze-ish-round/main.rs"
