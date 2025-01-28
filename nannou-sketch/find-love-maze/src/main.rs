@@ -247,35 +247,41 @@ impl Nannou for Cell {
 impl Nannou for Heart {
     fn view(&self, _app: &nannou::App, draw: &nannou::Draw) {
         let mut builder = Builder::new().with_svg();
-        let x = self.col as f32 * self.size + self.size / 2.0;
-        let y = self.row as f32 * self.size + self.size;
 
-        // Why is this flipped on the y axis?
-        builder.move_to(pt2(x, y - self.size / 4.).to_array().into());
+        // Extract common values
+        let size = self.size;
+        let half_size = size / 2.0;
+        let x = self.col as f32 * size + half_size;
+        let y = self.row as f32 * size + size;
+
+        // Control points for the Bézier curves
+        let top_center = pt2(x, y - size / 4.);
+        let left_control_1 = pt2(x - half_size, y + half_size);
+        let left_control_2 = pt2(x - size, y - half_size);
+        let bottom_center = pt2(x, y - size);
+        let right_control_1 = pt2(x + size, y - half_size);
+        let right_control_2 = pt2(x + half_size, y + half_size);
+
+        builder.move_to(top_center.to_array().into());
+
         // Draw the left half of the heart using Bézier curves
         builder.cubic_bezier_to(
-            pt2(x - self.size / 2., y + self.size / 2.)
-                .to_array()
-                .into(),
-            pt2(x - self.size, y - self.size / 2.).to_array().into(),
-            pt2(x, y - self.size).to_array().into(),
+            left_control_1.to_array().into(),
+            left_control_2.to_array().into(),
+            bottom_center.to_array().into(),
         );
         // Draw the right half of the heart using Bézier curves
         builder.cubic_bezier_to(
-            pt2(x + self.size, y - self.size / 2.).to_array().into(),
-            pt2(x + self.size / 2., y + self.size / 2.)
-                .to_array()
-                .into(),
-            pt2(x, y - self.size / 4.).to_array().into(),
+            right_control_1.to_array().into(),
+            right_control_2.to_array().into(),
+            top_center.to_array().into(),
         );
-
-        let events = builder.build();
 
         draw.polygon()
             .stroke_weight(1.0)
             .stroke(self.color)
             .color(self.color)
-            .events(events.iter());
+            .events(builder.build().iter());
     }
 
     fn update(&mut self) {}
