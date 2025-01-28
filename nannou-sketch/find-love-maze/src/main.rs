@@ -1,5 +1,7 @@
 mod models;
 
+use std::env;
+
 use nannou::geom::path::Builder;
 use nannou::prelude::*;
 
@@ -17,14 +19,15 @@ use nannou::rand::SeedableRng;
 
 impl Default for Model {
     fn default() -> Self {
-        let cols = 30;
-        let rows = 30;
+        let cols = 25;
+        let rows = 25;
         let foreground_color = *schemes::CHOCOLATE_COSMOS;
         let background_color = *schemes::SANDY_BROWN;
         let highlight_color = foreground_color;
 
         Self {
-            rng: StdRng::seed_from_u64(12),
+            seed: String::default(),
+            rng: StdRng::seed_from_u64(0),
             background_color,
             foreground_color,
             highlight_color,
@@ -61,7 +64,8 @@ fn model(app: &App) -> Model {
         .build()
         .unwrap();
 
-    Model::new(window_height, window_width)
+    let seed = env::var("SEED").unwrap_or_else(|_| "0".to_string());
+    Model::new(window_height, window_width, seed)
 }
 
 fn event(app: &App, _model: &mut Model, event: Event) {
@@ -104,6 +108,19 @@ impl Nannou for Model {
         self.border_icon
             .iter()
             .for_each(|icon| icon.view(app, &draw));
+
+        let text_place = pt2(
+            self.width / 2.0 - self.cell_width() / 4.0,
+            -self.cell_height() * 1.5,
+        );
+
+        draw.text(self.seed.as_str())
+            .xy(text_place)
+            .align_text_middle_y()
+            .left_justify()
+            .width(self.width)
+            .font_size(12)
+            .color(self.foreground_color);
 
         if self.current.is_none() {
             app.set_loop_mode(LoopMode::loop_ntimes(0));

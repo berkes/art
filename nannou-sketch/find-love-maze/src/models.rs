@@ -1,5 +1,8 @@
+use std::hash::{Hash, Hasher};
+
 use nannou::color::Hsla;
 use nannou::rand::rngs::StdRng;
+use nannou::rand::SeedableRng;
 
 #[derive(Debug, Clone)]
 pub struct Cell {
@@ -44,6 +47,7 @@ impl Cell {
 }
 
 pub struct Model {
+    pub seed: String,
     pub rng: StdRng,
     pub background_color: Hsla,
     pub foreground_color: Hsla,
@@ -61,7 +65,7 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn new(height: f32, width: f32) -> Self {
+    pub fn new(height: f32, width: f32, seed: String) -> Self {
         let default = Self::default();
         let cell_height = height / (default.rows + default.padding_cells) as f32;
         let cell_width = width / (default.cols + default.padding_cells) as f32;
@@ -82,8 +86,14 @@ impl Model {
         }
 
         let icon = Some(Heart::new(0, 0, cell_height, default.highlight_color));
+        // Convert seed String to a u64
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        seed.hash(&mut hasher);
+        let seed_n = hasher.finish();
 
         Self {
+            seed: seed.clone(),
+            rng: StdRng::seed_from_u64(seed_n),
             height,
             width,
             cells,
