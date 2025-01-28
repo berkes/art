@@ -42,7 +42,7 @@ pub struct Model {
     pub cells: Vec<Cell>,
     pub stack: Vec<i32>,
     pub current: Option<i32>,
-    pub icon: Option<Heart>,
+    pub center_icon: Option<Heart>,
 }
 
 impl Model {
@@ -70,7 +70,7 @@ impl Model {
             height,
             width,
             cells,
-            icon,
+            center_icon: icon,
             ..Self::default()
         }
     }

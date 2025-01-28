@@ -32,7 +32,7 @@ impl Default for Model {
             cells: Vec::default(),
             stack: Vec::default(),
             current: None,
-            icon: None,
+            center_icon: None,
         }
     }
 }
@@ -88,7 +88,7 @@ impl Nannou for Model {
         draw.background().color(self.background_color);
         self.cells.iter().for_each(|cell| cell.view(app, &draw));
 
-        self.icon.iter().for_each(|icon| icon.view(app, &draw));
+        self.center_icon.iter().for_each(|icon| icon.view(app, &draw));
 
         if self.current.is_none() {
             app.set_loop_mode(LoopMode::loop_ntimes(0));
@@ -150,7 +150,7 @@ impl Nannou for Model {
             let start_col = self.cols / 2; // random_range(0, self.cols);
             let start_row = self.rows / 2; // random_range(0, self.rows);
                                            // Put the icon in this start position
-            if let Some(icon) = &mut self.icon {
+            if let Some(icon) = &mut self.center_icon {
                 icon.col = start_col;
                 icon.row = start_row;
             }
