@@ -15,8 +15,8 @@ use nannou::rand::thread_rng;
 
 impl Default for Model {
     fn default() -> Self {
-        let cols = 20;
-        let rows = 20;
+        let cols = 30;
+        let rows = 30;
         let foreground_color = *schemes::CHOCOLATE_COSMOS;
         let background_color = *schemes::SANDY_BROWN;
         let highlight_color = foreground_color;
@@ -29,10 +29,12 @@ impl Default for Model {
             width: 0.0,
             cols,
             rows,
+            padding_cells: 4,
             cells: Vec::default(),
             stack: Vec::default(),
             current: None,
             center_icon: None,
+            border_icon: None,
         }
     }
 }
@@ -46,9 +48,8 @@ fn main() {
 }
 
 fn model(app: &App) -> Model {
-    let margin = 100.0;
-    let window_height = 800.0;
-    let window_width = 800.0;
+    let window_height = 900.0;
+    let window_width = 900.0;
     let _window = app
         .new_window()
         .title("Find Love in Chaos")
@@ -57,7 +58,7 @@ fn model(app: &App) -> Model {
         .build()
         .unwrap();
 
-    Model::new(window_height - margin, window_width - margin)
+    Model::new(window_height, window_width)
 }
 
 fn event(app: &App, _model: &mut Model, event: Event) {
@@ -83,12 +84,23 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
 impl Nannou for Model {
     fn view(&self, app: &App, draw: &Draw) {
-        let draw = draw.translate(pt3(-self.height / 2.0, -self.width / 2.0, 0.0));
+        let half_a_window = pt3(self.width / 2.0, self.height / 2.0, 0.0);
+        let margin = pt3(
+            self.cell_width() * (self.padding_cells / 2) as f32,
+            self.cell_height() * (self.padding_cells / 2) as f32,
+            0.0,
+        );
+        let draw = draw.translate(-half_a_window + margin);
 
         draw.background().color(self.background_color);
         self.cells.iter().for_each(|cell| cell.view(app, &draw));
 
-        self.center_icon.iter().for_each(|icon| icon.view(app, &draw));
+        self.center_icon
+            .iter()
+            .for_each(|icon| icon.view(app, &draw));
+        self.border_icon
+            .iter()
+            .for_each(|icon| icon.view(app, &draw));
 
         if self.current.is_none() {
             app.set_loop_mode(LoopMode::loop_ntimes(0));
@@ -144,6 +156,56 @@ impl Nannou for Model {
             } else if let Some(back) = self.stack.pop() {
                 self.current = Some(back);
             } else {
+                // Find a random cell at the border
+                let border_cell = self
+                    .cells
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(idx, cell)| {
+                        if cell.col == 0
+                            || cell.col == self.cols - 1
+                            || cell.row == 0
+                            || cell.row == self.rows - 1
+                        {
+                            Some(idx)
+                        } else {
+                            None
+                        }
+                    })
+                    .choose(&mut thread_rng());
+
+                // If we found one, find the outer wall and remove it.
+                // Draw an icon on the border outside the maze
+                let icon_col;
+                let icon_row;
+                if let Some(idx) = border_cell {
+                    let cell = &self.cells[idx].clone();
+                    if cell.col == 0 {
+                        // left col
+                        icon_col = -1;
+                        icon_row = cell.row;
+                        self.cells[idx].left_wall = false;
+                    } else if cell.col == self.cols - 1 {
+                        // right col
+                        icon_col = self.cols;
+                        icon_row = cell.row;
+                        self.cells[idx].right_wall = false;
+                    } else if cell.row == 0 {
+                        // top row
+                        icon_col = cell.col;
+                        icon_row = -1;
+                        self.cells[idx].top_wall = false;
+                    } else {
+                        // bottom row
+                        icon_col = cell.col;
+                        icon_row = self.rows;
+                        self.cells[idx].bottom_wall = false;
+                    };
+
+                    let icon = Heart::new(icon_row, icon_col, cell.height, self.highlight_color);
+                    self.border_icon = Some(icon);
+                }
+
                 self.current = None;
             }
         } else {
@@ -195,16 +257,13 @@ impl Nannou for Cell {
         let left = pt2(x, y + self.height);
 
         let stroke_weight = self.width / 2.0;
-        let Model {
-            foreground_color, ..
-        } = Model::default();
         let center = pt2(x + self.width / 2.0, y + self.height / 2.0);
 
         if !self.visited {
             draw.rect()
                 .xy(center)
                 .w_h(self.width, self.height)
-                .color(foreground_color)
+                .color(self.foreground_color)
                 .stroke_weight(0.0);
         }
 
@@ -212,19 +271,19 @@ impl Nannou for Cell {
             draw.line()
                 .start(start)
                 .end(end)
-                .color(foreground_color)
+                .color(self.foreground_color)
                 .stroke_weight(stroke_weight);
 
             // Start and End Caps. Somehow the caps_square() method is not working?
             draw.rect()
                 .xy(start)
                 .w_h(stroke_weight, stroke_weight)
-                .color(foreground_color)
+                .color(self.foreground_color)
                 .stroke_weight(0.0);
             draw.rect()
                 .xy(end)
                 .w_h(stroke_weight, stroke_weight)
-                .color(foreground_color)
+                .color(self.foreground_color)
                 .stroke_weight(0.0);
         };
 
@@ -249,19 +308,48 @@ impl Nannou for Heart {
     fn view(&self, _app: &nannou::App, draw: &nannou::Draw) {
         let mut builder = Builder::new().with_svg();
 
+
         // Extract common values
         let size = self.height;
         let half_size = size / 2.0;
-        let x = self.col as f32 * size + half_size;
-        let y = self.row as f32 * size + size;
+        let quarter_size = size / 4.0;
+
+        let default_model = Model::default();
+        let x;
+        let y;
+        // if one of the x and y is -1 or cols + 1 or rows + 1, then it is a border icon
+        // In that case, we need to move the icon out with half_size
+        if self.col == -1 {
+            x = self.col as f32 * self.height - half_size;
+            y = self.row as f32 * self.height;
+        } else if self.col == default_model.cols {
+            x = self.col as f32 * self.height + half_size;
+            y = self.row as f32 * self.height;
+        } else if self.row == -1 {
+            x = self.col as f32 * self.height;
+            y = self.row as f32 * self.height - half_size;
+        } else if self.row == default_model.rows {
+            x = self.col as f32 * self.height;
+            y = self.row as f32 * self.height + half_size;
+        } else {
+            x = self.col as f32 * self.height;
+            y = self.row as f32 * self.height;
+        }
+
+        let center = pt2(x + half_size, y + half_size);
+
+        let width_adjustment = 0.6;
+        let height_adjustment = 0.4 * quarter_size;
 
         // Control points for the Bézier curves
-        let top_center = pt2(x, y - size / 4.);
-        let left_control_1 = pt2(x - half_size, y + half_size);
-        let left_control_2 = pt2(x - size, y - half_size);
-        let bottom_center = pt2(x, y - size);
-        let right_control_1 = pt2(x + size, y - half_size);
-        let right_control_2 = pt2(x + half_size, y + half_size);
+        let top_center = center + pt2(0.0, quarter_size + height_adjustment);
+        let left_control_1 =
+            center + pt2(-half_size * width_adjustment, half_size + height_adjustment);
+        let left_control_2 = center + pt2(-size, height_adjustment);
+        let bottom_center = center + pt2(0.0, -half_size + height_adjustment);
+        let right_control_1 = center + pt2(size, height_adjustment);
+        let right_control_2 =
+            center + pt2(half_size * width_adjustment, half_size + height_adjustment);
 
         builder.move_to(top_center.to_array().into());
 
