@@ -62,7 +62,7 @@ impl Model {
         let icon = Some(Heart::new(
             0,
             0,
-            height / default.cols as f32,
+            cell_height,
             default.highlight_color,
         ));
 
@@ -116,7 +116,7 @@ impl Model {
 pub struct Heart {
     pub row: i32,
     pub col: i32,
-    pub size: f32,
+    pub height: f32,
     pub color: Hsla,
 }
 
@@ -125,7 +125,7 @@ impl Heart {
         Self {
             row,
             col,
-            size,
+            height: size,
             color,
         }
     }

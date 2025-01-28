@@ -250,7 +250,7 @@ impl Nannou for Heart {
         let mut builder = Builder::new().with_svg();
 
         // Extract common values
-        let size = self.size;
+        let size = self.height;
         let half_size = size / 2.0;
         let x = self.col as f32 * size + half_size;
         let y = self.row as f32 * size + size;
