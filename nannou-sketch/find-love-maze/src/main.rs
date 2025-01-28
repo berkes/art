@@ -46,6 +46,7 @@ fn main() {
 }
 
 fn model(app: &App) -> Model {
+    let margin = 100.0;
     let window_height = 800.0;
     let window_width = 800.0;
     let _window = app
@@ -56,7 +57,7 @@ fn model(app: &App) -> Model {
         .build()
         .unwrap();
 
-    Model::new(window_height, window_width)
+    Model::new(window_height - margin, window_width - margin)
 }
 
 fn event(app: &App, _model: &mut Model, event: Event) {
