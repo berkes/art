@@ -2,6 +2,7 @@ mod models;
 
 use std::env;
 
+use bertools::Record;
 use nannou::geom::path::Builder;
 use nannou::prelude::*;
 
@@ -26,6 +27,7 @@ impl Default for Model {
         let highlight_color = foreground_color;
 
         Self {
+            recorder: None,
             seed: String::default(),
             rng: StdRng::seed_from_u64(0),
             background_color,
@@ -65,7 +67,13 @@ fn model(app: &App) -> Model {
         .unwrap();
 
     let seed = env::var("SEED").unwrap_or_else(|_| "0".to_string());
-    Model::new(window_height, window_width, seed)
+
+    let recorder = if std::env::var("RECORD").is_ok() {
+        Some(Record::new(app))
+    } else {
+        None
+    };
+    Model::new(window_height, window_width, seed, recorder)
 }
 
 fn event(app: &App, _model: &mut Model, event: Event) {
@@ -87,6 +95,10 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
     model.view(app, &draw);
     draw.to_frame(app, &frame).unwrap();
+
+    if let Some(recorder) = &model.recorder {
+        recorder.record(app);
+    }
 }
 
 impl Nannou for Model {

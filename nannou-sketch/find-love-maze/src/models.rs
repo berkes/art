@@ -1,5 +1,6 @@
 use std::hash::{Hash, Hasher};
 
+use bertools::Record;
 use nannou::color::Hsla;
 use nannou::rand::rngs::StdRng;
 use nannou::rand::{Rng, SeedableRng};
@@ -40,6 +41,7 @@ impl Cell {
 pub struct Model {
     pub seed: String,
     pub rng: StdRng,
+    pub recorder: Option<Record>,
     pub background_color: Hsla,
     pub foreground_color: Hsla,
     pub highlight_color: Hsla,
@@ -56,7 +58,7 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn new(height: f32, width: f32, seed: String) -> Self {
+    pub fn new(height: f32, width: f32, seed: String, recorder: Option<Record>) -> Self {
         let default = Self::default();
 
         // Convert seed String to a u64
@@ -106,6 +108,7 @@ impl Model {
         let icon = Some(Heart::new(0, 0, cell_height, highlight_color));
 
         Self {
+            recorder,
             seed: seed.clone(),
             rng: StdRng::seed_from_u64(seed_n),
             foreground_color,

@@ -12,10 +12,9 @@ pub trait Nannou {
 
 pub fn do_save(app: &App) {
     let now = chrono::offset::Local::now();
-    let location = std::env::var("SAVES_LOCATION").unwrap_or("../saves/".to_string());
     let file_name = format!(
         "{}{}{}{}",
-        location,
+        saves_location(),
         app.exe_name().unwrap(),
         now.format("%Y-%m-%d-%H-%M-%S"),
         ".png"
@@ -23,6 +22,42 @@ pub fn do_save(app: &App) {
 
     app.main_window().capture_frame(file_name.as_str());
     println!("Saved to file://{}", file_name);
+}
+
+pub struct Record {
+    pub location: String,
+    pub started_at: chrono::DateTime<chrono::Local>,
+}
+impl Record {
+    pub fn new(app: &App) -> Self {
+        let now = chrono::offset::Local::now();
+        let location = format!("{}{}{}{}/", 
+            saves_location(),
+            "rec",
+            app.exe_name().unwrap(),
+            now.format("%Y-%m-%d-%H-%M-%S")
+        );
+        std::fs::create_dir_all(location.clone()).unwrap();
+
+        Record {
+            location,
+            started_at: now,
+        }
+    }
+
+    pub fn record(&self, app: &App) {
+        let frame = app.elapsed_frames();
+        let file_name = format!("{}{}-{}.png", self.location, app.exe_name().unwrap(), frame);
+        app.main_window().capture_frame(file_name.as_str());
+    }
+
+    pub fn finish(&self) {
+        println!("Saved to file://{}", self.location);
+    }
+}
+
+pub fn saves_location() -> String {
+    std::env::var("SAVES_LOCATION").unwrap_or("../saves/".to_string())
 }
 
 pub enum Direction {
