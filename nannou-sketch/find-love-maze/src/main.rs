@@ -10,8 +10,10 @@ use models::Model;
 use bertools::do_save;
 use bertools::schemes;
 use bertools::Nannou;
+use nannou::rand::rngs::StdRng;
 use nannou::rand::seq::IteratorRandom;
-use nannou::rand::thread_rng;
+use nannou::rand::Rng;
+use nannou::rand::SeedableRng;
 
 impl Default for Model {
     fn default() -> Self {
@@ -22,6 +24,7 @@ impl Default for Model {
         let highlight_color = foreground_color;
 
         Self {
+            rng: StdRng::seed_from_u64(12),
             background_color,
             foreground_color,
             highlight_color,
@@ -114,7 +117,7 @@ impl Nannou for Model {
             let neighbors = self.unvisited_neighbors(next_col, next_row);
 
             if !neighbors.is_empty() {
-                let (next_col, next_row) = neighbors.iter().choose(&mut thread_rng()).unwrap();
+                let (next_col, next_row) = neighbors.iter().choose(&mut self.rng).unwrap();
                 let next_idx = self.index(*next_col, *next_row).unwrap();
 
                 self.stack.push(current_idx);
@@ -172,7 +175,7 @@ impl Nannou for Model {
                             None
                         }
                     })
-                    .choose(&mut thread_rng());
+                    .choose(&mut self.rng);
 
                 // If we found one, find the outer wall and remove it.
                 // Draw an icon on the border outside the maze
@@ -210,8 +213,12 @@ impl Nannou for Model {
             }
         } else {
             // Find a random cell in the center-ish of the maze
-            let start_col = random_range(self.cols / 4, self.cols - self.cols / 4);
-            let start_row = random_range(self.rows / 4, self.rows - self.rows / 4);
+            let start_col = self
+                .rng
+                .gen_range((self.cols / 4)..(self.cols - self.cols / 4));
+            let start_row = self
+                .rng
+                .gen_range((self.rows / 4)..(self.rows - self.rows / 4));
             // Put the icon in this start position
             if let Some(icon) = &mut self.center_icon {
                 icon.col = start_col;

@@ -1,4 +1,5 @@
 use nannou::color::Hsla;
+use nannou::rand::rngs::StdRng;
 
 #[derive(Debug, Clone)]
 pub struct Cell {
@@ -43,6 +44,7 @@ impl Cell {
 }
 
 pub struct Model {
+    pub rng: StdRng,
     pub background_color: Hsla,
     pub foreground_color: Hsla,
     pub highlight_color: Hsla,
