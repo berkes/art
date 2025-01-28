@@ -13,14 +13,16 @@ pub trait Nannou {
 pub fn do_save(app: &App) {
     let now = chrono::offset::Local::now();
     let location = std::env::var("SAVES_LOCATION").unwrap_or("../saves/".to_string());
-
-    app.main_window().capture_frame(format!(
+    let file_name = format!(
         "{}{}{}{}",
         location,
         app.exe_name().unwrap(),
         now.format("%Y-%m-%d-%H-%M-%S"),
         ".png"
-    ));
+    );
+
+    app.main_window().capture_frame(file_name.as_str());
+    println!("Saved to file://{}", file_name);
 }
 
 pub enum Direction {
