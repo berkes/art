@@ -4,8 +4,6 @@ use nannou::{App, Draw};
 
 pub mod schemes;
 
-const IMAGE_LOCATION: &str = "../saves/";
-
 /// Things that can be drawn on the screen.
 pub trait Nannou {
     fn view(&self, app: &App, draw: &Draw);
@@ -14,10 +12,11 @@ pub trait Nannou {
 
 pub fn do_save(app: &App) {
     let now = chrono::offset::Local::now();
+    let location = std::env::var("SAVES_LOCATION").unwrap_or("../saves/".to_string());
 
     app.main_window().capture_frame(format!(
         "{}{}{}{}",
-        IMAGE_LOCATION,
+        location,
         app.exe_name().unwrap(),
         now.format("%Y-%m-%d-%H-%M-%S"),
         ".png"
