@@ -209,9 +209,10 @@ impl Nannou for Model {
                 self.current = None;
             }
         } else {
-            let start_col = self.cols / 2; // random_range(0, self.cols);
-            let start_row = self.rows / 2; // random_range(0, self.rows);
-                                           // Put the icon in this start position
+            // Find a random cell in the center-ish of the maze
+            let start_col = random_range(self.cols / 4, self.cols - self.cols / 4);
+            let start_row = random_range(self.rows / 4, self.rows - self.rows / 4);
+            // Put the icon in this start position
             if let Some(icon) = &mut self.center_icon {
                 icon.col = start_col;
                 icon.row = start_row;
@@ -307,7 +308,6 @@ impl Nannou for Cell {
 impl Nannou for Heart {
     fn view(&self, _app: &nannou::App, draw: &nannou::Draw) {
         let mut builder = Builder::new().with_svg();
-
 
         // Extract common values
         let size = self.height;
