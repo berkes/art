@@ -90,7 +90,7 @@ impl Nannou for Model {
         self.icon.iter().for_each(|icon| icon.view(app, &draw));
 
         if self.current.is_none() {
-            app.set_loop_mode(LoopMode::loop_ntimes(4));
+            app.set_loop_mode(LoopMode::loop_ntimes(0));
         }
     }
 
