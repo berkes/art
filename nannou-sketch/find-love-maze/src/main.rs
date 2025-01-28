@@ -10,7 +10,6 @@ use models::Heart;
 use models::Model;
 
 use bertools::do_save;
-use bertools::schemes;
 use bertools::Nannou;
 use nannou::rand::rngs::StdRng;
 use nannou::rand::seq::IteratorRandom;
@@ -21,8 +20,9 @@ impl Default for Model {
     fn default() -> Self {
         let cols = 25;
         let rows = 25;
-        let foreground_color = *schemes::CHOCOLATE_COSMOS;
-        let background_color = *schemes::SANDY_BROWN;
+        let padding_cells = 4;
+        let foreground_color = Hsla::new(336.0, 0.80, 0.47, 1.0);
+        let background_color = Hsla::new(40.0, 1.0, 0.57, 1.0);
         let highlight_color = foreground_color;
 
         Self {
@@ -35,7 +35,7 @@ impl Default for Model {
             width: 0.0,
             cols,
             rows,
-            padding_cells: 4,
+            padding_cells,
             cells: Vec::default(),
             stack: Vec::default(),
             current: None,
@@ -116,6 +116,14 @@ impl Nannou for Model {
 
         draw.text(self.seed.as_str())
             .xy(text_place)
+            .align_text_middle_y()
+            .left_justify()
+            .width(self.width)
+            .font_size(12)
+            .color(self.foreground_color);
+
+        draw.text(format!("{:?}", self.foreground_color).as_str())
+            .xy(pt2(text_place.x, text_place.y - 20.0))
             .align_text_middle_y()
             .left_justify()
             .width(self.width)
