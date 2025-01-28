@@ -248,25 +248,25 @@ impl Nannou for Heart {
     fn view(&self, _app: &nannou::App, draw: &nannou::Draw) {
         let mut builder = Builder::new().with_svg();
         let x = self.col as f32 * self.size + self.size / 2.0;
-        let y = self.row as f32 * self.size;
+        let y = self.row as f32 * self.size + self.size;
 
         // Why is this flipped on the y axis?
-        builder.move_to(pt2(x, y + self.size / 4.).to_array().into());
+        builder.move_to(pt2(x, y - self.size / 4.).to_array().into());
         // Draw the left half of the heart using Bézier curves
         builder.cubic_bezier_to(
-            pt2(x - self.size / 2., y - self.size / 2.)
+            pt2(x - self.size / 2., y + self.size / 2.)
                 .to_array()
                 .into(),
-            pt2(x - self.size, y + self.size / 2.).to_array().into(),
-            pt2(x, y + self.size).to_array().into(),
+            pt2(x - self.size, y - self.size / 2.).to_array().into(),
+            pt2(x, y - self.size).to_array().into(),
         );
         // Draw the right half of the heart using Bézier curves
         builder.cubic_bezier_to(
-            pt2(x + self.size, y + self.size / 2.).to_array().into(),
-            pt2(x + self.size / 2., y - self.size / 2.)
+            pt2(x + self.size, y - self.size / 2.).to_array().into(),
+            pt2(x + self.size / 2., y + self.size / 2.)
                 .to_array()
                 .into(),
-            pt2(x, y + self.size / 4.).to_array().into(),
+            pt2(x, y - self.size / 4.).to_array().into(),
         );
 
         let events = builder.build();
