@@ -1,8 +1,10 @@
 mod models;
 
+use nannou::geom::path::Builder;
 use nannou::prelude::*;
 
 use models::Cell;
+use models::Heart;
 use models::Model;
 
 use bertools::do_save;
@@ -13,11 +15,11 @@ use nannou::rand::thread_rng;
 
 impl Default for Model {
     fn default() -> Self {
-        let cols = 40;
-        let rows = 40;
+        let cols = 20;
+        let rows = 20;
         let foreground_color = *schemes::CHOCOLATE_COSMOS;
         let background_color = *schemes::SANDY_BROWN;
-        let highlight_color = *schemes::CLARET;
+        let highlight_color = foreground_color;
 
         Self {
             background_color,
@@ -30,6 +32,7 @@ impl Default for Model {
             cells: Vec::default(),
             stack: Vec::default(),
             current: None,
+            icon: None,
         }
     }
 }
@@ -84,20 +87,15 @@ impl Nannou for Model {
         draw.background().color(self.background_color);
         self.cells.iter().for_each(|cell| cell.view(app, &draw));
 
+        self.icon.iter().for_each(|icon| icon.view(app, &draw));
+
         if self.current.is_none() {
-            app.set_loop_mode(LoopMode::loop_once());
+            app.set_loop_mode(LoopMode::loop_ntimes(4));
         }
     }
 
     fn update(&mut self) {
         if let Some(current_idx) = self.current {
-            self.cells.iter_mut().for_each(|cell| {
-                if cell.decay > 0.0 {
-                    cell.decay -= 0.1;
-                }
-            });
-            self.cells[current_idx as usize].decay = 1.0;
-
             let (next_col, next_row) = (current_idx % self.cols, current_idx / self.cols);
 
             let neighbors = self.unvisited_neighbors(next_col, next_row);
@@ -145,11 +143,42 @@ impl Nannou for Model {
             } else if let Some(back) = self.stack.pop() {
                 self.current = Some(back);
             } else {
-                self.cells.iter_mut().for_each(|cell| {
-                    cell.decay = 0.0;
-                });
                 self.current = None;
             }
+        } else {
+            let start_col = self.cols / 2; // random_range(0, self.cols);
+            let start_row = self.rows / 2; // random_range(0, self.rows);
+                                           // Put the icon in this start position
+            if let Some(icon) = &mut self.icon {
+                icon.col = start_col;
+                icon.row = start_row;
+            }
+            // Take eight cells around the starting cell and the starting cell itself
+            let start_cells = vec![
+                (0, 0),
+                (1, 0),
+                (0, 1),
+                (-1, 0),
+                (0, -1),
+                (1, 1),
+                (-1, 1),
+                (1, -1),
+                (-1, -1),
+            ];
+            let mut last = start_col + start_row * self.cols;
+            for (x, y) in start_cells {
+                if let Some(idx) = self.index(start_col + x, start_row + y) {
+                    self.cells[idx].start = true;
+                    self.cells[idx].visited = true;
+                    self.cells[idx].top_wall = false;
+                    self.cells[idx].right_wall = false;
+                    self.cells[idx].bottom_wall = false;
+                    self.cells[idx].left_wall = false;
+                    last = idx as i32;
+                }
+            }
+
+            self.current = Some(last);
         }
     }
 }
@@ -168,10 +197,11 @@ impl Nannou for Cell {
         let Model {
             foreground_color, ..
         } = Model::default();
+        let center = pt2(x + self.width / 2.0, y + self.height / 2.0);
 
         if !self.visited {
             draw.rect()
-                .xy(pt2(x + self.width / 2.0, y + self.height / 2.0))
+                .xy(center)
                 .w_h(self.width, self.height)
                 .color(foreground_color)
                 .stroke_weight(0.0);
@@ -209,6 +239,43 @@ impl Nannou for Cell {
         if self.left_wall {
             draw_line(draw, left, top);
         }
+    }
+
+    fn update(&mut self) {}
+}
+
+impl Nannou for Heart {
+    fn view(&self, _app: &nannou::App, draw: &nannou::Draw) {
+        let mut builder = Builder::new().with_svg();
+        let x = self.col as f32 * self.size + self.size / 2.0;
+        let y = self.row as f32 * self.size;
+
+        // Why is this flipped on the y axis?
+        builder.move_to(pt2(x, y + self.size / 4.).to_array().into());
+        // Draw the left half of the heart using Bézier curves
+        builder.cubic_bezier_to(
+            pt2(x - self.size / 2., y - self.size / 2.)
+                .to_array()
+                .into(),
+            pt2(x - self.size, y + self.size / 2.).to_array().into(),
+            pt2(x, y + self.size).to_array().into(),
+        );
+        // Draw the right half of the heart using Bézier curves
+        builder.cubic_bezier_to(
+            pt2(x + self.size, y + self.size / 2.).to_array().into(),
+            pt2(x + self.size / 2., y - self.size / 2.)
+                .to_array()
+                .into(),
+            pt2(x, y + self.size / 4.).to_array().into(),
+        );
+
+        let events = builder.build();
+
+        draw.polygon()
+            .stroke_weight(1.0)
+            .stroke(self.color)
+            .color(self.color)
+            .events(events.iter());
     }
 
     fn update(&mut self) {}

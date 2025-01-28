@@ -7,7 +7,7 @@ pub struct Cell {
     pub bottom_wall: bool,
     pub left_wall: bool,
     pub visited: bool,
-    pub decay: f32,
+    pub start: bool,
     pub height: f32,
     pub width: f32,
     pub col: i32,
@@ -22,7 +22,7 @@ impl Cell {
             bottom_wall: true,
             left_wall: true,
             visited: false,
-            decay: 0.0,
+            start: false,
             height,
             width,
             col,
@@ -42,6 +42,7 @@ pub struct Model {
     pub cells: Vec<Cell>,
     pub stack: Vec<i32>,
     pub current: Option<i32>,
+    pub icon: Option<Heart>,
 }
 
 impl Model {
@@ -58,11 +59,18 @@ impl Model {
             }
         }
 
+        let icon = Some(Heart::new(
+            0,
+            0,
+            height / default.cols as f32,
+            default.highlight_color,
+        ));
+
         Self {
             height,
             width,
             cells,
-            current: Some(0),
+            icon,
             ..Self::default()
         }
     }
@@ -102,5 +110,23 @@ impl Model {
         }
 
         neighbors
+    }
+}
+
+pub struct Heart {
+    pub row: i32,
+    pub col: i32,
+    pub size: f32,
+    pub color: Hsla,
+}
+
+impl Heart {
+    pub fn new(row: i32, col: i32, size: f32, color: Hsla) -> Self {
+        Self {
+            row,
+            col,
+            size,
+            color,
+        }
     }
 }
