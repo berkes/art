@@ -50,7 +50,6 @@ impl Default for Model {
 fn main() {
     nannou::app(model)
         .update(update)
-        .event(event)
         .loop_mode(LoopMode::default())
         .run();
 }
@@ -62,6 +61,7 @@ fn model(app: &App) -> Model {
         .new_window()
         .title("Find Love in Chaos")
         .size(window_height as u32, window_width as u32)
+        .event(event)
         .view(view)
         .build()
         .unwrap();
@@ -76,11 +76,12 @@ fn model(app: &App) -> Model {
     Model::new(window_height, window_width, seed, recorder)
 }
 
-fn event(app: &App, _model: &mut Model, event: Event) {
+fn event(app: &App, model: &mut Model, event: WindowEvent) {
     match event {
-        Event::WindowEvent { id: _id, simple } => {
-            if let Some(KeyPressed(Key::S)) = simple {
-                do_save(app);
+        KeyPressed(Key::S) => do_save(app),
+        KeyPressed(Key::Escape) | Closed => {
+            if let Some(recorder) = &model.recorder {
+                recorder.finish();
             }
         }
         _ => (),

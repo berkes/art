@@ -25,34 +25,75 @@ pub fn do_save(app: &App) {
 }
 
 pub struct Record {
-    pub location: String,
+    pub tmp_location: String,
+    pub video_location: String,
     pub started_at: chrono::DateTime<chrono::Local>,
 }
 impl Record {
     pub fn new(app: &App) -> Self {
         let now = chrono::offset::Local::now();
-        let location = format!("{}{}{}{}/", 
-            saves_location(),
-            "rec",
+        let unique_name = format!(
+            "{}{}",
             app.exe_name().unwrap(),
             now.format("%Y-%m-%d-%H-%M-%S")
         );
-        std::fs::create_dir_all(location.clone()).unwrap();
+
+        // create a tmp directory
+        let os_tmp_dir = std::env::temp_dir();
+        let location = os_tmp_dir.join(&unique_name);
+        std::fs::create_dir_all(&location).unwrap();
 
         Record {
-            location,
+            tmp_location: location.to_string_lossy().to_string(),
+            video_location: format!("{}/{}{}", saves_location(), unique_name, ".mp4"),
             started_at: now,
         }
     }
 
     pub fn record(&self, app: &App) {
-        let frame = app.elapsed_frames();
-        let file_name = format!("{}{}-{}.png", self.location, app.exe_name().unwrap(), frame);
+        // directory should exist
+        if !std::path::Path::new(&self.tmp_location).exists() {
+            println!(
+                "Error: tmp directory does not exist or was removed. Continuing without recording."
+            );
+            return;
+        }
+
+        let file_name = format!(
+            "{}/{}{}.png",
+            self.tmp_location,
+            "frame",
+            app.elapsed_frames(),
+        );
         app.main_window().capture_frame(file_name.as_str());
     }
 
     pub fn finish(&self) {
-        println!("Saved to file://{}", self.location);
+        // Shell out to ffmpeg to create a video
+        // ffmpeg -framerate 30 -i %d.png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p output.mp4
+        let _out = std::process::Command::new("ffmpeg")
+            .arg("-framerate")
+            .arg("30")
+            .arg("-i")
+            .arg(format!("{}/{}%d.png", self.tmp_location, "frame"))
+            .arg("-c:v")
+            .arg("libx264")
+            .arg("-profile:v")
+            .arg("high")
+            .arg("-crf")
+            .arg("20")
+            .arg("-pix_fmt")
+            .arg("yuv420p")
+            .arg(&self.video_location)
+            .output()
+            .unwrap();
+
+        // remove the tmp directory
+        if let Err(e) = std::fs::remove_dir_all(&self.tmp_location) {
+            println!("Error removing tmp directory: {}", e);
+        }
+
+        println!("Saved to file://{}", self.video_location);
     }
 }
 
