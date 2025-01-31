@@ -1,33 +1,73 @@
 import p5 from "p5";
+import seedrandom from "seedrandom";
 
 const sketch = (p: p5) => {
   let maze: Maze;
 
   p.setup = () => {
+    let rng = seedrandom("romeo - juliet");
     p.createCanvas(900, 900);
     p.colorMode(p.HSL);
-    const colors: ColorScheme = {
-      backgroundColor: p.color(40, 100, 57, 100),
-      foregroundColor: p.color(336, 80, 47, 100),
-      highlightColor: p.color(336, 80, 47, 100)
-    };
+    console.log(p.frameRate());
+    const colors = new ColorScheme(
+      p.color(336, 80, 47, 100),
+      p.color(40, 100, 57, 100),
+      p.color(336, 80, 47, 100),
+      rng,
+      p
+    );
 
-    maze = new Maze(10, 10, 4, colors, "romeo-juliet", p.width, p.height);
-  };
+  maze = new Maze(40, 40, 4, colors, rng, p.width, p.height);
+};
 
-  p.draw = () => {
-    p.background(maze.colors.backgroundColor);
-    maze.draw(p);
-  }
+p.draw = () => {
+  p.background(maze.colors.backgroundColor);
+  maze.draw(p);
+}
 };
 
 new p5(sketch);
 
-// Color handling interface - we'll use p5.Color but define an interface for clarity
-interface ColorScheme {
-  foregroundColor: p5.Color;
-  backgroundColor: p5.Color;
-  highlightColor: p5.Color;
+class ColorScheme {
+  public foregroundColor: p5.Color;
+  public backgroundColor: p5.Color;
+  public highlightColor: p5.Color;
+
+  constructor(
+    private readonly baseForegroundColor: p5.Color,
+    private readonly baseBackgroundColor: p5.Color,
+    private readonly baseHighlightColor: p5.Color,
+    private readonly rng: seedrandom.PRNG,
+    private readonly p: p5,
+  ) {
+    this.foregroundColor = this.randomizeForegroundColor();
+    this.backgroundColor = this.randomizeBackgroundColor();
+    this.highlightColor = this.randomizeHighlightColor();
+  }
+
+  private randomizeForegroundColor(): p5.Color {
+    const color = this.baseForegroundColor;
+    const newH = this.p.hue(color) * (0.95 + this.rng() * 0.1); // 95-105% of original hue
+    const newS = this.p.saturation(color) * (0.8 + this.rng() * 0.2); // 80-100% of original saturation
+    const newL = this.p.lightness(color) * (1.0 + this.rng() * 0.4); // 100-120% of original lightness
+    return this.p.color(newH, newS, newL);
+  }
+
+  private randomizeBackgroundColor(): p5.Color {
+    const color = this.baseBackgroundColor;
+    const newH = this.p.hue(color) * (0.95 + this.rng() * 0.1); // 95-105% of original hue
+    const newS = this.p.saturation(color) * (0.6 + this.rng() * 0.4); // 60-100% of original saturation
+    const newL = this.p.lightness(color) * (1.0 + this.rng() * 0.2); // 100-120% of original lightness
+    return this.p.color(newH, newS, newL);
+  }
+
+  private randomizeHighlightColor(): p5.Color {
+    const color = this.baseHighlightColor;
+    const newH = this.p.hue(color) * (0.95 + this.rng() * 0.1); // 95-105% of original hue
+    const newS = this.p.saturation(color) * (0.8 + this.rng() * 0.2); // 80-100% of original saturation
+    const newL = this.p.lightness(color) * (1.0 + this.rng() * 0.2); // 100-120% of original lightness
+    return this.p.color(newH, newS, newL);
+  }
 }
 
 // Cell interface
@@ -42,7 +82,7 @@ interface CellInterface {
   row: number;
   width: number;
   height: number;
-  color: p5.Color;
+  colorScheme: ColorScheme;
 }
 
 // Main Cell class implementation
@@ -59,7 +99,7 @@ class Cell implements CellInterface {
     public row: number,
     public width: number,
     public height: number,
-    public color: p5.Color
+    public colorScheme: ColorScheme,
   ) { }
 
   draw(p: p5) {
@@ -69,8 +109,8 @@ class Cell implements CellInterface {
     if (!this.visited) {
       p.push();
       p.strokeWeight(this.width / 2);
-      p.stroke(this.color);
-      p.fill(this.color);
+      p.stroke(this.colorScheme.foregroundColor);
+      p.fill(this.colorScheme.foregroundColor);
       p.rect(x, y, this.width, this.height);
       p.pop();
       return;
@@ -99,7 +139,7 @@ class Cell implements CellInterface {
   drawWall(p5: p5, x1: number, y1: number, x2: number, y2: number) {
     p5.push();
     p5.strokeCap(p5.PROJECT);
-    p5.stroke(this.color);
+    p5.stroke(this.colorScheme.foregroundColor);
     p5.strokeWeight(this.strokeWeight());
     p5.line(x1, y1, x2, y2);
     p5.pop();
@@ -125,7 +165,7 @@ class Heart {
     public row: number,
     public col: number,
     public size: number,
-    public color: p5.Color,
+    public colorScheme: ColorScheme,
     private readonly placement: IconPlacement = IconPlacement.CENTER
   ) { }
 
@@ -160,8 +200,8 @@ class Heart {
     const heightAdjustment = 0.4 * quarterSize;
 
     p5.push();
-    p5.fill(this.color);
-    p5.stroke(this.color);
+    p5.fill(this.colorScheme.foregroundColor); // NOT highlightColor
+    p5.stroke(this.colorScheme.foregroundColor);
     p5.strokeWeight(1);
     p5.beginShape();
 
@@ -201,7 +241,7 @@ class Maze {
     public readonly rows: number = 0,
     public readonly paddingCells: number = 0,
     public readonly colors: ColorScheme,
-    public readonly seed: string = "",
+    private readonly rng: seedrandom.PRNG,
     private readonly width: number = 0,
     private readonly height: number = 0,
   ) {
@@ -216,7 +256,7 @@ class Maze {
           row,
           this.cellWidth(),
           this.cellHeight(),
-          this.colors.foregroundColor
+          this.colors
         ));
       }
     }
@@ -247,24 +287,12 @@ class Maze {
     p.push();
     p.translate(margin.x, margin.y);
 
-    // Draw background
-    // p.background(p.color(255, 0, 0, 0));
-
     // Draw all cells
     this.cells.forEach(cell => cell.draw(p));
 
     // Draw icons if they exist
     this.centerIcon?.draw(p);
     this.borderIcon?.draw(p);
-
-    // Draw debug text at the bottom right corner
-    const textPlace = {
-      x: p.width - margin.x - 100,
-      y: p.height - margin.y - 20
-    };
-
-    p.textAlign(p.LEFT, p.CENTER);
-    p.text(this.seed, textPlace.x, textPlace.y);
 
     p.pop();
 
@@ -288,7 +316,7 @@ class Maze {
 
       if (neighbors.length > 0) {
         // Choose random neighbor
-        const [nextCol, nextRow] = neighbors[Math.floor(Math.random() * neighbors.length)];
+        const [nextCol, nextRow] = this.chooseRandomNeighbor(neighbors);
         const nextIdx = this.index(nextCol, nextRow);
 
         if (nextIdx !== null) {
@@ -332,7 +360,7 @@ class Maze {
         });
 
         if (borderCells.length > 0) {
-          const exitCell = borderCells[Math.floor(Math.random() * borderCells.length)];
+          const exitCell = this.chooseRandomBorderCell(borderCells);
           let iconCol = exitCell.col;
           let iconRow = exitCell.row;
           let placement = IconPlacement.CENTER;
@@ -364,7 +392,7 @@ class Maze {
             iconRow,
             iconCol,
             this.cellHeight(),
-            this.colors.highlightColor,
+            this.colors,
             placement,
           );
         }
@@ -373,8 +401,8 @@ class Maze {
       }
     } else {
       // Initialize maze generation from a random center-ish position
-      const startCol = Math.floor(Math.random() * (this.cols / 2)) + Math.floor(this.cols / 4);
-      const startRow = Math.floor(Math.random() * (this.rows / 2)) + Math.floor(this.rows / 4);
+      const startCol = this.randomRange(this.cols / 2, this.cols / 4);
+      const startRow = this.randomRange(this.rows / 2, this.rows / 4);
 
       // Update center icon position
       if (!this.centerIcon) {
@@ -382,7 +410,7 @@ class Maze {
           startRow,
           startCol,
           this.cellHeight(),
-          this.colors.highlightColor
+          this.colors
         );
       }
 
@@ -409,6 +437,18 @@ class Maze {
 
       this.current = lastIdx;
     }
+  }
+
+  private randomRange(min: number, max: number): number {
+    return Math.floor(this.rng() * (max - min + 1)) + min;
+  }
+
+  private chooseRandomNeighbor(neighbors: [number, number][]): [number, number] {
+    return neighbors[Math.floor(this.rng() * neighbors.length)];
+  }
+
+  private chooseRandomBorderCell(borderCells: Cell[]): Cell {
+    return borderCells[Math.floor(this.rng() * borderCells.length)];
   }
 
   private getUnvisitedNeighbors(col: number, row: number): [number, number][] {

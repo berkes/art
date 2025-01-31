@@ -10,10 +10,12 @@
   },
   "devDependencies": {
     "@types/p5": "^1.7.6",
+    "@types/seedrandom": "^3.0.8",
     "typescript": "~5.6.2",
     "vite": "^6.0.5"
   },
   "dependencies": {
-    "p5": "^1.11.3"
+    "p5": "^1.11.3",
+    "seedrandom": "^3.0.5"
   }
 }
