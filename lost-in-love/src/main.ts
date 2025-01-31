@@ -67,9 +67,12 @@ class Cell implements CellInterface {
     const y = this.row * this.height;
 
     if (!this.visited) {
-      p.noStroke();
+      p.push();
+      p.strokeWeight(this.width / 2);
+      p.stroke(this.color);
       p.fill(this.color);
       p.rect(x, y, this.width, this.height);
+      p.pop();
       return;
     }
 
