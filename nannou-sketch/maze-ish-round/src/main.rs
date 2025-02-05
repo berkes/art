@@ -67,6 +67,7 @@ fn event(app: &App, model: &mut Model, event: Event) {
                         TileType::Rounded => TileType::StraightEdge,
                         TileType::StraightEdge => TileType::Chamfered,
                         TileType::Chamfered => TileType::Rounded,
+                        TileType::ADHD => TileType::ADHD,
                     };
                 });
             }
@@ -105,13 +106,19 @@ fn do_resize(model: &mut Model) {
     });
 }
 
-
 impl Tile {
     fn n_instances(n: usize) -> Vec<Self> {
         (0..n)
             .map(|_| {
                 let orientation = random_range(0, 2);
-                Tile::new(orientation)
+                let tile = Tile::new(orientation);
+
+                let chance = random_range(0., 100.);
+                if chance <= 3.5 {
+                    tile.as_adhd()
+                } else {
+                    tile
+                }
             })
             .collect()
     }
@@ -179,6 +186,51 @@ impl Tile {
 
         vec![bottom_left_points, top_right_points]
     }
+
+    fn adhd(tile_size: f32, resolution: usize) -> Vec<Vec<nannou::prelude::Vec2>> {
+        // let mut corners = Tile::halve_circles(tile_size, resolution);
+        //
+        // let half_tile: f32 = tile_size / 2.;
+        // let bottom_left = pt2(-half_tile, -half_tile);
+        // let top_right = pt2(half_tile, half_tile);
+        // let radius = tile_size / 2.;
+        // let conn_angle = deg_to_rad(45.);
+        // let connector_bl = pt2(conn_angle.cos() * radius, conn_angle.sin() * radius) + bottom_left;
+        //
+        // let conn_angle = deg_to_rad(225.);
+        // let connector_tr = pt2(conn_angle.cos() * radius, conn_angle.sin() * radius) + top_right;
+        //
+        // let mut conn_line = vec![connector_bl];
+        // for point_n in (1..10) {
+        //     let rand_noise = random_range(-2.0, 2.0);
+        //     let point = connector_bl
+        //         .lerp(connector_tr, map_range(point_n, 0, 10, 0.0, 1.0))
+        //         + pt2(rand_noise, 0.);
+        //
+        //     conn_line.push(point);
+        // }
+        // conn_line.push(connector_tr);
+        //
+        // corners.push(conn_line);
+        //
+        // corners
+        let points = vec![0.3, 0.9]
+            .iter()
+            .map(|&margin| {
+                (0..resolution)
+                    .map(|i| {
+                        let t = map_range(i, 0, resolution, 0., 2.1 * PI);
+                        let x = margin * t.cos() * tile_size / 2.;
+                        let y = margin * t.sin() * tile_size / 2.;
+
+                        pt2(x, y)
+                    })
+                    .collect()
+            })
+            .collect();
+
+        points
+    }
 }
 
 impl Nannou for Model {
@@ -230,6 +282,7 @@ impl Nannou for Tile {
             TileType::Rounded => Self::halve_circles(self.tile_size, self.resolution),
             TileType::StraightEdge => Self::straight_edge(self.tile_size, self.resolution),
             TileType::Chamfered => Self::chamfered(self.tile_size, self.resolution),
+            TileType::ADHD => Self::adhd(self.tile_size, self.resolution),
         };
 
         for points in lines {
