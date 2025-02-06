@@ -4,8 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lost in Love</title>
+    <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
     <script type="module" src="/src/main.ts"></script>
+    <div id="container">
+      <canvas id="canvas"></canvas>
+      <div id="fold"></div>
+      <form action="/" method="get">
+        <input type="text" id="me" name="me" placeholder="romeo" />
+        🖤
+        <input type="text" id="you" name="you" placeholder="juliet" />
+        <button type="submit">Generate</button>
+      </form>
+    </div>
   </body>
 </html>

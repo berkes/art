@@ -1,32 +1,48 @@
 import p5 from "p5";
 import seedrandom from "seedrandom";
 
-const sketch = (p: p5) => {
-  let maze: Maze;
+const createSketch = (rng: seedrandom.PRNG, canvas: HTMLCanvasElement): any => {
+  return (p: p5) => {
+    let maze: Maze;
 
-  p.setup = () => {
-    let rng = seedrandom("romeo - juliet");
-    p.createCanvas(900, 900);
-    p.colorMode(p.HSL);
-    console.log(p.frameRate());
-    const colors = new ColorScheme(
-      p.color(336, 80, 47, 100),
-      p.color(40, 100, 57, 100),
-      p.color(336, 80, 47, 100),
-      rng,
-      p
-    );
+    p.setup = () => {
+      p.createCanvas(450, 450, canvas);
+      p.colorMode(p.HSL);
+      console.log(p.frameRate());
+      const colors = new ColorScheme(
+        p.color(336, 80, 47, 100),
+        p.color(40, 100, 57, 100),
+        p.color(336, 80, 47, 100),
+        rng,
+        p
+      );
 
-  maze = new Maze(40, 40, 4, colors, rng, p.width, p.height);
+      maze = new Maze(20, 20, 4, colors, rng, p.width, p.height);
+    };
+
+    p.draw = () => {
+      p.background(maze.colors.backgroundColor);
+      maze.draw(p);
+    }
+  };
 };
 
-p.draw = () => {
-  p.background(maze.colors.backgroundColor);
-  maze.draw(p);
+// Get "me" and "you" url parameters
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has("me") && urlParams.has("you")) {
+  const me = urlParams.get("me");
+  const you = urlParams.get("you");
+  if (me && you) {
+    const seed = `${me} - ${you}`;
+    const meField: HTMLInputElement = document.getElementById("me") as HTMLInputElement;
+    meField.value = me;
+    const youField: HTMLInputElement = document.getElementById("you") as HTMLInputElement;
+    youField.value = you;
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    let rng = seedrandom(seed);
+    new p5(createSketch(rng, canvas));
+  }
 }
-};
-
-new p5(sketch);
 
 class ColorScheme {
   public foregroundColor: p5.Color;
