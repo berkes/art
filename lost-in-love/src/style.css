@@ -30,8 +30,13 @@ body {
  */
 form {
   width: 400px;
+}
 
-  text-align: center;
+#heart {
+  color: rgba(0, 0, 0, 0.8);
+  font-size: 1.8rem;
+  position: relative;
+  top: 0.2rem; /* Heart symbol is not vertically centered well */
 }
 
 #canvas {
@@ -39,21 +44,48 @@ form {
   height: 400px;
   background-color: #fff; 
 }
-/* Style form inputs and button for better appearance */
-input[type="text"] {
-  width: 150px;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/** Form group is a label and input field 
+ * A form group takes one line, and puts the label in front of the field 
+  * Labels all get the same width, so the input fields are aligned */
+form .form-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
-button {
-  width: 150px;
-  display: inline-block;
-  margin-top: 1rem;
+form .form-group label {
+  width: 100px;
+  text-align: right;
+  margin-right: 1rem;
+  font-size: 1rem;
+}
+form.postcard {
+  display: flex;
+  flex-direction: column;
+  align-items: justify;
+}
+form.postcard label {
+  font-size: 1rem;
+  margin-bottom: -1rem;
+}
+form.postcard input[type="text"] {
+  margin-right: 1rem;
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  font-size: 1rem;
+}
+form.postcard button {
+  margin-top: 0;
   padding: 8px 16px;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.7);
   color: white;
   border: none;
   border-radius: 4px;
@@ -61,6 +93,6 @@ button {
   font-size: 1rem;
 }
 
-button:hover {
+form.postcard button:hover {
   background-color: rgba(0, 0, 0, 0.9);
 }

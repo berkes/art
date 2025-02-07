@@ -11,12 +11,27 @@
     <div id="container">
       <canvas id="canvas"></canvas>
       <div id="fold"></div>
-      <form action="/" method="get">
-        <input type="text" id="me" name="me" placeholder="romeo" />
-        🖤
-        <input type="text" id="you" name="you" placeholder="juliet" />
-        <button type="submit">Generate</button>
+      <!-- <form action="/" method="get"> -->
+      <!--   <input type="text" id="me" name="me" placeholder="romeo" /> -->
+      <!--   <span id="heart">❤</span> -->
+      <!--   <input type="text" id="you" name="you" placeholder="juliet" /> -->
+      <!--   <button type="submit">Generate</button> -->
+      <!-- </form> -->
+
+      <form class="postcard" action="/" method="get">
+        <div class="form-group">
+          <label for="me">From</label>
+          <input type="text" id="me" name="me" placeholder="romeo" />
+        </div>
+        <div class="form-group">
+          <label for="you">To</label>
+          <input type="text" id="you" name="you" placeholder="juliet" />
+        </div>
+        <div class="form-group">
+          <button type="submit">Generate</button>
+        </div>
       </form>
+
     </div>
   </body>
 </html>

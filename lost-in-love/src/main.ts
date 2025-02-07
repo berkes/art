@@ -17,6 +17,8 @@ const createSketch = (rng: seedrandom.PRNG, canvas: HTMLCanvasElement): any => {
         p
       );
 
+      setFormColor(colors.foregroundColor, colors.backgroundColor);
+
       maze = new Maze(20, 20, 4, colors, rng, p.width, p.height);
     };
 
@@ -38,9 +40,24 @@ if (urlParams.has("me") && urlParams.has("you")) {
     meField.value = me;
     const youField: HTMLInputElement = document.getElementById("you") as HTMLInputElement;
     youField.value = you;
+
+    setTitle(me, you);
     const canvas = document.getElementById("canvas") as HTMLCanvasElement;
     let rng = seedrandom(seed);
     new p5(createSketch(rng, canvas));
+  }
+}
+
+function setTitle(me: string, you: string) {
+  let originalTitle = document.title;
+  document.title = `${originalTitle} for ${me} and ${you}`;
+}
+
+function setFormColor(foreground: p5.Color) {
+  const heartElement = document.getElementById("heart");
+  const element = heartElement as HTMLElement;
+  if (element) {
+    element.style.color = foreground.toString('rgba');
   }
 }
 
