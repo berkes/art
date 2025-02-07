@@ -553,30 +553,15 @@ function shareLink() {
   const youField: HTMLInputElement = document.getElementById("you") as HTMLInputElement;
   const you = youField.value;
   const url = new URL(window.location.href);
-  let files;
-  canvasAsBlob().then((blob) => {
-    files = [new File([blob], "maze.png", { type: "image/png" })];
-  });
-  if (navigator.canShare) {
-    const simpleData = {
-      title: `Maze for ${me} and ${you}`,
-      text: `A maze for ${me} and ${you}`,
-    };
-    const filesData = {
-      ...simpleData,
-      files: files,
-    }
-    const urlData = {
-      ...simpleData,
-      url: url.toString(),
-    }
-    if (navigator.canShare(filesData)) {
-      navigator.share(filesData);
-    } else if (navigator.canShare(urlData)) {
-      navigator.share(urlData);
-    }
+  const data = {
+    title: `Lost in Love for ${me} and ${you}`,
+    text: `Lost in Love unique maze for ${me} and ${you}`,
+    url: url.toString(),
+  };
+  if (navigator.canShare(data)) {
+    navigator.share(data);
   } else {
-    writeNotification("Web Share API not supported", "error");
+    writeNotification("Web Share not supported", "error");
     navigator.clipboard.writeText(url.toString());
   }
 }

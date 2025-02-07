@@ -86,7 +86,6 @@ form button:disabled {
   display: none;
 }
 
-
 #notification.error {
   background-color: rgba(255, 0, 0, 0.7);
 }
