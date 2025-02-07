@@ -62,16 +62,29 @@ function disableButtons() {
       button.disabled = true;
     }
   });
+
+  if (!navigator.share) {
+    document.getElementById("share")?.remove();
+  }
 }
+
 function enableButtons() {
   const copyButton = document.getElementById("copy") as HTMLButtonElement;
-  copyButton.disabled = false;
-  copyButton.addEventListener("click", copyToClipboard);
+  if (copyButton) {
+    copyButton.disabled = false;
+    copyButton.addEventListener("click", copyToClipboard);
+  }
+
   const shareButton = document.getElementById("share") as HTMLButtonElement;
-  shareButton.disabled = false;
-  shareButton.addEventListener("click", shareLink);
+  if (shareButton) {
+    shareButton.disabled = false;
+    shareButton.addEventListener("click", shareLink);
+  }
+
   const saveButton = document.getElementById("save") as HTMLButtonElement;
-  saveButton.disabled = false;
+  if (saveButton) {
+    saveButton.disabled = false;
+  }
   // Event Listener for Save Button is added where we canm pass the p5 instance
 }
 
@@ -562,7 +575,10 @@ function shareLink() {
     navigator.share(data);
   } else {
     writeNotification("Web Share not supported", "error");
-    navigator.clipboard.writeText(url.toString());
+    const text = `${data.text} - ${data.url}`;
+    navigator.clipboard.writeText(text).then(() => {
+      writeNotification("Link copied to clipboard", "info");
+    });
   }
 }
 
