@@ -1,20 +1,20 @@
-/* Common Styles */
+@font-face {
+    font-family: 'Fuzzy Bubbles';
+    src: url('/FuzzyBubbles-Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 body {
-  font-family: Arial, sans-serif;
+  font-family: Fuzzy Bubbles, cursive;
   background-color: #f5f5f5;
 }
 
 #container {
   display: flex;
-  align-items: center;
-  width: fit-content;
 
   background-color: #fff;
-}
-
-#canvas {
-  padding: 32px;
-  margin: -32px;
 }
 
 form {
@@ -27,7 +27,6 @@ form .form-group {
   display: flex;
   flex-direction: row;
   align-items: center;
-  width: 100%;
   margin-bottom: 16px;
 }
 
@@ -35,20 +34,18 @@ form label {
   width: 40px;
   text-align: right;
   margin-right: 16px;
-  margin-bottom: -16px;
   font-size: 16px;
 }
 
 form input[type="text"] {
-  width: calc(100% - 116px);
   padding: 8px 12px;
   border: none;
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
   font-size: 16px;
+  font-family: inherit;
 }
 
 form button {
-  width: calc(100% - 116px);
   margin-top: 0;
   padding: 8px 16px;
   background-color: rgba(0, 0, 0, 0.7);
@@ -57,6 +54,7 @@ form button {
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
+  font-family: inherit;
 }
 
 form button:hover {
@@ -74,6 +72,9 @@ form button:hover {
     margin: 0 auto;
     flex-direction: row;
 
+    align-items: center;
+    width: fit-content;
+
     border-radius: 8px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   }
@@ -87,9 +88,12 @@ form button:hover {
   }
 
   #canvas {
-    border-radius: 6px;
     width: 450px;
     height: 450px;
+    padding: 32px;
+    margin: -32px;
+
+    border-radius: 6px;
   }
 
   form {
@@ -98,11 +102,12 @@ form button:hover {
   }
 
   form .form-group {
+    width: 100%;
     margin-bottom: 32px;
   }
 
   form input[type="text"] {
-    width: calc(100% - 100px);
+    width: calc(100% - 40px);
   }
 
   form button {
@@ -118,28 +123,32 @@ form button:hover {
 
   #container {
     flex-direction: column;
-    padding: 16px;
     height: 100vh;
   }
 
   #frame {
-    width: calc(100vw + 32px);
-    height: calc(100vw + 32px);
+    width: calc(100vw - 32px);
+    height: calc(100vw - 32px);
+    margin: 0;
   }
 
-  #canvas {}
+  #canvas {
+    padding: 16px;
+    margin: 0;
+  }
 
   #fold {
     display: none;
   }
 
   form {
-    margin-top: 64px;
-    width: 100%;
+    padding: 0;
+    margin: 64px 16px;
+    width: calc(100vw - 32px);
   }
 
   form .form-group {
-    margin-bottom: 16px;
+    width: 100%;
   }
 
   form input[type="text"] {
