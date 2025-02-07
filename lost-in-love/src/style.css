@@ -30,6 +30,13 @@ form .form-group {
   margin-bottom: 16px;
 }
 
+form .button-group {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  width: 100%;
+}
+
 form label {
   width: 40px;
   text-align: right;
@@ -59,6 +66,32 @@ form button {
 
 form button:hover {
   background-color: rgba(0, 0, 0, 0.9);
+}
+
+/** Disabled Button Styles */
+form button:disabled {
+  background-color: rgba(0, 0, 0, 0.2);
+  cursor: progress;
+}
+
+#notification {
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#notification.hidden {
+  display: none;
+}
+
+
+#notification.error {
+  background-color: rgba(255, 0, 0, 0.7);
+}
+#notification.info {
+  background-color: rgba(0, 0, 255, 0.7);
 }
 
 /* Wide Screen Styles */
@@ -111,7 +144,11 @@ form button:hover {
   }
 
   form button {
-    width: auto;
+    width: 100%;
+  }
+
+  form .button-group {
+    margin-top: 32px;
   }
 }
 
@@ -157,5 +194,7 @@ form button:hover {
 
   form button {
     width: 100%;
+    margin-bottom: 16px;
   }
+
 }

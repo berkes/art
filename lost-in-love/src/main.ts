@@ -18,8 +18,10 @@ const createSketch = (rng: seedrandom.PRNG, canvas: HTMLCanvasElement): any => {
       );
 
       setCardColor(colors.backgroundColor);
-
-      maze = new Maze(20, 20, 4, colors, rng, p.width, p.height);
+      disableButtons();
+      const downloadButton = document.getElementById("save") as HTMLButtonElement;
+      downloadButton.addEventListener("click", () => saveImage(p, me, you));
+      maze = new Maze(18, 18, 4, colors, rng, p.width, p.height);
     };
 
     p.draw = () => {
@@ -39,22 +41,40 @@ function calcCanvasSize(): number {
 }
 
 // Get "me" and "you" url parameters
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.has("me") && urlParams.has("you")) {
-  const me = urlParams.get("me");
-  const you = urlParams.get("you");
-  if (me && you) {
-    const seed = `${me} - ${you}`;
-    const meField: HTMLInputElement = document.getElementById("me") as HTMLInputElement;
-    meField.value = me;
-    const youField: HTMLInputElement = document.getElementById("you") as HTMLInputElement;
-    youField.value = you;
+const searchParams = new URLSearchParams(window.location.search);
+const me = searchParams.get("me") || "Romeo";
+const you = searchParams.get("you") || "Juliet";
+if (me && you) {
+  const seed = `${me} - ${you}`;
+  const meField: HTMLInputElement = document.getElementById("me") as HTMLInputElement;
+  meField.value = me;
+  const youField: HTMLInputElement = document.getElementById("you") as HTMLInputElement;
+  youField.value = you;
 
-    setTitle(me, you);
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    let rng = seedrandom(seed);
-    new p5(createSketch(rng, canvas));
-  }
+  setTitle(me, you);
+  const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+  let rng = seedrandom(seed);
+  new p5(createSketch(rng, canvas));
+}
+
+function disableButtons() {
+  ["save", "copy", "share"].forEach((buttonId) => {
+    const button = document.getElementById(buttonId) as HTMLButtonElement;
+    if (button) {
+      button.disabled = true;
+    }
+  });
+}
+function enableButtons() {
+  const copyButton = document.getElementById("copy") as HTMLButtonElement;
+  copyButton.disabled = false;
+  copyButton.addEventListener("click", copyToClipboard);
+  const shareButton = document.getElementById("share") as HTMLButtonElement;
+  shareButton.disabled = false;
+  shareButton.addEventListener("click", shareLink);
+  const saveButton = document.getElementById("save") as HTMLButtonElement;
+  saveButton.disabled = false;
+  // Event Listener for Save Button is added where we canm pass the p5 instance
 }
 
 function setTitle(me: string, you: string) {
@@ -337,6 +357,7 @@ class Maze {
     if (this.borderIcon) {
       // Stop the animation, the maze is complete
       p.noLoop();
+      enableButtons();
     } else {
       // Update the maze generation
       this.update();
@@ -503,5 +524,77 @@ class Maze {
         const idx = this.index(newCol, newRow);
         return idx !== null && !this.cells[idx].visited;
       });
+  }
+}
+
+async function copyToClipboard() {
+  canvasAsBlob().then((blob) => {
+    try {
+      // Write the Blob to the clipboard
+      navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': blob
+        })
+      ]);
+    } catch (err) {
+      writeNotification(`Failed to copy ${err}`, "error");
+    }
+  });
+}
+
+function shareLink() {
+  const meField: HTMLInputElement = document.getElementById("me") as HTMLInputElement;
+  const me = meField.value;
+  const youField: HTMLInputElement = document.getElementById("you") as HTMLInputElement;
+  const you = youField.value;
+  const url = new URL(window.location.href);
+  let files;
+  canvasAsBlob().then((blob) => {
+    files = [new File([blob], "maze.png", { type: "image/png" })];
+  });
+  if (navigator.canShare) {
+    const simpleData = {
+      title: `Maze for ${me} and ${you}`,
+      text: `A maze for ${me} and ${you}`,
+    };
+    const filesData = {
+      ...simpleData,
+      files: files,
+    }
+    const urlData = {
+      ...simpleData,
+      url: url.toString(),
+    }
+    if (navigator.canShare(filesData)) {
+      navigator.share(filesData);
+    } else if (navigator.canShare(urlData)) {
+      navigator.share(urlData);
+    }
+  } else {
+    writeNotification("Web Share API not supported", "error");
+    navigator.clipboard.writeText(url.toString());
+  }
+}
+
+function canvasAsBlob(): Promise<Blob> {
+  return new Promise((resolve, _reject) => {
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    canvas.toBlob((blob: any) => {
+      resolve(blob);
+    }, 'image/png');
+  });
+}
+
+function saveImage(p: p5, from: string, to: string) {
+  p.saveCanvas(`maze-${from}-${to}`, "png");
+}
+
+function writeNotification(message: string, type: string = "info") {
+  const notification = document.getElementById("notification") as HTMLElement;
+  notification.className = type;
+  notification.innerHTML = message;
+
+  if (type === "error") {
+    console.error(message);
   }
 }
