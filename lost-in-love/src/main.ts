@@ -42,20 +42,18 @@ function calcCanvasSize(): number {
 
 // Get "me" and "you" url parameters
 const searchParams = new URLSearchParams(window.location.search);
-const me = searchParams.get("me") || "Romeo";
-const you = searchParams.get("you") || "Juliet";
-if (me && you) {
-  const seed = `${me} - ${you}`;
-  const meField: HTMLInputElement = document.getElementById("me") as HTMLInputElement;
-  meField.value = me;
-  const youField: HTMLInputElement = document.getElementById("you") as HTMLInputElement;
-  youField.value = you;
+const me = searchParams.get("me")?.trim() || "Romeo";
+const you = searchParams.get("you")?.trim() || "Juliet";
+const seed = `${me} - ${you}`;
+const meField: HTMLInputElement = document.getElementById("me") as HTMLInputElement;
+meField.value = me;
+const youField: HTMLInputElement = document.getElementById("you") as HTMLInputElement;
+youField.value = you;
 
-  setTitle(me, you);
-  const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-  let rng = seedrandom(seed);
-  new p5(createSketch(rng, canvas));
-}
+setTitle(me, you);
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+let rng = seedrandom(seed);
+new p5(createSketch(rng, canvas));
 
 function disableButtons() {
   ["save", "copy", "share"].forEach((buttonId) => {
