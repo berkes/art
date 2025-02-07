@@ -1,48 +1,20 @@
+/* Common Styles */
 body {
-  margin: 4rem;
   font-family: Arial, sans-serif;
   background-color: #f5f5f5;
 }
 
 #container {
   display: flex;
-  flex-direction: row;
   align-items: center;
   width: fit-content;
-  margin: 0 auto;
-  padding: 4rem;
 
   background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-}
-
-#fold {
-  width: 1px;
-  margin: -4rem 4rem;
-  align-self: stretch;
-  background: #fff;
-  box-shadow: 8px 0 8px rgba(0, 0, 0, 0.6);
-}
-
-/** 
- * form right of the canvas
- */
-form {
-  width: 400px;
-}
-
-#heart {
-  color: rgba(0, 0, 0, 0.8);
-  font-size: 1.8rem;
-  position: relative;
-  top: 0.2rem; /* Heart symbol is not vertically centered well */
 }
 
 #canvas {
-  width: 400px;
-  height: 400px;
-  background-color: #fff; 
+  padding: 32px;
+  margin: -32px;
 }
 
 form {
@@ -50,39 +22,33 @@ form {
   flex-direction: column;
   align-items: center;
 }
-/** Form group is a label and input field 
- * A form group takes one line, and puts the label in front of the field 
-  * Labels all get the same width, so the input fields are aligned */
+
 form .form-group {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 1rem;
+  width: 100%;
+  margin-bottom: 16px;
 }
 
-form .form-group label {
-  width: 100px;
+form label {
+  width: 40px;
   text-align: right;
-  margin-right: 1rem;
-  font-size: 1rem;
+  margin-right: 16px;
+  margin-bottom: -16px;
+  font-size: 16px;
 }
-form.postcard {
-  display: flex;
-  flex-direction: column;
-  align-items: justify;
-}
-form.postcard label {
-  font-size: 1rem;
-  margin-bottom: -1rem;
-}
-form.postcard input[type="text"] {
-  margin-right: 1rem;
+
+form input[type="text"] {
+  width: calc(100% - 116px);
   padding: 8px 12px;
   border: none;
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
-  font-size: 1rem;
+  font-size: 16px;
 }
-form.postcard button {
+
+form button {
+  width: calc(100% - 116px);
   margin-top: 0;
   padding: 8px 16px;
   background-color: rgba(0, 0, 0, 0.7);
@@ -90,9 +56,97 @@ form.postcard button {
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 16px;
 }
 
-form.postcard button:hover {
+form button:hover {
   background-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Wide Screen Styles */
+@media (min-width: 768px) {
+  body {
+    margin: 64px;
+  }
+
+  #container {
+    padding: 64px;
+    margin: 0 auto;
+    flex-direction: row;
+
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  #fold {
+    width: 1px;
+    margin: -64px 64px;
+    align-self: stretch;
+    background: #fff;
+    box-shadow: 8px 0 8px rgba(0, 0, 0, 0.6);
+  }
+
+  #canvas {
+    border-radius: 6px;
+    width: 450px;
+    height: 450px;
+  }
+
+  form {
+    margin-top: 0;
+    width: 450px;
+  }
+
+  form .form-group {
+    margin-bottom: 32px;
+  }
+
+  form input[type="text"] {
+    width: calc(100% - 100px);
+  }
+
+  form button {
+    width: auto;
+  }
+}
+
+/* Narrow Screen Styles */
+@media (max-width: 767px) {
+  body {
+    margin: 0;
+  }
+
+  #container {
+    flex-direction: column;
+    padding: 16px;
+    height: 100vh;
+  }
+
+  #frame {
+    width: calc(100vw + 32px);
+    height: calc(100vw + 32px);
+  }
+
+  #canvas {}
+
+  #fold {
+    display: none;
+  }
+
+  form {
+    margin-top: 64px;
+    width: 100%;
+  }
+
+  form .form-group {
+    margin-bottom: 16px;
+  }
+
+  form input[type="text"] {
+    width: calc(100% - 40px);
+  }
+
+  form button {
+    width: 100%;
+  }
 }

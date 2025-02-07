@@ -6,9 +6,9 @@ const createSketch = (rng: seedrandom.PRNG, canvas: HTMLCanvasElement): any => {
     let maze: Maze;
 
     p.setup = () => {
-      p.createCanvas(450, 450, canvas);
+      const size = calcCanvasSize();
+      p.createCanvas(size, size, canvas);
       p.colorMode(p.HSL);
-      console.log(p.frameRate());
       const colors = new ColorScheme(
         p.color(336, 80, 47, 100),
         p.color(40, 100, 57, 100),
@@ -17,7 +17,7 @@ const createSketch = (rng: seedrandom.PRNG, canvas: HTMLCanvasElement): any => {
         p
       );
 
-      setFormColor(colors.foregroundColor, colors.backgroundColor);
+      setCardColor(colors.backgroundColor);
 
       maze = new Maze(20, 20, 4, colors, rng, p.width, p.height);
     };
@@ -28,6 +28,15 @@ const createSketch = (rng: seedrandom.PRNG, canvas: HTMLCanvasElement): any => {
     }
   };
 };
+
+function calcCanvasSize(): number {
+  // For large screens, maximize to 450px
+  // For small screens, maximize to screen size - 32px (16px padding on each side)
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const size = Math.min(width, height);
+  return Math.min(size - 32, 450);
+}
 
 // Get "me" and "you" url parameters
 const urlParams = new URLSearchParams(window.location.search);
@@ -53,11 +62,11 @@ function setTitle(me: string, you: string) {
   document.title = `${originalTitle} for ${me} and ${you}`;
 }
 
-function setFormColor(foreground: p5.Color) {
-  const heartElement = document.getElementById("heart");
-  const element = heartElement as HTMLElement;
-  if (element) {
-    element.style.color = foreground.toString('rgba');
+function setCardColor(color: p5.Color) {
+  const containerElement = document.getElementById("canvas");
+  const container = containerElement as HTMLElement;
+  if (container) {
+    container.style.backgroundColor = color.toString('rgba');
   }
 }
 
@@ -210,10 +219,6 @@ class Heart {
     // For the outer heart, we need to move the center point outwards by half the size
     let x = this.col * size;
     let y = this.row * size;
-    if (this.placement != IconPlacement.CENTER) {
-      console.debug(this.placement);
-      console.debug(this.col, this.row);
-    }
     if (this.placement === IconPlacement.TOPBORDER) {
       y = y - halfSize;
     } else if (this.placement === IconPlacement.RIGHTBORDER) {
