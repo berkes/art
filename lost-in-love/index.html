@@ -58,7 +58,70 @@
         </button>
         </div>
         <div id="notification" class="hidden"></div>
+        <a href="#about" id="about"> ℹ️ About</a>
       </form>
     </div>
+    <dialog id="about-modal">
+      <h2>About Lost in Love</h2>
+      <p>
+        Lost in Love is a project by <a href="https://berk.es">Bèr Kessels</a> to create and share a unique maze for you and your love. <br>
+        The maze is generated based on the names you provide. The maze is unique to you and your love, and can be shared with a unique URL.
+      </p>
+      <dl>
+        <dt>What is it?</dt>
+        <dd>
+          <p>
+            <strong>Lost in Love</strong> is an art project. It is so called <a href="https://en.wikipedia.org/wiki/Generative_art">generative art</a>: I write the software, and the software creates art autonomously. <br>
+            A nice introduction into generative art is <a href="https://www.youtube.com/watch?v=4Se0_w0ISYk">this talk by Tim Holman</a>.
+          </p>
+        </dd>
+        <dt>What inspired you?</dt>
+        <dd>
+          <p>
+          In a gallery in London, I came across gorgeaus screenprints by <a href="https://rbyrneart.com/">Ricky Byrne</a>. I loved their use of color and hand-produced feel. Attention for color, layout, tension.<br/>
+          So I started experimenting with maze generation algorithms in Rust, with Nannou.<br/>
+          In the process, I decided to make it a web app, for valentine, so everyone can create their own maze. And ported the Rust code to TypeScript in a tiny web app. <a href="https://www.youtube.com/watch?v=HyK_Q5rrcr4">The Coding Train has a great tutorial set on maze generation</a>. I used the same common recursive backtracking algorithm, because the aesthetics are what I was looking for. <br>
+          </p>
+        </dd>
+        <dt>How does it work?</dt>
+        <dd>
+          <p>
+          The names you provide are used to generate <a href="https://en.wikipedia.org/wiki/Random_seed ">unique randomnes</a>. 
+          This is used in a <a href="https://en.wikipedia.org/wiki/Maze_generation_algorithm">maze generation algorithm</a> to create a maze. <br>
+          I deliberately chose to animate the maze generation, to show the process. It is a slow process, but I think it is interesting to watch it carve out your maze. <br>
+          </p>
+        </dd>
+        <dt>Saving, copying and sharing doesn't work</dt>
+        <dd>
+          <p>
+          Saving, copying and sharing the maze is disabled until the maze is generated. Once the maze is generated, you can save, copy and share the maze. <br>
+          Sharing, copying won't work on all browsers and is affected by some browser plugins or settings. The best result is on Chrome on Android. 
+          </p>
+        </dd>
+        <dt>Can I customize the maze?</dt>
+        <dd>
+          <p>
+            <strong>No</strong>, the only parameter you can provide is the names. The maze is generated based on these names, and the algorithm is fixed. This is by design. Only the two names determine the artwork. <br>
+            However, you can change the source code, see below.
+          </p>
+        </dd>
+        <dt>
+          Where is the code?
+        <dd>
+          <p>
+            The code is available on <a href="https://github.com/berkes/art/tree/main/lost-in-love">GitHub</a>. Feel free to fork, change and improve it, or just have fun with it. <br>
+            </p>
+        </dd>
+        <dt>What did you use?</dt>
+        <dd>
+          <ul>
+            <li><a href="https://nannou.cc/">Nannou</a> for the original maze generation</li>
+            <li><a href="https://p5js.org/">p5.js</a> for the web version</li>
+            <li><a href="https://vitejs.dev/">Vite</a> for the build and web stuff</li>
+          </ul>
+        </dd>
+      </dl>
+      <button autofocus>Close</button>
+    </dialog>
   </body>
 </html>

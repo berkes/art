@@ -50,6 +50,18 @@ meField.value = me;
 const youField: HTMLInputElement = document.getElementById("you") as HTMLInputElement;
 youField.value = you;
 
+const aboutLink = document.getElementById("about") as HTMLAnchorElement;
+aboutLink.addEventListener("click", () => {
+  const modal = document.getElementById("about-modal") as HTMLDialogElement;
+  modal?.showModal();
+});
+const modalClose = document.querySelector("#about-modal button") as HTMLButtonElement;
+modalClose.addEventListener("click", () => {
+  const modal = document.getElementById("about-modal") as HTMLDialogElement;
+  modal?.close();
+});
+
+
 setTitle(me, you);
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 let rng = seedrandom(seed);
