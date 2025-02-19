@@ -1,1 +1,5 @@
 # Vendored and external examples
+
+# Processing libraries
+/processing/libraries/
+/processing/*.autosave
