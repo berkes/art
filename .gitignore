@@ -3,4 +3,5 @@
 # Processing libraries
 /processing/libraries/
 /processing/*.autosave
+/processing/**/*.autosave
 /processing/**/frames
