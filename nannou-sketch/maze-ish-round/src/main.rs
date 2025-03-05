@@ -6,9 +6,11 @@ use crate::models::{Model, Tile};
 use bertools::do_save;
 use bertools::Nannou;
 
+const LINE_FACTOR: f32 = 0.15;
+
 impl Default for Model {
     fn default() -> Self {
-        let n_tiles = 3000;
+        let n_tiles = 4000;
         let background_color = hsla(0., 0., 0.92, 1.0);
 
         Self {
@@ -21,7 +23,8 @@ impl Default for Model {
 impl Default for Tile {
     fn default() -> Self {
         Self {
-            line_color: hsla(0., 0.15, 0.14, 1.0),
+            // line_color: hsla(0., 0.15, 0.14, 1.0),
+            line_color: hsla(0., 0.05, 0.05, 1.0),
             orientation: 0,
             tile_size: 800.,
             resolution: 100,
@@ -42,7 +45,7 @@ fn model(app: &App) -> Model {
     let _window = app
         .new_window()
         .title("Bers tile pattern")
-        .size(800, 800)
+        .size(2560, 1440)
         .view(view)
         .build()
         .unwrap();
@@ -249,7 +252,7 @@ impl Nannou for Tile {
             TileType::ADHD => Self::adhd(self.tile_size, self.resolution),
         };
 
-        let weight = self.tile_size / 4.;
+        let weight = self.tile_size * LINE_FACTOR;
         for points in lines {
             draw.polyline()
                 .weight(weight)
