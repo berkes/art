@@ -24,7 +24,8 @@ class MetaBall implements mover {
     if (DEBUG) {
       drawVector(position, force, force.mag() * r*2, color(100, 0, 0));
     }
-    PVector appliedAccelleration = PVector.div(force, mass);
+    // TODO: applied 0.5 to decrease the momentum, but it's a hack
+    PVector appliedAccelleration = PVector.div(force, mass * 0.5);
     accelleration.add(appliedAccelleration);
   }
 
@@ -80,7 +81,6 @@ class MetaBall implements mover {
 
   private void checkEdges() {
     // Reverse the direction if we hit the edges
-
     if (position.x > width - r || position.x < r) {
       velocity.x *= -1;
     }

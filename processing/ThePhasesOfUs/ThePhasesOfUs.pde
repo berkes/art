@@ -4,12 +4,12 @@ final int TOP_RIGHT = 1;
 final int BOTTOM_LEFT = 2;
 final int BOTTOM_RIGHT = 3;
 
-final float MS_THRESHOLD = 2.0;
-
-final int N_BALLS = 10;
+final int N_BALLS = 4;
 final int N_CELLS = 10000;
 
-final float G = 1.0;
+final float MS_THRESHOLD = 0.8;
+
+final float G = 6.0;
 
 // final int WIDTH = 800;
 // final int HEIGHT = 600;
@@ -22,7 +22,6 @@ final boolean DEBUG = false;
 final boolean SAVE_FRAMES = false;
 
 ArrayList<MetaBall> balls = new ArrayList<MetaBall>();
-float correction = 0.5;
 Grid grid;
 ArrayList<MetaBall> attractingPair = new ArrayList<MetaBall>();
 ArrayList<MetaBall> repellingPair  = new ArrayList<MetaBall>();
@@ -33,30 +32,32 @@ void setup() {
 
   grid = new Grid(800, 600, N_CELLS);
 
-  // for (int i = 0; i < N_BALLS; i++) {
-  //   float r = random(20, 40);
-  //   PVector position = new PVector(random(r, width-r), random(r, height-r));
-  //   MetaBall ball = new MetaBall(r, position, str(i));
-  //   ball.applyForce(new PVector(random(-1, 1), random(-1, 1)));
-  //   balls.add(ball);
-  // }
-  MetaBall b1 = new MetaBall(50, new PVector(100, 100), "A");
-  b1.applyForce(new PVector(1, 1));
-  balls.add(b1);
-  MetaBall b2 = new MetaBall(55, new PVector(600, 400), "B");
-  b2.applyForce(new PVector(-1, -1));
-  balls.add(b2);
+  for (int i = 0; i < N_BALLS; i++) {
+    float r = random(15, 20);
+    PVector position = new PVector(random(r, width-r), random(r, height-r));
+    MetaBall ball = new MetaBall(r, position, str(i));
+    ball.applyForce(new PVector(random(-1, 1), random(-1, 1)));
+    balls.add(ball);
+  }
+  // MetaBall b1 = new MetaBall(50, new PVector(100, 100), "A");
+  // b1.applyForce(new PVector(1, 1));
+  // balls.add(b1);
+  // MetaBall b2 = new MetaBall(55, new PVector(600, 400), "B");
+  // b2.applyForce(new PVector(-1, -1));
+  // balls.add(b2);
 }
 
 void draw() {
   background(360);
 
   if (attractingPair.size() == 2) {
+    println("Attracting pair: " + attractingPair.get(0).name + " " + attractingPair.get(1).name);
     attractingPair.get(0).attract(attractingPair.get(1));
     attractingPair.get(1).attract(attractingPair.get(0));
   }
 
   if (repellingPair.size() == 2) {
+    println("Repelling pair: " + repellingPair.get(0).name + " " + repellingPair.get(1).name);
     repellingPair.get(0).repel(repellingPair.get(1));
     repellingPair.get(1).repel(repellingPair.get(0));
   }

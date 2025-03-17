@@ -49,14 +49,6 @@ class Cell {
 
   void display() {
     push();
-    fill(0);
-    stroke(0);
-
-    if (values[TOP_LEFT] > MS_THRESHOLD) {
-      fill(180, 100, 100);
-    } else {
-      fill(360, 0, 0);
-    }
     // if (DEBUG) {
     if (false) {
       ellipse(pos.x, pos.y, 5, 5);
@@ -87,7 +79,7 @@ class Cell {
     // The polygons
     stroke(0);
     fill(color(200, 100, 100));
-    strokeWeight(3);
+    strokeWeight(1);
     PVector startp = null;
     PVector endp = null;
     switch (marchingSquareType()) {
@@ -96,41 +88,51 @@ class Cell {
         break;
       case 1:
       case 14:
-        startp = bottom();
-        endp = left();
+        startp = bottom(values[BOTTOM_LEFT], values[BOTTOM_RIGHT]);
+        endp = left(values[TOP_LEFT], values[BOTTOM_LEFT]);
         break;
       case 2:
       case 13:
-        startp = right();
-        endp = bottom();
+        startp = right(values[TOP_RIGHT], values[BOTTOM_RIGHT]);
+        endp = bottom(values[BOTTOM_LEFT], values[BOTTOM_RIGHT]);
         break;
       case 3:
       case 12:
-        startp = left();
-        endp = right();
+        startp = left(values[TOP_LEFT], values[BOTTOM_LEFT]);
+        endp = right(values[TOP_RIGHT], values[BOTTOM_RIGHT]);
         break;
       case 4:
       case 11:
-        startp = top();
-        endp = right();
+        startp = top(values[TOP_LEFT], values[TOP_RIGHT]);
+        endp = right(values[TOP_RIGHT], values[BOTTOM_RIGHT]);
         break;
       case 5:
-        line(right().x, right().y, bottom().x, bottom().y);
-        line(top().x, top().y, left().x, left().y);
+        float rightY = map(MS_THRESHOLD, values[TOP_RIGHT], values[BOTTOM_RIGHT], topRight().y, bottomRight().y);
+        float bottomX = map(MS_THRESHOLD, values[BOTTOM_LEFT], values[BOTTOM_RIGHT], bottomLeft().x, bottomRight().x);
+        line(right().x, rightY, bottomX, bottom().y);
+
+        float leftY = map(MS_THRESHOLD, values[TOP_LEFT], values[BOTTOM_LEFT], topLeft().y, bottomLeft().y);
+        float topX = map(MS_THRESHOLD, values[TOP_LEFT], values[TOP_RIGHT], topLeft().x, topRight().x);
+        line(left().x, leftY, topX, top().y);
         break;
       case 6:
       case 9:
-        startp = top();
-        endp = bottom();
+        startp = top(values[TOP_LEFT], values[TOP_RIGHT]);
+        endp = bottom(values[BOTTOM_LEFT], values[BOTTOM_RIGHT]);
         break;
       case 7:
       case 8:
-        startp = top();
-        endp = left();
+        startp = top(values[TOP_LEFT], values[TOP_RIGHT]);
+        endp = left(values[TOP_LEFT], values[BOTTOM_LEFT]);
         break;
       case 10:
-        line(top().x, top().y, right().x, right().y);
-        line(bottom().x, bottom().y, left().x, left().y);
+        float topXa = map(MS_THRESHOLD, values[TOP_LEFT], values[TOP_RIGHT], topLeft().x, topRight().x);
+        float leftYa = map(MS_THRESHOLD, values[TOP_LEFT], values[BOTTOM_LEFT], topLeft().y, bottomLeft().y);
+        line(topXa, top().y, left().x, leftYa);
+
+        float bottomXa = map(MS_THRESHOLD, values[BOTTOM_LEFT], values[BOTTOM_RIGHT], bottomLeft().x, bottomRight().x);
+        float rightYa = map(MS_THRESHOLD, values[TOP_RIGHT], values[BOTTOM_RIGHT], topRight().y, bottomRight().y);
+        line(bottomXa, bottom().y, bottom().x, rightYa);
         break;
       default:
         break;
@@ -167,14 +169,30 @@ class Cell {
     return type;
   }
 
+  private PVector top(float leftValue, float rightValue) {
+    float x = map(MS_THRESHOLD, leftValue, rightValue, topLeft().x, topRight().x);
+    return new PVector(x, topLeft().y);
+  }
   private PVector top() {
     return new PVector(topLeft().x + cwidth/2, topLeft().y);
+  }
+  private PVector right(float topValue, float bottomValue) {
+    float y = map(MS_THRESHOLD, topValue, bottomValue, topRight().y, bottomRight().y);
+    return new PVector(topRight().x, y);
   }
   private PVector right() {
     return new PVector(topRight().x, topRight().y + cheight/2);
   }
+  private PVector bottom(float leftValue, float rightValue) {
+    float x = map(MS_THRESHOLD, leftValue, rightValue, bottomLeft().x, bottomRight().x);
+    return new PVector(x, bottomLeft().y);
+  }
   private PVector bottom() {
     return new PVector(bottomLeft().x + cwidth/2, bottomLeft().y);
+  }
+  private PVector left(float topValue, float bottomValue) {
+    float y = map(MS_THRESHOLD, topValue, bottomValue, topLeft().y, bottomLeft().y);
+    return new PVector(topLeft().x, y);
   }
   private PVector left() {
     return new PVector(topLeft().x, topLeft().y + cheight/2);
