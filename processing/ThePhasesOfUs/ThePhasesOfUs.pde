@@ -6,286 +6,63 @@ final int BOTTOM_RIGHT = 3;
 
 final float MS_THRESHOLD = 2.0;
 
-// final boolean DEBUG = true;
+final int N_BALLS = 10;
+final int N_CELLS = 10000;
+
+final float G = 1.0;
+
+// final int WIDTH = 800;
+// final int HEIGHT = 600;
+
+// INSTA STORY
+// final int WIDTH = 1080;
+// final int HEIGHT = 1920;
+
 final boolean DEBUG = false;
 final boolean SAVE_FRAMES = false;
-
-class MetaBall {
-  float r;
-  PVector pos, vel;
-
-  MetaBall(float r, PVector pos, PVector vel) {
-    this.r = r;
-    this.pos = pos;
-    this.vel = vel;
-  }
-
-  void move() {
-    checkEdges();
-    pos.add(vel);
-  }
-
-  void stop() {
-    vel.set(0, 0);
-  }
-
-  void display() {
-    if (DEBUG) {
-      push();
-      noFill();
-      fill(0);
-      stroke(0);
-      ellipse(pos.x, pos.y, r*2, r*2);
-      pop();
-    }
-  }
-
-  private void checkEdges() {
-    if (pos.x > width - r || pos.x < r) {
-      vel.x *= -1;
-    }
-    if (pos.y > height - r || pos.y < r) {
-      vel.y *= -1;
-    }
-  }
-}
-
-class Grid {
-  private int cols, rows;
-  ArrayList<Cell> cells;
-
-  Grid(int width, int height, int n_cells) {
-    // Cells are always square
-    // Calculate the amout of columns and rows based on the amount of cells and the width and height
-    int cellSize = (int)sqrt((width * height) / n_cells);
-    this.cols = width / cellSize + 1;
-    this.rows = height / cellSize + 1;
-    this.cells = new ArrayList<Cell>();
-    for (int i = 0; i < (cols * rows); i++) {
-      PVector pos = new PVector((i % cols) * cellSize, (i / cols) * cellSize);
-      cells.add(new Cell(pos, cellSize, cellSize));
-    }
-  }
-
-  void display() {
-    for (Cell cell : cells) {
-      push();
-      noFill();
-      cell.display();
-      pop();
-    }
-  }
-
-  void update(ArrayList<Float> field) {
-    for (Cell cell : cells) {
-      cell.update(field);
-    }
-  }
-}
-
-class Cell {
-  PVector pos;
-  int cheight, cwidth;
-  // Four values for each corner of the cell
-  float[] values;
-
-  Cell(PVector top_left_pos, int width, int height) {
-    this.pos = top_left_pos;
-
-    this.cwidth = width;
-    this.cheight = height;
-
-    // North, East, South, West values
-    this.values = new float[4];
-  }
-
-  void display() {
-    push();
-    fill(0);
-    stroke(0);
-
-    if (values[TOP_LEFT] > MS_THRESHOLD) {
-      fill(180, 100, 100);
-    } else {
-      fill(360, 0, 0);
-    }
-    if (DEBUG) {
-      ellipse(pos.x, pos.y, 5, 5);
-      rectMode(CORNERS);
-
-      noFill();
-      fill(0);
-      stroke(0);
-      textAlign(LEFT, TOP);
-      // text("TL", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      text(nf(values[TOP_LEFT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      textAlign(RIGHT, TOP);
-      // text("TR", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      text(nf(values[TOP_RIGHT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      textAlign(LEFT, BOTTOM);
-      // text("BL", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      text(nf(values[BOTTOM_LEFT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      textAlign(RIGHT, BOTTOM);
-      // text("BR", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      text(nf(values[BOTTOM_RIGHT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-
-      // stroke(color(30, 100, 100));
-      // rect(topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      textAlign(CENTER, CENTER);
-      text(nf(marchingSquareType(), 3, 0), pos.x, pos.y, bottomRight().x, bottomRight().y);
-    }
-
-    // The polygons
-    stroke(0);
-    fill(color(200, 100, 100));
-    strokeWeight(3);
-    PVector startp = null;
-    PVector endp = null;
-    switch (marchingSquareType()) {
-      case 0:
-      case 15:
-        break;
-      case 1:
-      case 14:
-        startp = bottomCenter();
-        endp = leftCenter();
-        break;
-      case 2:
-      case 13:
-        startp = rightCenter();
-        endp = bottomCenter();
-        break;
-      case 3:
-      case 12:
-        startp = leftCenter();
-        endp = rightCenter();
-        break;
-      case 4:
-      case 11:
-        startp = topCenter();
-        endp = rightCenter();
-        break;
-      case 5:
-        line(rightCenter().x, rightCenter().y, bottomCenter().x, bottomCenter().y);
-        line(topCenter().x, topCenter().y, leftCenter().x, leftCenter().y);
-        break;
-      case 6:
-      case 9:
-        startp = topCenter();
-        endp = bottomCenter();
-        break;
-      case 7:
-      case 8:
-        startp = topCenter();
-        endp = leftCenter();
-        break;
-      case 10:
-        line(topCenter().x, topCenter().y, rightCenter().x, rightCenter().y);
-        line(bottomCenter().x, bottomCenter().y, leftCenter().x, leftCenter().y);
-        break;
-      default:
-        break;
-    }
-
-    if (startp != null && endp != null) {
-      line(startp.x, startp.y, endp.x, endp.y);
-    }
-    pop();
-  }
-
-  void update(ArrayList<Float> field) {
-    if (isInsideCanvas(topLeft())) {
-      this.values[0] = field.get((int)(this.pos.x + this.pos.y * width));
-    }
-    if (isInsideCanvas(topRight())) {
-      this.values[1] = field.get((int)(topRight().x + topRight().y * width));
-    }
-    if (isInsideCanvas(bottomLeft())) {
-      this.values[2] = field.get((int)(bottomLeft().x + bottomLeft().y * width));
-    }
-    if (isInsideCanvas(bottomRight())) {
-      this.values[3] = field.get((int)(bottomRight().x + bottomRight().y * width));
-    }
-  }
-
-  private int marchingSquareType() {
-    int[] corners = new int[4];
-    for (int i = 0; i < 4; i++) {
-      corners[i] = this.values[i] > MS_THRESHOLD ? 1 : 0;
-    }
-
-    int type = corners[TOP_LEFT] * 8 + corners[TOP_RIGHT] * 4 + corners[BOTTOM_RIGHT] * 2 + corners[BOTTOM_LEFT] * 1;
-    return type;
-  }
-
-  private PVector topCenter() {
-    return PVector.add(this.pos, new PVector(this.cwidth/2, 0));
-  }
-  private PVector rightCenter() {
-    return PVector.add(this.pos, new PVector(this.cwidth, this.cheight/2));
-  }
-  private PVector bottomCenter() {
-    return PVector.add(this.pos, new PVector(this.cwidth/2, this.cheight));
-  }
-  private PVector leftCenter() {
-    return PVector.add(this.pos, new PVector(0, this.cheight/2));
-  }
-
-  private PVector topLeft(int margin) {
-    return PVector.add(this.pos, new PVector(margin, margin));
-  }
-  private PVector topLeft() {
-    return this.pos;
-  }
-  private PVector topRight(int margin) {
-    return PVector.add(this.pos, new PVector(this.cwidth - margin, margin));
-  }
-  private PVector topRight() {
-    return PVector.add(this.pos, new PVector(this.cwidth, 0));
-  }
-  private PVector bottomLeft(int margin) {
-    return PVector.add(this.pos, new PVector(margin, this.cheight - margin));
-  }
-  private PVector bottomLeft() {
-    return new PVector(this.pos.x, this.pos.y + this.cheight);
-  }
-  private PVector bottomRight(int margin) {
-    return PVector.add(this.pos, new PVector(this.cwidth - margin, this.cheight - margin));
-  }
-  private PVector bottomRight() {
-    return new PVector(this.pos.x + this.cwidth, this.pos.y + this.cheight);
-  }
-
-  private boolean isInsideCanvas(PVector p) {
-    return p.x >= 0 && p.x < width && p.y >= 0 && p.y < height;
-  }
-}
-
 
 ArrayList<MetaBall> balls = new ArrayList<MetaBall>();
 float correction = 0.5;
 Grid grid;
+ArrayList<MetaBall> attractingPair = new ArrayList<MetaBall>();
+ArrayList<MetaBall> repellingPair  = new ArrayList<MetaBall>();
 
 void setup() {
   colorMode(HSB, 360, 100, 100);
+  size(800, 600, P2D);
 
-  float r = 80;
+  grid = new Grid(800, 600, N_CELLS);
 
-  size(1200, 800, P2D);
-
-  grid = new Grid(1200, 800, 200);
-
-  for (int i = 0; i < 5; i++) {
-    PVector position = new PVector(random(r, width-r), random(r, height-r));
-    PVector velocity = new PVector(random(-3, 3), random(-3, 3)); // Example direction and speed
-    balls.add(new MetaBall(r, position, velocity));
-  }
+  // for (int i = 0; i < N_BALLS; i++) {
+  //   float r = random(20, 40);
+  //   PVector position = new PVector(random(r, width-r), random(r, height-r));
+  //   MetaBall ball = new MetaBall(r, position, str(i));
+  //   ball.applyForce(new PVector(random(-1, 1), random(-1, 1)));
+  //   balls.add(ball);
+  // }
+  MetaBall b1 = new MetaBall(50, new PVector(100, 100), "A");
+  b1.applyForce(new PVector(1, 1));
+  balls.add(b1);
+  MetaBall b2 = new MetaBall(55, new PVector(600, 400), "B");
+  b2.applyForce(new PVector(-1, -1));
+  balls.add(b2);
 }
 
 void draw() {
-  background(255);
+  background(360);
+
+  if (attractingPair.size() == 2) {
+    attractingPair.get(0).attract(attractingPair.get(1));
+    attractingPair.get(1).attract(attractingPair.get(0));
+  }
+
+  if (repellingPair.size() == 2) {
+    repellingPair.get(0).repel(repellingPair.get(1));
+    repellingPair.get(1).repel(repellingPair.get(0));
+  }
+
   for (MetaBall ball : balls) {
-    ball.move();
+    ball.update();
   }
 
   ArrayList<Float> field = metaBallField();
@@ -313,10 +90,33 @@ void draw() {
   }
 }
 
-// if we press space, draw one frame and stop again
 void keyPressed() {
-  if (key == ' ') {
-    redraw();
+  // attract
+  if (key == 'a') {
+    // pick two random balls and attract them
+    int i = (int)random(balls.size());
+    int j = (int)random(balls.size());
+    MetaBall b1 = balls.get(i);
+    MetaBall b2 = balls.get(j);
+    if (b1 == b2) {
+      return;
+    }
+
+    repellingPair = new ArrayList<MetaBall>();
+    attractingPair = new ArrayList<MetaBall>();
+    attractingPair.add(b1);
+    attractingPair.add(b2);
+  }
+  // repel
+  if (key == 'r') {
+    repellingPair = new ArrayList<MetaBall>(attractingPair);
+    attractingPair = new ArrayList<MetaBall>();
+  }
+
+  if (key == 'p') {
+    for (MetaBall ball : balls) {
+      ball.stop();
+    }
   }
 }
 
@@ -329,7 +129,7 @@ ArrayList<Float> metaBallField() {
     int y = i / width;
     float sum = 0;
     for (MetaBall ball : balls) {
-      float d = dist(x, y, ball.pos.x, ball.pos.y);
+      float d = PVector.dist(new PVector(x, y), ball.getPosition());
       sum += ball.r / d;
     }
     matrix.add(sum);
