@@ -16,10 +16,9 @@ pub struct Tile {
 
 #[derive(Debug)]
 pub enum TileType {
-    StraightEdge,
     Chamfered,
     Rounded,
-    ADHD,
+    Cross,
 }
 
 impl Tile {
@@ -28,13 +27,6 @@ impl Tile {
         Self {
             orientation,
             ..default
-        }
-    }
-
-    pub fn as_adhd(&self) -> Self {
-        Self {
-            tile_type: TileType::ADHD,
-            ..*self
         }
     }
 }

@@ -63,17 +63,6 @@ fn event(app: &App, model: &mut Model, event: Event) {
                 do_resize(model);
             }
 
-            if let Some(KeyPressed(Key::T)) = simple {
-                model.tiles.iter_mut().for_each(|t| {
-                    t.tile_type = match t.tile_type {
-                        TileType::Rounded => TileType::StraightEdge,
-                        TileType::StraightEdge => TileType::Chamfered,
-                        TileType::Chamfered => TileType::Rounded,
-                        TileType::ADHD => TileType::ADHD,
-                    };
-                });
-            }
-
             if let Some(KeyPressed(Key::R)) = simple {
                 model.tiles.iter_mut().for_each(|t| {
                     t.orientation = random_range(0, 2);
@@ -116,10 +105,22 @@ impl Tile {
                 let tile = Tile::new(orientation);
 
                 let chance = random_range(0., 100.);
-                if chance <= 3.5 {
-                    tile.as_adhd()
-                } else {
-                    tile
+                match chance {
+                    0.0..=66.0 => {
+                        let mut tile = tile;
+                        tile.tile_type = TileType::Rounded;
+                        tile
+                    }
+                    66.0..=77.0 => {
+                        let mut tile = tile;
+                        tile.tile_type = TileType::Chamfered;
+                        tile
+                    }
+                    _ => {
+                        let mut tile = tile;
+                        tile.tile_type = TileType::Cross;
+                        tile
+                    }
                 }
             })
             .collect()
@@ -161,15 +162,6 @@ impl Tile {
         vec![bottom_left_points, top_right_points]
     }
 
-    fn straight_edge(tile_size: f32, _resolution: usize) -> Vec<Vec<Point2>> {
-        let half_tile: f32 = tile_size / 2.;
-
-        let bottom_left_points = vec![pt2(0., -half_tile), pt2(-half_tile, 0.)];
-        let top_right_points = vec![pt2(half_tile, 0.), pt2(0., half_tile)];
-
-        vec![bottom_left_points, top_right_points]
-    }
-
     fn chamfered(tile_size: f32, _resolution: usize) -> Vec<Vec<Point2>> {
         let half_tile: f32 = tile_size / 2.;
 
@@ -189,13 +181,12 @@ impl Tile {
         vec![bottom_left_points, top_right_points]
     }
 
-    fn adhd(tile_size: f32, _resolution: usize) -> Vec<Vec<nannou::prelude::Vec2>> {
+    fn cross(tile_size: f32, _resolution: usize) -> Vec<Vec<nannou::prelude::Vec2>> {
         let half_tile: f32 = tile_size / 2.;
         let mut points = vec![];
         points.push(vec![pt2(0., half_tile), pt2(0., -half_tile)]);
         points.push(vec![pt2(half_tile, 0.), pt2(-half_tile, 0.)]);
         points
-
     }
 }
 
@@ -246,18 +237,17 @@ impl Nannou for Tile {
         let draw = draw.rotate(deg_to_rad(self.orientation as f32 * 90.));
         let lines = match self.tile_type {
             TileType::Rounded => Self::halve_circles(self.tile_size, self.resolution),
-            TileType::StraightEdge => Self::straight_edge(self.tile_size, self.resolution),
             TileType::Chamfered => Self::chamfered(self.tile_size, self.resolution),
-            TileType::ADHD => Self::adhd(self.tile_size, self.resolution),
+            TileType::Cross => Self::cross(self.tile_size, self.resolution),
         };
 
         let weight = self.tile_size * LINE_FACTOR;
-        for points in lines {
+        lines.into_iter().for_each(|points| {
             draw.polyline()
                 .weight(weight)
                 .points(points.iter().cloned())
                 .color(self.line_color);
-        }
+        });
     }
 
     fn update(&mut self) {}
