@@ -11,8 +11,7 @@ const LINE_FACTOR: f32 = 0.15;
 impl Default for Model {
     fn default() -> Self {
         let n_tiles = 4000;
-        let background_color = hsla(0., 0., 0.92, 1.0);
-
+        let background_color = hsla(0., 0., 0.04, 1.0);
         Self {
             background_color,
             tiles: Tile::n_instances(n_tiles),
@@ -24,7 +23,7 @@ impl Default for Tile {
     fn default() -> Self {
         Self {
             // line_color: hsla(0., 0.15, 0.14, 1.0),
-            line_color: hsla(0., 0.05, 0.05, 1.0),
+            line_color: hsla(0.8333, 0.4, 0.5, 1.0),
             orientation: 0,
             tile_size: 800.,
             resolution: 100,
