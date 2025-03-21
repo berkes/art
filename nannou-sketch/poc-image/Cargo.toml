@@ -1,0 +1,13 @@
+[package]
+name = "poc-image"
+version = "0.1.0"
+authors = ["Bèr Kessels <ber@berk.es>"]
+edition = "2021"
+
+description = "Proof of concept for reading and rendering images"
+keywords = ["poc", "nannou"]
+license = "MIT"
+
+[dependencies]
+nannou = "0.19"
+bertools = { path = "../bertools" }
