@@ -4,10 +4,10 @@ fn main() {
     nannou::app(model).update(update).run();
 }
 
-const TILE_SIZE: f32 = 40.0;
+const TILE_SIZE: f32 = 80.0;
 
 struct Model {
-    texture: wgpu::Texture,
+    textures: Vec<wgpu::Texture>,
 
     tiles: Vec<Tile>,
     currently_hovered_tile: Option<usize>,
@@ -19,11 +19,12 @@ struct Tile {
     position: Point2,
 
     rotation: f32,
+    texture_index: usize,
 }
 
 impl Tile {
     fn draw(&self, draw: &Draw, model: &Model) {
-        draw.texture(&model.texture)
+        draw.texture(&model.textures.get(self.texture_index).unwrap())
             .xy(self.position)
             .rotate(self.rotation)
             .w_h(TILE_SIZE, TILE_SIZE);
@@ -33,22 +34,30 @@ impl Tile {
 fn model(app: &App) -> Model {
     // Create a new window
     app.new_window()
-        .size(1200, 900)
+        .size(1920, 1080)
         .mouse_released(mouse_released)
         .mouse_moved(mouse_moved)
         .view(view)
         .build()
         .unwrap();
 
-    // Load the image from the assets directory
-    let assets = app.assets_path().unwrap();
-    let img_path = assets.join("example.png");
-
-    let texture = wgpu::Texture::from_path(app, img_path).unwrap();
+    // Load the images from the assets directory 
+    let dir = app.assets_path().unwrap().join("rainbow");
+    let textures = std::fs::read_dir(dir).unwrap().filter_map(|entry| {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        if path.is_file() {
+            Some(path)
+        } else {
+            None
+        }
+    }).map(|path| {
+        wgpu::Texture::from_path(app, path).unwrap()
+    }).collect::<Vec<_>>();
 
     // divide the screen into tiles of TILE_SIZE. Add one to ensure screen is covered
-    let tiles_x = (app.window_rect().w() / TILE_SIZE) as i32 + 1;
-    let tiles_y = (app.window_rect().h() / TILE_SIZE) as i32 + 1;
+    let tiles_x = (app.window_rect().w() / TILE_SIZE) as i32 + 2;
+    let tiles_y = (app.window_rect().h() / TILE_SIZE) as i32 + 2;
 
     let mut tiles = Vec::new();
 
@@ -58,9 +67,11 @@ fn model(app: &App) -> Model {
             let x = x as f32 * TILE_SIZE;
             let y = y as f32 * TILE_SIZE;
             let position = Point2::new(x, y);
-            let rotation = 0.0;
+            let rotation = random_range(0, 4) as f32 * PI / 2.0;
+            let texture_index = random_range(0, textures.len());
             tiles.push(Tile {
                 id,
+                texture_index,
                 position,
                 rotation,
             });
@@ -68,7 +79,7 @@ fn model(app: &App) -> Model {
     }
 
     Model {
-        texture,
+        textures,
         tiles,
         currently_hovered_tile: None,
     }
