@@ -37,6 +37,7 @@ fn model(app: &App) -> Model {
         .size(1920, 1080)
         .mouse_released(mouse_released)
         .mouse_moved(mouse_moved)
+        .key_pressed(key_pressed)
         .view(view)
         .build()
         .unwrap();
@@ -143,5 +144,17 @@ fn mouse_moved(_app: &App, model: &mut Model, pos: Point2) {
 
         // Update the currently hovered tile
         model.currently_hovered_tile = current_tile_id;
+    }
+}
+
+fn key_pressed(_app: &App, model: &mut Model, key: Key) {
+    match key {
+        Key::R => {
+            for tile in &mut model.tiles {
+                tile.rotation = random_range(0, 4) as f32 * PI / 2.0;
+                tile.texture_index = random_range(0, model.textures.len());
+            }
+        }
+        _ => (),
     }
 }
