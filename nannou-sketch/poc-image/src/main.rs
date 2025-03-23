@@ -1,4 +1,7 @@
+use bertools::do_save;
 use nannou::prelude::*;
+
+const ASSETS: &str = "rainbow_straight";
 
 fn main() {
     nannou::app(model).update(update).run();
@@ -42,19 +45,21 @@ fn model(app: &App) -> Model {
         .build()
         .unwrap();
 
-    // Load the images from the assets directory 
-    let dir = app.assets_path().unwrap().join("rainbow");
-    let textures = std::fs::read_dir(dir).unwrap().filter_map(|entry| {
-        let entry = entry.unwrap();
-        let path = entry.path();
-        if path.is_file() {
-            Some(path)
-        } else {
-            None
-        }
-    }).map(|path| {
-        wgpu::Texture::from_path(app, path).unwrap()
-    }).collect::<Vec<_>>();
+    // Load the images from the assets directory
+    let dir = app.assets_path().unwrap().join(ASSETS);
+    let textures = std::fs::read_dir(dir)
+        .unwrap()
+        .filter_map(|entry| {
+            let entry = entry.unwrap();
+            let path = entry.path();
+            if path.is_file() {
+                Some(path)
+            } else {
+                None
+            }
+        })
+        .map(|path| wgpu::Texture::from_path(app, path).unwrap())
+        .collect::<Vec<_>>();
 
     // divide the screen into tiles of TILE_SIZE. Add one to ensure screen is covered
     let tiles_x = (app.window_rect().w() / TILE_SIZE) as i32 + 2;
@@ -68,7 +73,7 @@ fn model(app: &App) -> Model {
             let x = x as f32 * TILE_SIZE;
             let y = y as f32 * TILE_SIZE;
             let position = Point2::new(x, y);
-            let rotation = random_range(0, 4) as f32 * PI / 2.0;
+            let rotation = random_range(0, 1) as f32 * PI;
             let texture_index = random_range(0, textures.len());
             tiles.push(Tile {
                 id,
@@ -147,14 +152,43 @@ fn mouse_moved(_app: &App, model: &mut Model, pos: Point2) {
     }
 }
 
-fn key_pressed(_app: &App, model: &mut Model, key: Key) {
+fn key_pressed(app: &App, model: &mut Model, key: Key) {
     match key {
         Key::R => {
             for tile in &mut model.tiles {
                 tile.rotation = random_range(0, 4) as f32 * PI / 2.0;
+            }
+        }
+        Key::S => {
+            do_save(app);
+        }
+        Key::Key0 => {
+            for tile in &mut model.tiles {
                 tile.texture_index = random_range(0, model.textures.len());
             }
         }
+        Key::Key1 => {
+            set_texture(model, 0);
+        }
+        Key::Key2 => {
+            set_texture(model, 1);
+        }
+        Key::Key3 => {
+            set_texture(model, 2);
+        }
+        Key::Key4 => {
+            set_texture(model, 3);
+        }
         _ => (),
     }
+}
+
+fn set_texture(model: &mut Model, texture_index: usize) {
+    if texture_index >= model.textures.len() {
+        println!("Texture index out of bounds");
+        return;
+    }
+    model.tiles.iter_mut().for_each(|t| {
+        t.texture_index = texture_index;
+    });
 }
