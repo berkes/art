@@ -43,7 +43,7 @@ fn main() {
 fn model(app: &App) -> Model {
     let _window = app
         .new_window()
-        .title("Bers tile pattern")
+        .title("Divertile")
         .size(2560, 1440)
         .view(view)
         .build()
