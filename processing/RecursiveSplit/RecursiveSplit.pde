@@ -10,8 +10,8 @@ void setup() {
   size(800, 800);
 
   stroke(0);
+  strokeWeight(2);
   noLoop();
-  noFill();
 
   rectMode(CORNERS);
 }
@@ -29,8 +29,11 @@ void recursiveSplit(float x1, float y1, float x2, float y2, int currentGeneratio
     return;
   }
 
-  stroke(currentGeneration * 10);
-  rect(x1, y1, x2, y2);
+  // random rouded corners
+  // float longest = max(x2 - x1, y2 - y1);
+  // float radius = lerp(0, longest / 2, random(0, 0.1));
+  float radius = 0;
+  rect(x1, y1, x2, y2, radius);
 
   int splitDirection = currentGeneration % 2;
   // 80% of the time, split 2 times
