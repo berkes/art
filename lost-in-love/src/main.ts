@@ -4,6 +4,8 @@ import seedrandom from "seedrandom";
 type ColorType = "HSL" | "BW";
 const colorType = "BW" as ColorType;
 
+const penSize = 2;
+
 const createSketch = (rng: seedrandom.PRNG, canvas: HTMLCanvasElement): any => {
   return (p: p5) => {
     let maze: Maze;
@@ -225,7 +227,7 @@ class Cell implements CellInterface {
 
     if (!this.visited) {
       p.push();
-      p.strokeWeight(this.width / 2);
+      p.strokeWeight(this.strokeWeight());
       p.stroke(this.colorScheme.foregroundColor);
       p.fill(this.colorScheme.foregroundColor);
       p.rect(x, y, this.width, this.height);
@@ -249,7 +251,10 @@ class Cell implements CellInterface {
   }
 
   strokeWeight(): number {
-    return this.width / 2;
+    // For normal canvas, use half the width this will make the walls and corridors the same width
+    // return this.width / 2;
+    // For penplotter, use a fixed pen size
+    return penSize;
   }
 
   // Helper function to draw a wall
@@ -313,9 +318,10 @@ class Heart {
     const heightAdjustment = 0.4 * quarterSize;
 
     p5.push();
-    p5.fill(this.colorScheme.foregroundColor); // NOT highlightColor
+    // p5.fill(this.colorScheme.foregroundColor); // NOT highlightColor
+    p5.noFill();
     p5.stroke(this.colorScheme.foregroundColor);
-    p5.strokeWeight(1);
+    p5.strokeWeight(penSize);
     p5.beginShape();
 
     // Top center point
