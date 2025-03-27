@@ -415,11 +415,11 @@ class Maze {
 
 
     // Add a love.berk.es url to the bottom right corner
-    p.fill(this.colors.foregroundColor);
-    p.textSize(10);
-    p.textAlign(p.RIGHT, p.BOTTOM);
-    let text = `${me} ♥ ${you} at http://love.berk.es`;
-    p.text(text, this.width - margin.x * 2, this.height - margin.y);
+    // p.fill(this.colors.foregroundColor);
+    // p.textSize(10);
+    // p.textAlign(p.RIGHT, p.BOTTOM);
+    // let text = `${me} ♥ ${you} at http://love.berk.es`;
+    // p.text(text, this.width - margin.x * 2, this.height - margin.y);
     p.pop();
 
     if (this.borderIcon) {
