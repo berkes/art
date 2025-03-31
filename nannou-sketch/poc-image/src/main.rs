@@ -1,7 +1,7 @@
 use bertools::do_save;
 use nannou::prelude::*;
 
-const ASSETS: &str = "rainbow_straight";
+const ASSETS: &str = "truchet_bold";
 
 fn main() {
     nannou::app(model).update(update).run();
@@ -37,7 +37,7 @@ impl Tile {
 fn model(app: &App) -> Model {
     // Create a new window
     app.new_window()
-        .size(1920, 1080)
+        .size(1080, 1080)
         .mouse_released(mouse_released)
         .mouse_moved(mouse_moved)
         .key_pressed(key_pressed)
@@ -52,13 +52,16 @@ fn model(app: &App) -> Model {
         .filter_map(|entry| {
             let entry = entry.unwrap();
             let path = entry.path();
-            if path.is_file() {
+            if path.is_file() && !path.starts_with(".") {
                 Some(path)
             } else {
                 None
             }
         })
-        .map(|path| wgpu::Texture::from_path(app, path).unwrap())
+        .map(|path| {
+            dbg!(&path);
+            wgpu::Texture::from_path(app, path).unwrap()
+        })
         .collect::<Vec<_>>();
 
     // divide the screen into tiles of TILE_SIZE. Add one to ensure screen is covered
@@ -70,10 +73,12 @@ fn model(app: &App) -> Model {
     for x in (-tiles_x / 2)..(tiles_x / 2) {
         for y in (-tiles_y / 2)..(tiles_y / 2) {
             let id = (x * 10 + y) as usize;
+
             let x = x as f32 * TILE_SIZE;
             let y = y as f32 * TILE_SIZE;
             let position = Point2::new(x, y);
-            let rotation = random_range(0, 1) as f32 * PI;
+           
+            let rotation = random_range(0, 4) as f32 * PI / 2.0;
             let texture_index = random_range(0, textures.len());
             tiles.push(Tile {
                 id,
