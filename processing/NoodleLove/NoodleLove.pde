@@ -29,14 +29,18 @@ static final String ASSET_PATH = "assets/";
 
 boolean saveFrame = false;
 
+PImage center = null;
 ArrayList<Tile> tiles = new ArrayList<Tile>();
 ArrayList<PImage> textures = new ArrayList<PImage>();
 
 void setup() {
-  size(1800, 1200);
+  size(1800, 2400);
 
   textures.add(loadTile(1));
   textures.add(loadTile(2));
+
+  center = loadImage(ASSET_PATH + "center.png");
+  center.resize(0, int(TILE_SIZE * 2));
 
   for (PImage t : textures) {
     t.resize(0, int(TILE_SIZE));
@@ -56,7 +60,7 @@ void setup() {
     }
   }
 
-  // noLoop();
+  noLoop();
 }
 
 void draw() {
@@ -65,13 +69,17 @@ void draw() {
     t.draw();
   }
 
-  if (saveFrame) {
-    String dateTime = year() + "-" + month() + "-" + day() + "-" + hour() + "-" + minute() + "-" + second() + "-" + millis();
-    String savePath = System.getenv("SAVES_LOCATION");
-    String filePath = savePath + "/NoodleLove-" + dateTime + ".png";
-    saveFrame(filePath);
-    saveFrame = false;
+  // Find a center corner of the grid of tiles
+  PVector actual_center = new PVector(width/2, height/2);
+  PVector center_tile_corner = null;
+  for (Tile t : tiles) {
+    if (t.pos.dist(actual_center) < TILE_SIZE) {
+      center_tile_corner = t.pos;
+      break;
+    }
   }
+
+  image(center, center_tile_corner.x - (TILE_SIZE/2), center_tile_corner.y - (TILE_SIZE/2));
 }
 
 PImage loadTile(int tileno) {
@@ -80,6 +88,10 @@ PImage loadTile(int tileno) {
 
 void keyPressed() {
   if (key == 's' || key == 'S') {
-    saveFrame = true;
+    String dateTime = year() + "-" + month() + "-" + day() + "-" + hour() + "-" + minute() + "-" + second() + "-" + millis();
+    String savePath = System.getenv("SAVES_LOCATION");
+    String filePath = savePath + "/NoodleLove-" + dateTime + ".png";
+    saveFrame(filePath);
+    saveFrame = false;
   }
 }
