@@ -233,6 +233,7 @@ impl Nannou for Model {
 
 impl Nannou for Tile {
     fn view(&self, _app: &App, draw: &Draw) {
+        draw.rect().w_h(self.tile_size, self.tile_size).no_fill().stroke_weight(1.0).stroke_color(BLACK);
         // Rotate around the center of the tile
         let draw = draw.rotate(deg_to_rad(self.orientation as f32 * 90.));
         let lines = match self.tile_type {
