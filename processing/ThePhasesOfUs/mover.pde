@@ -2,14 +2,15 @@
  * mover is a thing that we can apply forces to and it can change its position
  * based on those forces.
  */
-public interface mover {
+public interface Mover {
   void update();
   void stop();
   void applyForce(PVector force);
-
-  void attract(mover m);
-  void repel(mover m);
+  boolean collides(PVector point);
 
   float getMass();
+  
   PVector getPosition();
+  PVector getVelocity();
+
 }

@@ -79,7 +79,7 @@ class Cell {
     // The polygons
     stroke(0);
     fill(color(200, 100, 100));
-    strokeWeight(1);
+    strokeWeight(4);
     PVector startp = null;
     PVector endp = null;
     switch (marchingSquareType()) {

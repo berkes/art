@@ -1,4 +1,4 @@
-class MetaBall implements mover {
+class MetaBall implements Mover {
   float r, mass;
   boolean highlight;
   PVector position, velocity, accelleration;
@@ -19,13 +19,18 @@ class MetaBall implements mover {
   public PVector getPosition() {
     return this.position;
   }
+  public PVector getVelocity() {
+    return this.velocity;
+  }
+  public boolean collides(PVector point) {
+    return this.position.dist(point) <= r;
+  }
 
   void applyForce(PVector force) {
     if (DEBUG) {
       drawVector(position, force, force.mag() * r*2, color(100, 0, 0));
     }
-    // TODO: applied 0.5 to decrease the momentum, but it's a hack
-    PVector appliedAccelleration = PVector.div(force, mass * 0.5);
+    PVector appliedAccelleration = PVector.div(force, mass);
     accelleration.add(appliedAccelleration);
   }
 
@@ -39,26 +44,6 @@ class MetaBall implements mover {
 
   void stop() {
     this.velocity = new PVector(0, 0);
-  }
-
-  void attract(mover m) {
-    PVector force = PVector.sub(m.getPosition(), position);
-    float distance = force.mag();
-    distance = constrain(distance, 5, 15);
-    force.normalize();
-    float strength = G * ((mass * m.getMass()) / (distance * distance));
-    force.mult(strength);
-    applyForce(force);
-  }
-
-  void repel(mover m) {
-    PVector force = PVector.sub(position, m.getPosition());
-    float distance = force.mag();
-    distance = constrain(distance, 5, 25);
-    force.normalize();
-    float strength = G * ((mass * m.getMass()) / (distance * distance));
-    force.mult(strength);
-    applyForce(force);
   }
 
   void display() {
