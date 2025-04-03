@@ -1,11 +1,14 @@
 // Settings
 static final int NUM_PARTICLES = 2;
+static final boolean RECORD = true;
 
 ArrayList<Particle> particles = new ArrayList<Particle>();
 Attraction attraction;
 
+
 void setup() {
-  size(900, 900); 
+  // INSTA STORY 1080x1920
+  size(1080, 1920, P2D);
   background(0);
 
   // A force outwards
@@ -24,7 +27,7 @@ void setup() {
 void draw() {
   // slowly fade trails
   noStroke();
-  fill(0, 5);
+  fill(0, 3);
   rect(0, 0, width, height);
 
   for (Particle particle : particles) {
@@ -46,6 +49,10 @@ void draw() {
   for (Particle particle : particles) {
     particle.update();
     particle.display();
+  }
+
+  if (RECORD) {
+    saveFrame("frames/####.png");
   }
 }
 
@@ -136,7 +143,7 @@ class Particle implements Mover {
 
   public void display() {
     stroke(255);
-    point(position.x, position.y);
-    // ellipse(position.x, position.y, radius * 2, radius * 2);
+    fill(255, 100);
+    ellipse(position.x, position.y, 2, 2);
   }
 }
