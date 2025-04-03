@@ -1,21 +1,35 @@
 import p5 from "p5";
 import seedrandom from "seedrandom";
 
+type ColorType = "HSL" | "BW";
+const colorType = "BW" as ColorType;
+
 const createSketch = (rng: seedrandom.PRNG, canvas: HTMLCanvasElement): any => {
   return (p: p5) => {
     let maze: Maze;
+
+    let colors: ColorScheme;
 
     p.setup = () => {
       const size = calcCanvasSize();
       p.createCanvas(size, size, canvas);
       p.colorMode(p.HSL);
-      const colors = new ColorScheme(
-        p.color(336, 80, 47, 100),
-        p.color(40, 100, 57, 100),
-        p.color(336, 80, 47, 100),
-        rng,
-        p
-      );
+      switch (colorType) {
+        case "HSL": 
+          colors = new HSLColorScheme(
+            p.color(336, 80, 47, 100),
+            p.color(40, 100, 57, 100),
+            p.color(336, 80, 47, 100),
+            rng,
+            p
+          );
+          break;
+        case "BW":
+          colors = new BWColorScheme(p);
+          break;
+        default:
+          throw new Error("Invalid colorType");
+      }
 
       setCardColor(colors.backgroundColor);
       disableButtons();
@@ -113,7 +127,25 @@ function setCardColor(color: p5.Color) {
   }
 }
 
-class ColorScheme {
+interface ColorScheme {
+  foregroundColor: p5.Color;
+  backgroundColor: p5.Color;
+  highlightColor: p5.Color;
+}
+
+class BWColorScheme implements ColorScheme {
+  public foregroundColor: p5.Color;
+  public backgroundColor: p5.Color;
+  public highlightColor: p5.Color;
+
+  constructor(p: p5) {
+    this.foregroundColor = p.color(0);
+    this.backgroundColor = p.color(255);
+    this.highlightColor = p.color(0);
+  }
+}
+
+class HSLColorScheme implements ColorScheme {
   public foregroundColor: p5.Color;
   public backgroundColor: p5.Color;
   public highlightColor: p5.Color;
