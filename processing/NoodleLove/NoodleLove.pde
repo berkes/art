@@ -1,3 +1,7 @@
+public enum Distribution {
+  EVEN, NOISE, RANDOM
+}
+
 class Tile {
   PVector pos;
   float rotation;
@@ -29,6 +33,8 @@ static final String ASSET_PATH = "assets/";
 
 boolean saveFrame = false;
 
+Distribution distribution = Distribution.EVEN;
+
 PImage center = null;
 ArrayList<Tile> tiles = new ArrayList<Tile>();
 ArrayList<PImage> textures = new ArrayList<PImage>();
@@ -46,6 +52,13 @@ void setup() {
     t.resize(0, int(TILE_SIZE));
   }
 
+
+
+  noLoop();
+}
+
+void draw() {
+  tiles.clear();
   // divide the screen into tiles of TILE_SIZE. Add one to ensure screen is covered
   float tiles_x = width / TILE_SIZE + 1;
   float tiles_y = height / TILE_SIZE + 1;
@@ -59,11 +72,6 @@ void setup() {
       tiles.add(t);
     }
   }
-
-  noLoop();
-}
-
-void draw() {
   background(0);
   for (Tile t : tiles) {
     t.draw();
@@ -87,16 +95,37 @@ PImage loadTile(int tileno) {
 }
 
 float generateRotation(int x, int y) {
-  float noiseVal = noise(x * 10, y * 10);
-  int quadrant = int(map(noiseVal, 0.0, 1.0, 0, 4));
+  int quadrant = 0;
+  if (distribution == Distribution.RANDOM) {
+    // Randomly assign a quadrant
+    quadrant = int(random(0, 4));
+  } else if (distribution == Distribution.EVEN) {
+    // Evenly distribute the rotation
+    quadrant = x % 4;
+  } else if (distribution == Distribution.NOISE) {
+    // Use Perlin noise to assign a quadrant
+    float noiseVal = noise(x * 10, y * 10);
+    quadrant = int(map(noiseVal, 0.0, 1.0, 0, 4));
+  }
 
   float rotation = quadrant * HALF_PI;
   return rotation;
 }
 
 int generateTextureIdx(int x, int y) {
-  float noiseVal = noise(x * 10, y * 10);
-  int texture_idx = int(map(noiseVal, 0.0, 1.0, 0, textures.size()));
+  int texture_idx = 0;
+  if (distribution == Distribution.RANDOM) {
+    // Randomly assign a texture
+    texture_idx = int(random(0, textures.size()));
+  } else if (distribution == Distribution.EVEN) {
+    // Evenly distribute the texture
+    texture_idx = x % textures.size();
+  } else if (distribution == Distribution.NOISE) {
+    // Use Perlin noise to assign a texture
+    float noiseVal = noise(x * 10, y * 10);
+    texture_idx = int(map(noiseVal, 0.0, 1.0, 0, textures.size()));
+  }
+
   return texture_idx;
 }
 
@@ -108,4 +137,19 @@ void keyPressed() {
     saveFrame(filePath);
     saveFrame = false;
   }
+
+  if (key == 'r' || key == 'R') {
+    // Take the next distribution
+    if (distribution == Distribution.EVEN) {
+      distribution = Distribution.NOISE;
+    } else if (distribution == Distribution.NOISE) {
+      distribution = Distribution.RANDOM;
+    } else if (distribution == Distribution.RANDOM) {
+      distribution = Distribution.EVEN;
+    }
+
+    println(distribution);
+    redraw();
+  }
+
 }
