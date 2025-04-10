@@ -34,7 +34,7 @@ ArrayList<Tile> tiles = new ArrayList<Tile>();
 ArrayList<PImage> textures = new ArrayList<PImage>();
 
 void setup() {
-  size(1800, 2400);
+  size(1000, 1000);
 
   textures.add(loadTile(1));
   textures.add(loadTile(2));
@@ -53,8 +53,8 @@ void setup() {
     for (int y = 0; y < tiles_y; y++) {
       PVector pos = new PVector(x * TILE_SIZE, y * TILE_SIZE);
       // 0, 90, 180, 270
-      float rotation = int(random(0, 4)) * HALF_PI;
-      int texture_idx = int(random(0, textures.size()));
+      float rotation = generateRotation(x, y);
+      int texture_idx = generateTextureIdx(x, y);
       Tile t = new Tile(pos, rotation, texture_idx);
       tiles.add(t);
     }
@@ -84,6 +84,20 @@ void draw() {
 
 PImage loadTile(int tileno) {
   return loadImage(ASSET_PATH + "tile_" + tileno +".png");
+}
+
+float generateRotation(int x, int y) {
+  float noiseVal = noise(x * 10, y * 10);
+  int quadrant = int(map(noiseVal, 0.0, 1.0, 0, 4));
+
+  float rotation = quadrant * HALF_PI;
+  return rotation;
+}
+
+int generateTextureIdx(int x, int y) {
+  float noiseVal = noise(x * 10, y * 10);
+  int texture_idx = int(map(noiseVal, 0.0, 1.0, 0, textures.size()));
+  return texture_idx;
 }
 
 void keyPressed() {
