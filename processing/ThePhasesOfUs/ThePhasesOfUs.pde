@@ -18,8 +18,8 @@ final float G = 6.0;
 // final int WIDTH = 1080;
 // final int HEIGHT = 1920;
 
-final boolean DEBUG = true;
-final boolean ONTO_GRID = false;
+final boolean DEBUG = false;
+final boolean ONTO_GRID = true;
 final boolean SAVE_FRAMES = false;
 
 ArrayList<MetaBall> balls = new ArrayList<MetaBall>();
@@ -28,9 +28,10 @@ Attraction attraction;
 
 void setup() {
   colorMode(HSB, 360, 100, 100);
-  size(1080, 1920, P2D);
-
-  grid = new Grid(1080, 1920, N_CELLS);
+  // size(1080, 1920, P2D);
+  // grid = new Grid(1080, 1920, N_CELLS);
+  size(800, 600, P2D);
+  grid = new Grid(800, 600, N_CELLS);
 
   // for (int i = 0; i < N_BALLS; i++) {
   //   float r = random(15, 20);

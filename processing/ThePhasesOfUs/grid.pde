@@ -49,8 +49,7 @@ class Cell {
 
   void display() {
     push();
-    // if (DEBUG) {
-    if (false) {
+    if (DEBUG) {
       ellipse(pos.x, pos.y, 5, 5);
       rectMode(CORNERS);
 
