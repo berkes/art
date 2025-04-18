@@ -1,5 +1,3 @@
-import processing.svg.*;
-
 /**
  * Settings
  */
@@ -45,7 +43,9 @@ void draw() {
   background(bgColor);
   stroke(fgColor);
   strokeWeight(FIXED_COMPONENT_SIZE);
-  line(bird.pos.x - width / 2, bird.pos.y, bird.pos.x + width / 2, bird.pos.y);
+  bird.move(new PVector(-1, 0));
+
+  line(0, bird.pos.y, width, bird.pos.y);
   bird.display();
 }
 

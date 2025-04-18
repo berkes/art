@@ -20,6 +20,18 @@ class Bird {
     this.randomize();
   }
 
+  void move(PVector direction) {
+    // this.pos.add(direction);
+
+    body.move(direction);
+    feet.move(direction);
+    head.move(direction);
+    neck.move(direction);
+    eye.move(direction);
+    beak.move(direction);
+    tail.move(direction);
+  }
+
   void display() {
     body.display();
     feet.display();
@@ -82,35 +94,51 @@ class Bird {
   }
 }
 
-class Body {
+class Shape {
   PVector pos;
+
+  void display() {
+    // Abstract method to be implemented by subclasses
+  }
+  void move(PVector direction) {
+    this.pos.add(direction);
+    if (debug) {
+      println("Shape pos from: " + pos.x + ", " + pos.y + " to: " + (pos.x + direction.x) + ", " + (pos.y + direction.y));
+    }
+  }
+}
+
+class Body extends Shape {
   float radius;
   color c;
 
   Body(PVector pos, float radius, color c) {
-    this.pos = pos;
+    this.pos = pos.copy();
     this.radius = radius;
     this.c = c;
   }
 
   void display() {
     pushMatrix();
+    if (debug) {
+      println("Body pos: " + pos.x + ", " + pos.y);
+    } 
+    translate(pos.x, pos.y);
     fill(c);
     noStroke();
-    ellipse(pos.x, pos.y, radius * 2, radius * 2);
+    ellipse(0, 0, radius * 2, radius * 2);
     popMatrix();
   }
 }
 
-class Feet {
-  PVector pos;
+class Feet extends Shape {
   float length;
   float thickness;
   float spacing;
   color c;
 
   Feet(PVector pos, float length, color c) {
-    this.pos = pos;
+    this.pos = pos.copy();
     this.length = length;
     this.thickness = FIXED_COMPONENT_SIZE;
     this.spacing = FIXED_COMPONENT_SIZE * 2;
@@ -123,6 +151,7 @@ class Feet {
     if (debug) {
       stroke(dbgColor);
       strokeWeight(2);
+      println("Feet pos: " + pos.x + ", " + pos.y);
       ellipse(0, 0, 10, 10);
     } else {
       noStroke();
@@ -137,13 +166,12 @@ class Feet {
   }
 }
 
-class Head {
-  PVector pos;
+class Head extends Shape {
   float radius;
   color c;
 
   Head(PVector pos, float radius, color c) {
-    this.pos = pos;
+    this.pos = pos.copy();
     this.radius = radius;
     this.c = c;
   }
@@ -157,7 +185,8 @@ class Head {
     } else {
       noStroke();
     }
-    ellipse(pos.x, pos.y, radius * 2, radius * 2);
+    translate(pos.x, pos.y);
+    ellipse(0, 0, radius * 2, radius * 2);
     popMatrix();
   }
 }
@@ -169,8 +198,8 @@ class Neck {
   color c;
 
   Neck(PVector from, PVector to, float thickness, color c) {
-    this.from = from;
-    this.to = to;
+    this.from = from.copy();
+    this.to = to.copy();
     this.thickness = thickness;
     this.c = c;
   }
@@ -183,21 +212,26 @@ class Neck {
     line(from.x, from.y, to.x, to.y);
     popMatrix();
   }
+
+  void move(PVector direction) {
+    this.from.add(direction);
+    this.to.add(direction);
+  }
 }
 
-class Eye {
-  PVector pos;
+class Eye extends Shape {
   float radius;
   color c;
 
   Eye(PVector pos, color c) {
-    this.pos = pos;
+    this.pos = pos.copy();
     this.radius = FIXED_COMPONENT_SIZE;
     this.c = c;
   }
 
   void display() {
     pushMatrix();
+    translate(pos.x, pos.y);
     fill(c);
     if (debug) {
       stroke(dbgColor);
@@ -206,20 +240,19 @@ class Eye {
       noStroke();
     }
     noStroke();
-    ellipse(pos.x, pos.y, radius * 2, radius * 2);
+    ellipse(0, 0, radius * 2, radius * 2);
     popMatrix();
   }
 }
 
-class Beak {
-  PVector pos;
+class Beak extends Shape {
   float length;
   float width;
   float rotation;
   color c;
 
   Beak(PVector pos, float length, float width, float rotation, color c) {
-    this.pos = pos;
+    this.pos = pos.copy();
     this.length = length;
     this.width = width;
     this.rotation = rotation;
@@ -246,8 +279,7 @@ class Beak {
   }
 }
 
-class Tail {
-  PVector pos;
+class Tail extends Shape {
   float distortion;
   float angle;
   float length;
@@ -257,7 +289,7 @@ class Tail {
   PVector corner0, corner1, corner2;
 
   Tail(PVector pos, float length, float width, float distortion, float angle, color c) {
-    this.pos = pos;
+    this.pos = pos.copy();
     this.angle = angle;
     this.distortion = distortion;
     this.length = length;
