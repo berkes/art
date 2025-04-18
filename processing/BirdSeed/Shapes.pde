@@ -1,5 +1,7 @@
 class Bird {
   PVector pos;
+  int minSize;
+  int maxSize;
   color c;
 
   Body body;
@@ -10,9 +12,11 @@ class Bird {
   Beak beak;
   Tail tail;
 
-  Bird(PVector pos, color c) {
+  Bird(PVector pos, color c, int minSize, int maxSize) {
     this.pos = pos;
     this.c = c;
+    this.minSize = minSize;
+    this.maxSize = maxSize;
     this.randomize();
   }
 
@@ -27,7 +31,7 @@ class Bird {
   }
 
   void randomize() {
-    float bodyRadius = random(50, 100);
+    float bodyRadius = random(minSize, maxSize);
     float feetLength = bodyRadius * random(1.5, 2.5);
     this.feet = new Feet(pos, feetLength, c);
 

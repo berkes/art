@@ -35,14 +35,7 @@ void setup() {
   dbgColor = color(0, 100, 100);
 
   PVector center = new PVector(width / 2, height / 2);
-
-  // f = new Feet(PVector.add(center, new PVector(0, 100)), 150, fgColor);
-  // b = new Body(center, 100, fgColor);
-  // h = new Head(PVector.add(center, new PVector(0, -100)), 50, fgColor);
-  // e = new Eye(PVector.add(center, new PVector(-10, -130)), 5, bgColor);
-  // be = new Beak(PVector.add(center, new PVector(40, -120)), 20, 10, TWO_PI, fgColor);
-  // t = new Tail(PVector.add(center, new PVector(-100, 50)), fgColor);
-  bird = new Bird(center, fgColor);
+  bird = new Bird(center, fgColor, 50, 100);
 }
 
 /**
@@ -50,12 +43,9 @@ void setup() {
  */
 void draw() {
   background(bgColor);
-  // b.display();
-  // f.display();
-  // h.display();
-  // e.display();
-  // be.display();
-  // t.display();
+  stroke(fgColor);
+  strokeWeight(FIXED_COMPONENT_SIZE);
+  line(bird.pos.x - width / 2, bird.pos.y, bird.pos.x + width / 2, bird.pos.y);
   bird.display();
 }
 
