@@ -13,7 +13,7 @@ class Bird {
   Tail tail;
 
   Bird(PVector pos, color c, int minSize, int maxSize) {
-    this.pos = pos;
+    this.pos = pos.copy();
     this.c = c;
     this.minSize = minSize;
     this.maxSize = maxSize;
@@ -21,7 +21,7 @@ class Bird {
   }
 
   void move(PVector direction) {
-    // this.pos.add(direction);
+    this.pos.add(direction);
 
     body.move(direction);
     feet.move(direction);

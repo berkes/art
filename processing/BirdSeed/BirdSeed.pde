@@ -11,15 +11,11 @@ int FIXED_COMPONENT_SIZE = 5;
 /**
  * Global Variables
  */
-Body b;
-Feet f;
-Head h;
-Eye e;
-Beak be;
-Tail t;
-Bird bird;
-
 boolean debug = false;
+PVector center;
+PVector queuePos;
+
+ArrayList<Bird> birds = new ArrayList<Bird>();
 
 /**
  * Setup
@@ -32,8 +28,11 @@ void setup() {
   fgColor = color(0, 0, 0);
   dbgColor = color(0, 100, 100);
 
-  PVector center = new PVector(width / 2, height / 2);
-  bird = new Bird(center, fgColor, 50, 100);
+  center = new PVector(width / 2, height / 2);
+  Bird centerBird = new Bird(center, fgColor, 20, 100);
+  birds.add(centerBird);
+
+  queuePos = new PVector(width + 300, center.y);
 }
 
 /**
@@ -41,12 +40,36 @@ void setup() {
  */
 void draw() {
   background(bgColor);
+
   stroke(fgColor);
   strokeWeight(FIXED_COMPONENT_SIZE);
-  bird.move(new PVector(-1, 0));
+  line(0, center.y, width, center.y);
 
-  line(0, bird.pos.y, width, bird.pos.y);
-  bird.display();
+  // Draw a sun in the background
+  fill(18, 61, 100);
+  noStroke();
+  ellipse(center.x - 100, center.y - 200, 300, 300);
+  stroke(0, 0, 100);
+  for (int ditherWidth = 0; ditherWidth < 6; ditherWidth += 1) {
+    strokeWeight(ditherWidth);
+    line(0, center.y - (100 - ditherWidth * 10), width, center.y - (100 - ditherWidth * 10));
+  }
+
+
+  for(Bird bird : birds) {
+    bird.move(new PVector(-2, 0));
+    bird.display();
+  }
+
+  Bird firstBird = birds.get(0);
+  if (firstBird.pos.x % 300 == 0) {
+    Bird newBird = new Bird(queuePos, fgColor, 50, 100);
+    birds.add(newBird);
+  }
+
+  if (firstBird.pos.x <  - (width / 2) - 50) {
+    birds.remove(0);
+  }
 }
 
 /**
@@ -65,6 +88,8 @@ void keyPressed() {
   }
 
   if (key == 'r' || key == 'R') {
-    bird.randomize();
+    for (Bird bird : birds) {
+      bird.randomize();
+    }
   }
 }
