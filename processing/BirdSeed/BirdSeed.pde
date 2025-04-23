@@ -1,12 +1,11 @@
 /**
  * Settings
  */
-
-color bgColor;
-color fgColor;
-color dbgColor;
+boolean record = false;
 
 int FIXED_COMPONENT_SIZE = 5;
+
+PVector direction = new PVector(0, 0);
 
 /**
  * Global Variables
@@ -14,6 +13,10 @@ int FIXED_COMPONENT_SIZE = 5;
 boolean debug = false;
 PVector center;
 PVector queuePos;
+
+color bgColor;
+color fgColor;
+color dbgColor;
 
 ArrayList<Bird> birds = new ArrayList<Bird>();
 
@@ -57,7 +60,7 @@ void draw() {
 
 
   for(Bird bird : birds) {
-    bird.move(new PVector(-2, 0));
+    bird.move(direction);
     bird.display();
   }
 
@@ -65,6 +68,10 @@ void draw() {
   if (firstBird.pos.x % 300 == 0) {
     Bird newBird = new Bird(queuePos, fgColor, 50, 100);
     birds.add(newBird);
+  }
+
+  if (record) {
+    saveFrame("frames/####.png");
   }
 
   if (firstBird.pos.x <  - (width / 2) - 50) {
@@ -79,7 +86,7 @@ void keyPressed() {
   if (key == 's' || key == 'S') {
     String dateTime = year() + "-" + month() + "-" + day() + "-" + hour() + "-" + minute() + "-" + second() + "-" + millis();
     String savePath = System.getenv("SAVES_LOCATION");
-    String filePath = savePath + "/sketch-" + dateTime + ".png";
+    String filePath = savePath + "/BirdSeed-" + dateTime + ".png";
     saveFrame(filePath);
   }
 
@@ -91,5 +98,9 @@ void keyPressed() {
     for (Bird bird : birds) {
       bird.randomize();
     }
+  }
+
+  if (key == 'a' || key == 'A') {
+    record = !record;
   }
 }
