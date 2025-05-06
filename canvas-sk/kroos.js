@@ -28,6 +28,12 @@ class Vector {
     return Math.sqrt(this.x ** 2 + this.y ** 2);
   }
 
+  rotate(angle) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return new Vector(this.x * cos - this.y * sin, this.x * sin + this.y * cos);
+  }
+
   // Calculate distance between this vector and another
   distance(vector) {
     const dx = this.x - vector.x;
@@ -71,22 +77,24 @@ class Vector {
 }
 
 const settings = {
-  dimensions: [2048, 2048],
+  dimensions: [1080, 1080],
   animate: true,
 };
 
 const params = {
-  pondRadius: settings.dimensions[0] / 2,
+  pondRadius: (settings.dimensions[0] / 2) - (settings.dimensions[0] * 0.1),
   pondCenter: new Vector(
     settings.dimensions[0] / 2,
     settings.dimensions[1] / 2,
   ),
-  leafSize: [4, 10],
+  leafSize: [2, 4],
   frogSize: [10, 20],
-  nFrogs: 10,
+  nFrogs: 8,
   nLeaves: 8000,
   leafColor: 'hsl(91, 80%, 35%)',
   frogColor: 'hsl(79, 28%, 61%)',
+
+  debug: false,
 }
 
 const sketch = () => {
@@ -101,7 +109,7 @@ const sketch = () => {
     context.lineWidth = 1;
     context.strokeStyle = 'black';
  
-    pond.update();
+    pond.update(context);
     pond.draw(context);
   };
 };
@@ -130,11 +138,11 @@ class Pond {
       leaf.draw(context);
     });
     this.frogs.forEach(frog => {
-      frog.draw(context);
+      // frog.draw(context);
     });
   }
 
-  update() {
+  update(context) {
     this.quadtree.clear();
 
     this.leaves.forEach(leaf => {
@@ -147,6 +155,13 @@ class Pond {
       });
     });
 
+    this.frogs.filter(frog => frog.goalReached).forEach(frog => {
+      // Give a new random goal
+      const goal = this.randomEdgePoint();
+      frog.goal = goal;
+      frog.goalReached = false;
+    });
+
     this.frogs.forEach(frog => {
       const nearbyLeaves = this.quadtree.retrieve({
         x: frog.position.x - frog.size,
@@ -155,18 +170,18 @@ class Pond {
         height: frog.size * 2,
       }).map(item => item.leaf);
 
-      frog.update(nearbyLeaves);
+      frog.update(nearbyLeaves, context);
     });
+
     this.leaves.forEach(leaf => {
-      const searchArea = {
+      const neabyLeaves = this.quadtree.retrieve({
         x: leaf.position.x - leaf.size,
         y: leaf.position.y - leaf.size,
         width: leaf.size * 2,
         height: leaf.size * 2,
-      };
-      const nearbyLeaves = this.quadtree.retrieve(searchArea);
-      const otherLeaves = nearbyLeaves.map(item => item.leaf);
-      leaf.update(otherLeaves);
+      }).map(item => item.leaf);
+
+      leaf.update(neabyLeaves);
     });
   }
 
@@ -230,6 +245,11 @@ class Leaf {
       }
     });
   }
+
+  intersects(point, size) {
+    const distance = this.position.distance(point);
+    return distance < this.size + size;
+  }
 }
 
 class Frog {
@@ -238,6 +258,7 @@ class Frog {
     this.goal = goal;
     this.size = size;
 
+    this.goalReached = false;
     this.speed = 2;
   }
 
@@ -246,13 +267,73 @@ class Frog {
     context.arc(this.position.x, this.position.y, this.size, 0, Math.PI * 2);
     context.fillStyle = params.frogColor;
     context.fill();
+
+    if (params.debug) {
+      context.fillStyle = 'black';
+      context.beginPath();
+      context.arc(this.goal.x, this.goal.y, 5, 0, Math.PI * 2);
+      context.fill();
+      context.strokeStyle = 'black';
+      context.lineWidth = 2;
+      this.position.drawArrow(context, this.goal);
+      context.stroke();
+    }
   }
 
-  update(otherLeaves) {
-    const direction = this.goal.subtract(this.position).normalize();
-    const distanceToGoal = this.position.distance(this.goal);
-    const stepSize = Math.min(this.speed, distanceToGoal);
-    const movement = direction.multiply(stepSize);
+  update(otherLeaves, context) {
+    let intendedDirection = this.goal.subtract(this.position);
+    if (intendedDirection.magnitude() < 1.1) {
+      this.goalReached = true;
+
+      return;
+    }
+    intendedDirection = intendedDirection.normalize();
+
+    // Sample three points in front of the frog and check for leaves around this point
+    const offset = this.size * 2;
+    const left = this.position.add(intendedDirection.multiply(offset).rotate(-Math.PI / 6));
+    const right = this.position.add(intendedDirection.multiply(offset).rotate(Math.PI / 6));
+    const forward = this.position.add(intendedDirection.multiply(offset));
+    const points = [left, right, forward];
+
+    if (params.debug) {
+      const fillColors = ['red', 'blue', 'yellow'];
+      points.forEach((point, i) => {
+        context.fillStyle = fillColors[i];
+        context.beginPath();
+        context.arc(point.x, point.y, this.size, 0, Math.PI * 2);
+        context.fill();
+      });
+    }
+
+    const leavesAtPoints = points.map(point => {
+      return otherLeaves.filter(leaf => {
+        return leaf.intersects(point, this.size);
+      }).length;
+    });
+
+    // if all three are equal, left and forward or right and forward are equal, pick forward.
+    // If left and right are equal, pick a random left or right
+    const minLeaves = Math.min(...leavesAtPoints);
+    const maxLeaves = Math.max(...leavesAtPoints);
+    let index;
+
+    if (minLeaves === maxLeaves) { // All three are equal
+      index = 2; // pick forward
+    }
+    else if (leavesAtPoints[1] === leavesAtPoints[2] || leavesAtPoints[0] === leavesAtPoints[2]) { // left and forward or right and forward are equal
+      index = 2; // pick forward
+    }
+    else if (leavesAtPoints[0] === leavesAtPoints[1]) { // left and right are equal
+      index = random.rangeFloor(0, 2); // pick a random left or right
+    }
+    else {
+      index = leavesAtPoints.indexOf(minLeaves);
+    }
+
+    const direction = points[index].subtract(this.position).normalize();
+
+    const movement = direction.multiply(this.speed);
 
     this.position = this.position.add(movement);
 
