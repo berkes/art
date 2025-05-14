@@ -233,7 +233,6 @@ class Pond {
   }
 
   addSingleOriginFrogs(nFrogs) {
-    // const start = this.randomEdgePoint();
     // Bottom of the circle
     const start = new Vector(this.center.x, this.center.y + this.radius);
     for (let i = 0; i < nFrogs; i++) {
@@ -247,7 +246,6 @@ class Pond {
   addWebFrogs(nFrogs) {
     const angle = Math.PI * 2 / nFrogs;
     // Pick nFrogs points on the edge of the pond evenly distributed
-    // - divide the circle into nFrogs segments
     let points = [];
     for (let i = 0; i < nFrogs; i++) {
       const x = this.center.x + this.radius * Math.cos(angle * i);
