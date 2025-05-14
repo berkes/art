@@ -91,6 +91,9 @@ const params = {
   frogSize: [10, 20],
   nFrogs: 8,
   nLeaves: 8000,
+
+  continueAfterGoal: false,
+
   backgroundColor: 'hsl(255, 100%, 100%)',
   leafColor: 'hsl(91, 80%, 35%)',
   frogColor: 'hsl(255, 100%, 100%)',
@@ -133,7 +136,6 @@ class Pond {
     });
   }
 
-
   draw(context) {
     this.leaves.forEach(leaf => {
       leaf.draw(context);
@@ -157,6 +159,8 @@ class Pond {
     });
 
     this.frogs.filter(frog => frog.goalReached).forEach(frog => {
+      if (!params.continueAfterGoal) return;
+
       // Give a new random goal
       const goal = this.randomEdgePoint();
       frog.goal = goal;
