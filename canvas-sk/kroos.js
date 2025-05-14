@@ -89,11 +89,11 @@ const params = {
   ),
   leafSize: [2, 4],
   frogSize: [10, 20],
-  nFrogs: 18,
+  nFrogs: 5,
   nLeaves: 8000,
 
   continueAfterGoal: false,
-  distributionType: 'singleOrigin', // 'random', 'singleOrigin', 'web',  'across'
+  distributionType: 'web', // 'random', 'singleOrigin', 'web',  'opposite'
 
   backgroundColor: 'hsl(255, 100%, 100%)',
   leafColor: 'hsl(91, 80%, 35%)',
@@ -113,6 +113,10 @@ const sketch = () => {
 
     case 'singleOrigin':
       pond.addSingleOriginFrogs(params.nFrogs);
+      break;
+
+    case 'web':
+      pond.addWebFrogs(params.nFrogs);
       break;
 
     default:
@@ -234,6 +238,28 @@ class Pond {
       const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
       const frog = new Frog(start, end, frogSize);
       this.frogs.push(frog);
+    }
+  }
+
+  addWebFrogs(nFrogs) {
+    const angle = Math.PI * 2 / nFrogs;
+    // Pick nFrogs points on the edge of the pond evenly distributed
+    // - divide the circle into nFrogs segments
+    let points = [];
+    for (let i = 0; i < nFrogs; i++) {
+      const x = this.center.x + this.radius * Math.cos(angle * i);
+      const y = this.center.y + this.radius * Math.sin(angle * i);
+      points.push(new Vector(x, y));
+    }
+    console.debug(`points`, points);
+
+    // Then add a frog for each line from each point to each other point
+    for (let i = 0; i < points.length; i++) {
+      for (let j = i + 1; j < points.length; j++) {
+        const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
+        const frog = new Frog(points[i], points[j], frogSize);
+        this.frogs.push(frog);
+      }
     }
   }
 
