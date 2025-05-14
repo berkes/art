@@ -89,11 +89,11 @@ const params = {
   ),
   leafSize: [2, 4],
   frogSize: [10, 20],
-  nFrogs: 5,
+  nFrogs: 12,
   nLeaves: 8000,
 
   continueAfterGoal: false,
-  distributionType: 'web', // 'random', 'singleOrigin', 'web',  'opposite'
+  distributionType: 'opposite', // 'random', 'singleOrigin', 'web',  'opposite'
 
   backgroundColor: 'hsl(255, 100%, 100%)',
   leafColor: 'hsl(91, 80%, 35%)',
@@ -118,6 +118,9 @@ const sketch = () => {
     case 'web':
       pond.addWebFrogs(params.nFrogs);
       break;
+
+    case 'opposite':
+      pond.addOppositeFrogs(params.nFrogs);
 
     default:
   }
@@ -261,6 +264,29 @@ class Pond {
         this.frogs.push(frog);
       }
     }
+  }
+
+  addOppositeFrogs(nFrogs) {
+    // Pick nFrogs at the bottom half of the pond
+    const angle = Math.PI / (nFrogs + 1);
+    let starts = [];
+    for (let i = 0; i < nFrogs; i++) {
+      const pti = angle * (i + 1);
+      const x = this.center.x + this.radius * Math.cos(pti);
+      const y = this.center.y + this.radius * Math.sin(pti);
+      starts.push(new Vector(x, y));
+    }
+
+    starts.forEach(start => {
+      // Pick a point on the mirrored side of the pond, so same X, but inverted Y
+      const end = new Vector(start.x, this.center.y - (start.y - this.center.y));
+      console.log(`start`, start);
+      console.log(`end`, end);
+
+      const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
+      const frog = new Frog(start, end, frogSize);
+      this.frogs.push(frog);
+    });
   }
 
   randomEdgePoint(quadrants = [0, 1, 2, 3]) {
