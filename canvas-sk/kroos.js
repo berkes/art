@@ -89,11 +89,11 @@ const params = {
   ),
   leafSize: [2, 4],
   frogSize: [10, 20],
-  nFrogs: 8,
+  nFrogs: 18,
   nLeaves: 8000,
 
   continueAfterGoal: false,
-  distributionType: 'random', // 'random', 'singleOrigin', 'web',  'across'
+  distributionType: 'singleOrigin', // 'random', 'singleOrigin', 'web',  'across'
 
   backgroundColor: 'hsl(255, 100%, 100%)',
   leafColor: 'hsl(91, 80%, 35%)',
@@ -109,6 +109,10 @@ const sketch = () => {
   switch (params.distributionType) {
     case 'random':
       pond.addRandomFrogs(params.nFrogs);
+      break;
+
+    case 'singleOrigin':
+      pond.addSingleOriginFrogs(params.nFrogs);
       break;
 
     default:
@@ -215,6 +219,18 @@ class Pond {
     for (let i = 0; i < nFrogs; i++) {
       const start = this.randomEdgePoint();
       const end = this.randomEdgePoint();
+      const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
+      const frog = new Frog(start, end, frogSize);
+      this.frogs.push(frog);
+    }
+  }
+
+  addSingleOriginFrogs(nFrogs) {
+    // const start = this.randomEdgePoint();
+    // Bottom of the circle
+    const start = new Vector(this.center.x, this.center.y + this.radius);
+    for (let i = 0; i < nFrogs; i++) {
+      const end = this.randomEdgePoint([2, 3]);
       const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
       const frog = new Frog(start, end, frogSize);
       this.frogs.push(frog);
