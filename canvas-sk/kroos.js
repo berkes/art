@@ -278,9 +278,6 @@ class Pond {
     starts.forEach(start => {
       // Pick a point on the mirrored side of the pond, so same X, but inverted Y
       const end = new Vector(start.x, this.center.y - (start.y - this.center.y));
-      console.log(`start`, start);
-      console.log(`end`, end);
-
       const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
       const frog = new Frog(start, end, frogSize);
       this.frogs.push(frog);
