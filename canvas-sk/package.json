@@ -12,6 +12,7 @@
   "dependencies": {
     "@timohausmann/quadtree-js": "^1.2.6",
     "canvas-sketch": "^0.7.7",
+    "canvas-sketch-cli": "^1.15.0",
     "canvas-sketch-util": "^1.10.0"
   }
 }
