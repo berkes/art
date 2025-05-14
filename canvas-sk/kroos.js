@@ -93,11 +93,12 @@ const params = {
   nLeaves: 8000,
 
   continueAfterGoal: false,
-  distributionType: 'opposite', // 'random', 'singleOrigin', 'web',  'opposite'
+  addFrogDelay: 10, // in frames
+  distributionType: 'singleOrigin', // 'random', 'singleOrigin', 'web',  'opposite'
 
   backgroundColor: 'hsl(255, 100%, 100%)',
   leafColor: 'hsl(91, 80%, 35%)',
-  frogColor: 'hsl(255, 100%, 100%)',
+  frogColor: 'hsl(91, 80%, 35%, 0.3)',
 
   debug: false,
 }
@@ -125,20 +126,19 @@ const sketch = () => {
     default:
   }
 
-  return ({ context, width, height }) => {
+  return ({ context, width, height, frame }) => {
     context.fillStyle = params.backgroundColor;
     context.fillRect(0, 0, width, height);
 
     context.lineWidth = 1;
     context.strokeStyle = 'black';
  
-    pond.update(context);
+    pond.update(context, frame);
     pond.draw(context);
   };
 };
 
 canvasSketch(sketch, settings);
-
 
 class Pond {
   constructor(radius, center) {
@@ -146,6 +146,7 @@ class Pond {
     this.center = center;
     this.leaves = [];
     this.frogs = [];
+    this.frogQueue = [];
     
     this.quadtree = new Quadtree({
       x: center.x - radius,
@@ -164,7 +165,9 @@ class Pond {
     });
   }
 
-  update(context) {
+  update(context, frame) {
+    this.dequeueFrog(frame);
+
     this.quadtree.clear();
 
     this.leaves.forEach(leaf => {
@@ -222,25 +225,54 @@ class Pond {
     }
   }
 
+  queueFrogs(frogs) {
+    this.frogQueue.push(...frogs);
+  }
+
+  dequeueFrog(frame) {
+    if (this.frogQueue.length <= 0) return;
+
+    console.debug(`Frog queue: ${this.frogQueue.length}`);
+    console.debug(`Frogs: ${this.frogs.length}`);
+    console.debug(`Frame: ${frame}`);
+    console.debug(params.addFrogDelay);
+
+
+    if (params.addFrogDelay == 0) {
+      this.frogs.push(...this.frogQueue.splice(0, this.frogQueue.length));
+      this.frogQueue = [];
+    } else if (frame % params.addFrogDelay == 0) {
+      const frog = this.frogQueue.shift();
+      if (!frog) return;
+
+      this.frogs.push(frog);
+    }
+  }
+
   addRandomFrogs(nFrogs) {
+    const frogs = [];
     for (let i = 0; i < nFrogs; i++) {
       const start = this.randomEdgePoint();
       const end = this.randomEdgePoint();
       const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
       const frog = new Frog(start, end, frogSize);
-      this.frogs.push(frog);
+      frogs.push(frog);
     }
+    this.queueFrogs(frogs);
   }
 
   addSingleOriginFrogs(nFrogs) {
+    const frogs = [];
     // Bottom of the circle
     const start = new Vector(this.center.x, this.center.y + this.radius);
     for (let i = 0; i < nFrogs; i++) {
       const end = this.randomEdgePoint([2, 3]);
       const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
       const frog = new Frog(start, end, frogSize);
-      this.frogs.push(frog);
+      frogs.push(frog);
     }
+
+    this.queueFrogs(frogs);
   }
 
   addWebFrogs(nFrogs) {
@@ -252,16 +284,19 @@ class Pond {
       const y = this.center.y + this.radius * Math.sin(angle * i);
       points.push(new Vector(x, y));
     }
-    console.debug(`points`, points);
 
+
+    const frogs = [];
     // Then add a frog for each line from each point to each other point
     for (let i = 0; i < points.length; i++) {
       for (let j = i + 1; j < points.length; j++) {
         const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
         const frog = new Frog(points[i], points[j], frogSize);
-        this.frogs.push(frog);
+        frogs.push(frog);
       }
     }
+
+    this.queueFrogs(frogs);
   }
 
   addOppositeFrogs(nFrogs) {
@@ -275,13 +310,15 @@ class Pond {
       starts.push(new Vector(x, y));
     }
 
-    starts.forEach(start => {
+    const frogs = starts.map(start => {
       // Pick a point on the mirrored side of the pond, so same X, but inverted Y
       const end = new Vector(start.x, this.center.y - (start.y - this.center.y));
       const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
       const frog = new Frog(start, end, frogSize);
-      this.frogs.push(frog);
+      return frog;
     });
+
+    this.queueFrogs(frogs);
   }
 
   randomEdgePoint(quadrants = [0, 1, 2, 3]) {
@@ -363,7 +400,7 @@ class Frog {
 
   update(otherLeaves, context) {
     let intendedDirection = this.goal.subtract(this.position);
-    if (intendedDirection.magnitude() < 1.1) {
+    if (intendedDirection.magnitude() < 1.2) {
       this.goalReached = true;
 
       return;
