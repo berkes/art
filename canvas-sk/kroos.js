@@ -91,8 +91,9 @@ const params = {
   frogSize: [10, 20],
   nFrogs: 8,
   nLeaves: 8000,
+  backgroundColor: 'hsl(255, 100%, 100%)',
   leafColor: 'hsl(91, 80%, 35%)',
-  frogColor: 'hsl(79, 28%, 61%)',
+  frogColor: 'hsl(255, 100%, 100%)',
 
   debug: false,
 }
@@ -103,7 +104,7 @@ const sketch = () => {
   pond.addFrogs(params.nFrogs);
 
   return ({ context, width, height }) => {
-    context.fillStyle = 'white';
+    context.fillStyle = params.backgroundColor;
     context.fillRect(0, 0, width, height);
 
     context.lineWidth = 1;
@@ -138,7 +139,7 @@ class Pond {
       leaf.draw(context);
     });
     this.frogs.forEach(frog => {
-      // frog.draw(context);
+      frog.draw(context);
     });
   }
 
