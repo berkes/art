@@ -93,6 +93,7 @@ const params = {
   nLeaves: 8000,
 
   continueAfterGoal: false,
+  distributionType: 'random', // 'random', 'singleOrigin', 'web',  'across'
 
   backgroundColor: 'hsl(255, 100%, 100%)',
   leafColor: 'hsl(91, 80%, 35%)',
@@ -104,7 +105,14 @@ const params = {
 const sketch = () => {
   const pond = new Pond(params.pondRadius, params.pondCenter);
   pond.fill(params.nLeaves);
-  pond.addFrogs(params.nFrogs);
+
+  switch (params.distributionType) {
+    case 'random':
+      pond.addRandomFrogs(params.nFrogs);
+      break;
+
+    default:
+  }
 
   return ({ context, width, height }) => {
     context.fillStyle = params.backgroundColor;
@@ -203,7 +211,7 @@ class Pond {
     }
   }
 
-  addFrogs(nFrogs) {
+  addRandomFrogs(nFrogs) {
     for (let i = 0; i < nFrogs; i++) {
       const start = this.randomEdgePoint();
       const end = this.randomEdgePoint();
