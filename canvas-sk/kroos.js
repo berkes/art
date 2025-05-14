@@ -221,8 +221,13 @@ class Pond {
     }
   }
 
-  randomEdgePoint() {
-    const angle = Math.random() * Math.PI * 2;
+  randomEdgePoint(quadrants = [0, 1, 2, 3]) {
+    const HALF_PI = Math.PI / 2;
+
+    // Pick a random quadrant
+    const quadrant = random.pick(quadrants);
+    const angle = random.range(HALF_PI * quadrant, HALF_PI * (quadrant + 1));
+
     const x = this.center.x + this.radius * Math.cos(angle);
     const y = this.center.y + this.radius * Math.sin(angle);
     return new Vector(x, y);
