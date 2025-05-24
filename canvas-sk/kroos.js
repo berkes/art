@@ -77,7 +77,9 @@ class Vector {
 }
 
 const settings = {
-  dimensions: [1080, 1080],
+  // dimensions: [1080, 1080],
+  // Instagram story dimensions
+  dimensions: [1080, 1920],
   animate: true,
 };
 
@@ -88,9 +90,9 @@ const params = {
     settings.dimensions[1] / 2,
   ),
   leafSize: [2, 4],
-  frogSize: [10, 20],
+  frogSize: [8, 12],
   nFrogs: 12,
-  nLeaves: 8000,
+  nLeaves: 16000,
 
   continueAfterGoal: false,
   addFrogDelay: 10, // in frames
@@ -153,7 +155,7 @@ class Pond {
       y: center.y - radius,
       width: this.radius * 2,
       height: this.radius * 2,
-    });
+    }, 40, 4);
   }
 
   draw(context) {
@@ -231,12 +233,6 @@ class Pond {
 
   dequeueFrog(frame) {
     if (this.frogQueue.length <= 0) return;
-
-    console.debug(`Frog queue: ${this.frogQueue.length}`);
-    console.debug(`Frogs: ${this.frogs.length}`);
-    console.debug(`Frame: ${frame}`);
-    console.debug(params.addFrogDelay);
-
 
     if (params.addFrogDelay == 0) {
       this.frogs.push(...this.frogQueue.splice(0, this.frogQueue.length));
@@ -353,13 +349,14 @@ class Leaf {
     otherLeaves.forEach(otherLeaf => {
       if (otherLeaf === this) return;
 
-      const distance = this.position.subtract(otherLeaf.position).magnitude();
+      const vs = this.position.subtract(otherLeaf.position);
+      const distance = vs.magnitude();
       if (distance < this.size + otherLeaf.size) {
-        const direction = this.position.subtract(otherLeaf.position).divide(distance);
+        const direction = vs.divide(distance);
         force.add(direction);
 
         // Move away from the other leaf
-        this.position = this.position.add(direction.multiply(0.8));
+        this.position = this.position.add(direction);
       }
     });
   }
