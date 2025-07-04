@@ -90,13 +90,13 @@ const params = {
     settings.dimensions[1] / 2,
   ),
   leafSize: [2, 4],
-  frogSize: [8, 12],
-  nFrogs: 12,
-  nLeaves: 16000,
+  frogSize: [8, 10],
+  nFrogs: 24,
+  nLeaves: 12000,
 
-  continueAfterGoal: false,
-  addFrogDelay: 10, // in frames
-  distributionType: 'singleOrigin', // 'random', 'singleOrigin', 'web',  'opposite'
+  continueAfterGoal: true,
+  addFrogDelay: 6, // in frames
+  distributionType: 'random', // 'random', 'singleOrigin', 'web',  'opposite'
 
   backgroundColor: 'hsl(255, 100%, 100%)',
   leafColor: 'hsl(91, 80%, 35%)',
@@ -149,13 +149,19 @@ class Pond {
     this.leaves = [];
     this.frogs = [];
     this.frogQueue = [];
+
+    // Ten random points in the pond
+    this.pointsQueue = [];
+    for (let i = 0; i < 10; i++) {
+      this.pointsQueue.push(this.randomEdgePoint());
+    }
     
     this.quadtree = new Quadtree({
       x: center.x - radius,
       y: center.y - radius,
       width: this.radius * 2,
       height: this.radius * 2,
-    }, 40, 4);
+    });
   }
 
   draw(context) {
@@ -185,8 +191,14 @@ class Pond {
     this.frogs.filter(frog => frog.goalReached).forEach(frog => {
       if (!params.continueAfterGoal) return;
 
-      // Give a new random goal
-      const goal = this.randomEdgePoint();
+      const goal = random.pick(this.pointsQueue);
+      if (!goal) {
+        console.warn('No more points in the queue, stopping frog.');
+        frog.goalReached = true;
+        return;
+      }
+
+      frog.routesTaken++;
       frog.goal = goal;
       frog.goalReached = false;
     });
@@ -217,14 +229,50 @@ class Pond {
   fill(nLeaves) {
     for (let i = 0; i < nLeaves; i++) {
       const size = random.range(params.leafSize[0], params.leafSize[1]);
+
+      const position = this._findNonOverlappingPosition(size);
+      if (!position) {
+        console.warn('Could not find a non-overlapping position for a leaf after 50 attempts.');
+        continue; // Skip this leaf if no position was found
+      }
+      this.quadtree.insert({
+        x: position.x,
+        y: position.y,
+        width: size,
+        height: size,
+      });
+
+      this.leaves.push(new Leaf(new Vector(position.x, position.y), size));
+    }
+  }
+
+  _findNonOverlappingPosition(size) {
+    let attempts = 0;
+    const maxAttempts = 50;
+    while (attempts < maxAttempts) {
       const angle = random.range(0, Math.PI * 2);
       const distance = Math.sqrt(Math.random()) * (this.radius - size);
-
       const x = this.center.x + distance * Math.cos(angle);
       const y = this.center.y + distance * Math.sin(angle);
 
-      this.leaves.push(new Leaf(new Vector(x, y), size));
+      const position = new Vector(x, y);
+      const overlapping = this.quadtree.retrieve({ 
+        x: position.x - size,
+        y: position.y - size,
+        width: size * 2,
+        height: size * 2,
+      });
+
+      const overlaps = overlapping.some(item => {
+        return item.leaf && item.leaf.intersects(position, size);
+      });
+
+      if (!overlaps) {
+        return position;
+      }
+      attempts++;
     }
+    return null; // If no position found after max attempts
   }
 
   queueFrogs(frogs) {
@@ -247,20 +295,23 @@ class Pond {
 
   addRandomFrogs(nFrogs) {
     const frogs = [];
+
     for (let i = 0; i < nFrogs; i++) {
-      const start = this.randomEdgePoint();
+      const start = this.randomEdgePoint([0, 1, 2, 3], 8); // Offset to avoid starting too close to the edge 
       const end = this.randomEdgePoint();
       const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
       const frog = new Frog(start, end, frogSize);
       frogs.push(frog);
     }
+
     this.queueFrogs(frogs);
   }
 
   addSingleOriginFrogs(nFrogs) {
     const frogs = [];
-    // Bottom of the circle
-    const start = new Vector(this.center.x, this.center.y + this.radius);
+
+    const start = this.pointsQueue.shift();
+
     for (let i = 0; i < nFrogs; i++) {
       const end = this.randomEdgePoint([2, 3]);
       const frogSize = random.range(params.frogSize[0], params.frogSize[1]);
@@ -317,15 +368,15 @@ class Pond {
     this.queueFrogs(frogs);
   }
 
-  randomEdgePoint(quadrants = [0, 1, 2, 3]) {
+  randomEdgePoint(quadrants = [0, 1, 2, 3], offset = 0) {
     const HALF_PI = Math.PI / 2;
 
     // Pick a random quadrant
     const quadrant = random.pick(quadrants);
     const angle = random.range(HALF_PI * quadrant, HALF_PI * (quadrant + 1));
 
-    const x = this.center.x + this.radius * Math.cos(angle);
-    const y = this.center.y + this.radius * Math.sin(angle);
+    const x = this.center.x + (this.radius - offset) * Math.cos(angle);
+    const y = this.center.y + (this.radius - offset) * Math.sin(angle);
     return new Vector(x, y);
   }
 }
@@ -353,12 +404,33 @@ class Leaf {
       const distance = vs.magnitude();
       if (distance < this.size + otherLeaf.size) {
         const direction = vs.divide(distance);
-        force.add(direction);
-
-        // Move away from the other leaf
-        this.position = this.position.add(direction);
+        const intensity = 1 - (distance / (this.size + otherLeaf.size));
+        force.x += direction.x * intensity;
+        force.y += direction.y * intensity;
       }
     });
+
+    if (force.magnitude() > 0) {
+      // this.position = this.position.add(force.normalize().multiply(0.3));
+      this.setPosition(this.position.add(force.normalize().multiply(0.3)));
+    }
+  }
+  
+  setPosition(newPosition) {
+    const proposedPosition = newPosition;
+    
+    // Check if the proposed position is outside the pond
+    const distanceFromCenter = proposedPosition.distance(params.pondCenter);
+    const maxAllowedDistance = params.pondRadius - this.size;
+    
+    if (distanceFromCenter > maxAllowedDistance) {
+      // If outside, calculate the direction from center to position
+      const directionFromCenter = proposedPosition.subtract(params.pondCenter).normalize();
+      // Place the leaf exactly at the boundary
+      this.position = params.pondCenter.add(directionFromCenter.multiply(maxAllowedDistance));
+    } else {
+      this.position = proposedPosition;
+    }
   }
 
   intersects(point, size) {
@@ -374,6 +446,7 @@ class Frog {
     this.size = size;
 
     this.goalReached = false;
+    this.routesTaken = 0;
     this.speed = 2;
   }
 
@@ -456,7 +529,7 @@ class Frog {
       const distance = this.position.distance(leaf.position);
       if (distance < this.size + leaf.size) {
         const direction = leaf.position.subtract(this.position).normalize();
-        leaf.position = leaf.position.add(direction.multiply(this.speed));
+        leaf.setPosition(leaf.position.add(direction.multiply(this.speed)));
       }
     });
   } 
