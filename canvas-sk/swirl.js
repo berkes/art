@@ -1,17 +1,19 @@
 const canvasSketch = require('canvas-sketch');
-const { renderPaths, createPath, pathsToPolylines } = require('canvas-sketch-util/penplot');
-const { clipPolylinesToBox } = require('canvas-sketch-util/geometry');
 const { lerp, clamp } = require('canvas-sketch-util/math');
 const Random = require('canvas-sketch-util/random');
+const Tweakpane = require('tweakpane');
 
-// You can force a specific seed by replacing this with a string value
-const defaultSeed = '';
+// Set a random seed for reproducibility
+const seed = "hello"; //Random.getRandomSeed();
+Random.setSeed(seed);
 
-// Set a random seed so we can reproduce this print later
-Random.setSeed(defaultSeed || Random.getRandomSeed());
-
-// Print to console so we can see which seed is being used and copy it if desired
-console.log('Random Seed:', Random.getSeed());
+const params = {
+  nodeCount: 5,
+  lineCount: 40,
+  waveHeight: 7.6,
+  seed: seed,
+  colorLines: false
+}
 
 const settings = {
   suffix: Random.getSeed(),
@@ -22,117 +24,171 @@ const settings = {
   units: 'cm',
 };
 
-class Point {
+const createPane = () => {
+  const pane = new Tweakpane.Pane();
+  const folder = pane.addFolder({ title: 'Swirl' });
+  folder.addInput(params, 'nodeCount', { min: 2, max: 20, step: 1 }).on('change', () => {
+    manager.update();
+  });
+  folder.addInput(params, 'lineCount', { min: 3, max: 200, step: 1 }).on('change', () => {
+    manager.update();
+  });
+  folder.addInput(params, 'waveHeight', { min: 0, max: 10.5, step: 0.1 }).on('change', () => {
+    manager.update();
+  });
+  
+  folder.addInput(params, 'seed', { min: 0, max: 10000, step: 1 }).on('change', () => {
+    Random.setSeed(params.seed);
+    manager.update();
+  });
+  
+  const debugFolder = pane.addFolder({ title: 'Debug' });
+  debugFolder.addInput(params, 'colorLines').on('change', () => {
+    manager.update();
+  });
+}
+createPane();
+
+// Node represents a zero-crossing point
+class Node {
   constructor(x, y) {
     this.x = x;
     this.y = y;
   }
-  
-  moveX(amount) {
-    this.x += amount;
+}
+
+// Wave represents a single wave curve with specific amplitude
+class Wave {
+  constructor(nodes, amplitude) {
+    this.nodes = nodes;
+    this.amplitude = amplitude;
   }
-  
-  moveY(amount) {
-    this.y += amount;
+
+  // Generate control points for bezier segments
+  generateControlPoints(controlStrength = 0.5) {
+    const segments = [];
+    for (let i = 0; i < this.nodes.length - 1; i++) {
+      const start = this.nodes[i];
+      const end = this.nodes[i + 1];
+
+      // Distance between nodes affects control point distance
+      const distance = end.x - start.x;
+      const cpDistance = distance * controlStrength;
+
+      // Alternate direction of curve based on segment index
+      const yDirection = i % 2 === 0 ? 1 : -1;
+
+      // Control points perpendicular to node line with amplitude scaling
+      const cp1 = {
+        x: start.x + cpDistance,
+        y: start.y + yDirection * this.amplitude
+      };
+
+      const cp2 = {
+        x: end.x - cpDistance,
+        y: end.y + yDirection * this.amplitude
+      };
+
+      segments.push({ start, end, cp1, cp2 });
+    }
+    return segments;
   }
 }
 
-const sketch = (props) => {
-  const { width, height, units } = props;
-  const margin = 1;
-  const box = [margin, margin, width - margin, height - margin];
-  
-  // Holds all our 'path' objects
-  // which could be from createPath, or SVGPath string, or polylines
-  const paths = [];
-  const lineCount = 3;
-  const nodeCount = 5;
-  const doubleMargin = margin * 2;
-  const begin = new Point(-margin, Random.range(doubleMargin, height - doubleMargin));
-  const end = new Point(width + margin, Random.range(doubleMargin, height - doubleMargin));
-  
-  // Function to generate control points with random vertical positions
-  function generateControlPoints(start, end, nodes, canvasHeight, marginSize) {
-    const points = [start];
-    
-    for (let i = 1; i < nodes; i++) {
-      const progress = i / nodes;
-      const x = lerp(start.x, end.x, progress);
-      const baseY = lerp(start.y, end.y, progress);
-      
-      const minY = marginSize;
-      const maxY = canvasHeight - marginSize;
-      const offset = Math.sin(progress * Math.PI) / 2;
-      const randOffset = Random.range(-4, 4);
-      const y = baseY + offset + randOffset;
-      
-      points.push(new Point(x, y));
-    }
-    
-    points.push(end);
-    return points;
-  }
-  
-  // Function to draw a smooth curve through the control points
-  function drawSmoothCurve(path, points) {
-    path.moveTo(points[0].x, points[0].y);
-    
-    for (let i = 0; i < points.length - 1; i++) {
-      const current = points[i];
-      const next = points[i + 1];
-      
-      // Create control points for smooth bezier curve
-      const distance = Math.abs(next.x - current.x);
-      const cp1x = current.x + distance * 0.3;
-      const cp1y = current.y;
-      const cp2x = next.x - distance * 0.3;
-      const cp2y = next.y;
-      path.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y);
-    }
-  }
-  
-  // Generate the control points
-  const controlPoints = generateControlPoints(begin, end, nodeCount, height, margin);
-  
-  
-  const dbgp = createPath();
-  controlPoints.forEach((cp) => {
-    dbgp.arc(cp.x, cp.y, 1, 0, Math.PI * 2);
-  })
-  let dbglines = pathsToPolylines([dbgp], { units });
-  console.log(dbglines);
-  
-  // return props => renderPaths(dbglines, {
-  //   ...props,
-  //   lineWidth: 1.,
-  //   optimize: true
-  // });
-  
-  const p = createPath();
-  for (let i = 0; i <= lineCount; i++) {
-    drawSmoothCurve(p, controlPoints);
-     
-  }
-  paths.push(p);
+// Create nodes (zero-crossing points)
+const createNodes = (width, height) => {
+  const nodeCount = params.nodeCount;
+  const nodes = [];
 
-  // Convert the paths into polylines so we can apply line-clipping
-  // When converting, pass the 'units' to get a nice default curve resolution
-  let lines = pathsToPolylines(paths, { units });
-  lines = clipPolylinesToBox(lines, box);
-  lines = lines.concat(dbglines);
-
-  // The 'penplot' util includes a utility to render
-  // and export both PNG and SVG files
-  return props => renderPaths(lines, {
-    ...props,
-    lineJoin: 'round',
-    lineCap: 'round',
-    // in working units; you might have a thicker pen
-    lineWidth: 0.01,
-    // Optimize SVG paths for pen plotter use
-    optimize: true
-  });
-  
+  for (let i = 0; i < nodeCount; i++) {
+    // First and last node must be on the edge
+    let horizontalAdjust;
+    if (i === 0 || i === nodeCount - 1) {
+      horizontalAdjust = 0;
+    } else { // The others can be adjusted horizontally
+      horizontalAdjust = Random.range(-width * 0.1, width * 0.1);
+    }
+    let x = lerp(0, width, i / (nodeCount - 1)) + horizontalAdjust;
+    const possibleHeight = (height / 2) - params.waveHeight;
+    const verticalAdjust = Random.range(-possibleHeight, possibleHeight);
+    const y = (height / 2) + verticalAdjust;
+    nodes.push(new Node(x, y));
+  }
+  return nodes;
 };
 
-canvasSketch(sketch, settings);
+// Create a set of waves with different amplitudes
+const createWaves = (nodes, height) => {
+  const generateAmplitudes = (amount, maxAmplitude) => {
+    const step = 2 / (amount - 1);
+    return Array.from({ length: amount }, (_, i) => (1 - (i * step)));
+  };
+  const amplitudes = generateAmplitudes(params.lineCount, height / 2);
+  return amplitudes.map(amp => new Wave(nodes, amp * params.waveHeight));
+};
+
+const drawWaves = (context, width, height) => {
+  // Clear canvas
+  context.fillStyle = 'white';
+  context.fillRect(0, 0, width, height);
+
+  const nodes = createNodes(width, height);
+  const waves = createWaves(nodes, height);
+  
+  const bigWaves = [];
+
+  // Draw each wave
+  waves.forEach((wave, index) => {
+    if (params.colorLines) {
+      const hue = lerp(0, 360, index / (waves.length - 1));
+      context.strokeStyle = `hsl(${hue}, 50%, 50%)`;
+    } else {
+      context.strokeStyle = '#000';
+    }
+
+    context.lineWidth = Random.range(0.01, 0.05);
+    context.fillStyle = 'hsla(0, 0%, 0%, 0.0)';
+    const segments = wave.generateControlPoints(0.4);
+
+    const prevWave = waves[index - 1];
+    let prevSegments = []
+    if (prevWave !== undefined) {
+      prevSegments = prevWave.generateControlPoints(0.4);
+    }
+
+    context.beginPath();
+    context.moveTo(segments[0].start.x, segments[0].start.y);
+
+    segments.forEach((segment, idx) => {
+      const prevSegment = prevSegments[idx];
+      if (prevSegment) {
+        let distanceBetween = Math.abs(segment.cp1.y - prevSegment.cp1.y);
+        if (distanceBetween > 1.4) {
+          context.fillStyle = 'hsla(0, 0%, 0%, 0.2)';
+        } else {
+          context.fillStyle = 'hsla(0, 0%, 0%, 0.0)';
+        }
+      }
+        
+      context.bezierCurveTo(
+        segment.cp1.x, segment.cp1.y,
+        segment.cp2.x, segment.cp2.y,
+        segment.end.x, segment.end.y
+      );
+      context.fill();
+      context.stroke();
+    });
+  });
+}
+
+const sketch = (_props) => {
+  return ({ context, width, height }) => {
+    drawWaves(context, width, height);
+  };
+};
+
+const maybeSketch = canvasSketch(sketch, settings);
+let manager;
+maybeSketch.then((s) => {
+  manager = s;
+});
