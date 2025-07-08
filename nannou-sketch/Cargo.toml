@@ -8,6 +8,7 @@ members = [
   "mandala",
   "waves",
   "poc-image",
+  "springfield",
 ]
 
 resolver = "2"

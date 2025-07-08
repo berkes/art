@@ -28,23 +28,27 @@ const createPane = () => {
   const pane = new Tweakpane.Pane();
   const folder = pane.addFolder({ title: 'Swirl' });
   folder.addInput(params, 'nodeCount', { min: 2, max: 20, step: 1 }).on('change', () => {
-    manager.update();
+    Random.setSeed(seed);
+    manager.render();
   });
   folder.addInput(params, 'lineCount', { min: 3, max: 200, step: 1 }).on('change', () => {
-    manager.update();
+    Random.setSeed(seed);
+    manager.render();
   });
   folder.addInput(params, 'waveHeight', { min: 0, max: 10.5, step: 0.1 }).on('change', () => {
-    manager.update();
+    Random.setSeed(seed);
+    manager.render();
   });
   
   folder.addInput(params, 'seed', { min: 0, max: 10000, step: 1 }).on('change', () => {
-    Random.setSeed(params.seed);
-    manager.update();
+    Random.setSeed(seed);
+    manager.render();
   });
   
   const debugFolder = pane.addFolder({ title: 'Debug' });
   debugFolder.addInput(params, 'colorLines').on('change', () => {
-    manager.update();
+    Random.setSeed(params.seed);
+    manager.render();
   });
 }
 createPane();

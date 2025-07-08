@@ -1,0 +1,13 @@
+[package]
+name = "springfield"
+version = "0.1.0"
+authors = ["Bèr Kessels <ber@berk.es>"]
+edition = "2021"
+
+description = "Art experiments: Truchet tiles, divergence"
+keywords = ["creative", "sketch", "graphics", "art", "generativeart", "truchet"]
+license = "MIT"
+
+[dependencies]
+nannou = "0.19"
+bertools = { path = "../bertools" }

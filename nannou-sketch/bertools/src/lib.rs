@@ -3,6 +3,7 @@ use nannou::rand::random_range;
 use nannou::{App, Draw};
 
 pub mod schemes;
+pub mod grid;
 
 /// Things that can be drawn on the screen.
 pub trait Nannou {
