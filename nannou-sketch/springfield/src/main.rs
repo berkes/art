@@ -2,7 +2,7 @@ use models::TileType;
 use nannou::prelude::*;
 
 mod models;
-use crate::models::{Model};
+use crate::models::Model;
 use bertools::do_save;
 use bertools::Nannou;
 use bertools::grid::Grid;

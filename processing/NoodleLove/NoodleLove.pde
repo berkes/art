@@ -23,7 +23,16 @@ class Tile {
     rotate(rotation);
     // Draw the image centered on this position
     // (by offsetting by half the image dimensions)
-    image(texture, -texture.width/2, -texture.height/2);
+    translate(-texture.width/2, -texture.height/2);
+    image(texture, 0, 0);
+
+    // Draw a rectangle around the image for debugging
+    // line color red, line weight 2
+    // stroke(255, 0, 0);
+    // noFill();
+    // strokeWeight(2);
+    // rect(0,0, texture.width, texture.height);
+
     popMatrix();
   }
 }
@@ -31,16 +40,29 @@ class Tile {
 static final float TILE_SIZE = 80.0;
 static final String ASSET_PATH = "assets/";
 
-boolean saveFrame = false;
-
-Distribution distribution = Distribution.EVEN;
+Distribution distribution = Distribution.NOISE;
 
 PImage center = null;
 ArrayList<Tile> tiles = new ArrayList<Tile>();
 ArrayList<PImage> textures = new ArrayList<PImage>();
 
+// Size:
+// 200.6cm by 70.6cm
+// @300pdi
+// 200.6cm×2.54cm1inch =79.0inches
+// 70.6cm×2.54cm1inch =27.8inches
+// 79.0inches×300DPI=23700pixels
+// 27.8inches×300DPI=8340pixels
+//
+// In 20 slices: 23700/20 = 1185 pixels per slice
+// In 8 columns: 8340/8 = 1042.5 pixels per column
+// Adjusted to a multiple of TILE_SIZE: 1200 x 1120
+
 void setup() {
-  size(1000, 1000);
+  //size(23700, 8340);
+  size(2370, 8340);
+  //size(1185, 1042);
+  //size(1200, 1120);
 
   textures.add(loadTile(1));
   textures.add(loadTile(2));
@@ -51,9 +73,7 @@ void setup() {
   for (PImage t : textures) {
     t.resize(0, int(TILE_SIZE));
   }
-
-
-
+  noSmooth();
   noLoop();
 }
 
@@ -73,6 +93,9 @@ void draw() {
     }
   }
   background(0);
+  // Offset the entire image half a tile to ensure the first col and row is a full tile. Tiles
+  // themselves are centered on their position, so this ensures the first tile is shown fully.
+  translate(-TILE_SIZE/2, -TILE_SIZE/2);
   for (Tile t : tiles) {
     t.draw();
   }
@@ -86,8 +109,13 @@ void draw() {
       break;
     }
   }
-
-  image(center, center_tile_corner.x - (TILE_SIZE/2), center_tile_corner.y - (TILE_SIZE/2));
+  if (center_tile_corner == null) {
+    throw new Error("Could not place a center tile");
+  }
+  
+  // image(center, center_tile_corner.x - (TILE_SIZE/2), center_tile_corner.y - (TILE_SIZE/2));
+  saveImage();
+  exit();
 }
 
 PImage loadTile(int tileno) {
@@ -129,13 +157,16 @@ int generateTextureIdx(int x, int y) {
   return texture_idx;
 }
 
+void saveImage() {
+  String dateTime = year() + "-" + month() + "-" + day() + "-" + hour() + "-" + minute() + "-" + second() + "-" + millis();
+  String savePath = System.getenv("SAVES_LOCATION");
+  String filePath = savePath + "/NoodleLove-" + dateTime + ".png";
+  saveFrame(filePath);
+}
+
 void keyPressed() {
   if (key == 's' || key == 'S') {
-    String dateTime = year() + "-" + month() + "-" + day() + "-" + hour() + "-" + minute() + "-" + second() + "-" + millis();
-    String savePath = System.getenv("SAVES_LOCATION");
-    String filePath = savePath + "/NoodleLove-" + dateTime + ".png";
-    saveFrame(filePath);
-    saveFrame = false;
+    saveImage();
   }
 
   if (key == 'r' || key == 'R') {
