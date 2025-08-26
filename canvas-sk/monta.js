@@ -28,16 +28,11 @@ const settings = {
   units: 'cm',
 };
 
-// Map row index to y-position
-//  Uses the settings to determine height and position of a row.
 function getRowY(i, rows, horizonY, beachHeight, height) {
-  const t = i / (rows - 1);               // 0 = horizon, 1 = beach
-  const usableHeight = height - horizonY - beachHeight;
-
-  return horizonY + t * usableHeight;
+  return horizonY + (getRowHeight(rows, horizonY, beachHeight, height) * i);
 }
 
-function getRowHeight(i, rows, horizonY, beachHeight, height) {
+function getRowHeight(rows, horizonY, beachHeight, height) {
   const usableHeight = height - horizonY - beachHeight;
 
   return usableHeight / rows;
@@ -45,7 +40,7 @@ function getRowHeight(i, rows, horizonY, beachHeight, height) {
 
 function lineYInRow(yTop, rowHeight, l, linesPerRow) {
   if (linesPerRow <= 1) return yTop + rowHeight / 2;
-  
+
   const t = l / (linesPerRow - 1);
   return yTop + t * rowHeight;
 }
@@ -67,7 +62,8 @@ const sketch = (_props) => {
     
     for (let i = 0; i < rows; i++) {
       const yTop = getRowY(i, rows, horizonY, beachHeight, height);
-      const rowHeight = getRowHeight(i, rows, horizonY, beachHeight, height);
+      const rowHeight = getRowHeight(rows, horizonY, beachHeight, height);
+      const yBottom = yTop + rowHeight;
       
       for (let l = 0; l < linesPerRow; l++) {
         const yLine = lineYInRow(yTop, rowHeight, l, linesPerRow);
@@ -76,78 +72,92 @@ const sketch = (_props) => {
         context.moveTo(0, yLine);
         context.lineTo(width, yLine);
         context.stroke();
-        
-        // After drawing all straight lines, overlay the wave:
-        {
-          const i = params.breakRowIndex;
-          const yTop = getRowY(i, params.rows, params.horizonY, params.beachHeight, height);
-          const rowHeight = getRowHeight(i, params.rows, params.horizonY, params.beachHeight, height);
-        
-          const waveCenterX = (params.waveCenterX == null) ? (width * 0.5) : params.waveCenterX;
-          const halfWaveWidth = params.waveWidth * 0.5;
-          const waveLeftX = waveCenterX - halfWaveWidth;
-          const waveRightX = waveCenterX + halfWaveWidth;
-        
-          const handleLength = params.waveWidth * params.bezierHandleRatio;
-        
-          for (let l = 0; l < params.linesPerRow; l++) {
-            const yLine = lineYInRow(yTop, rowHeight, l, params.linesPerRow);
-            
-            // offset: each line one line height to the right, ending at the right anchor
-            const rightOffset = (l + 1) * (params.waveWidth / params.linesPerRow);
-            
-            const leftAnchorX = waveLeftX;
-            const leftAnchorY = yLine;
-            
-            const rightAnchorX = rightOffset + waveLeftX;
-            const rightAnchorY = yTop;
-        
-            const leftHandleX = leftAnchorX + (rightOffset * params.bezierHandleRatio);
-            const leftHandleY = yLine;
-            
-            const rightHandleX = rightAnchorX - (rightOffset * params.bezierHandleRatio);
-            const rightHandleY = yTop;
-        
-            context.beginPath();
-            context.moveTo(leftAnchorX, yLine);
-            context.bezierCurveTo(leftHandleX, leftHandleY, rightHandleX, rightHandleY, rightAnchorX, yTop);
-            context.stroke();
-        
-            // Debug: anchor squares
-            if (params.debug) {
-              const s = 0.12; // square size (cm)
-              context.save();
-              context.fillStyle = 'purple';
-              // Left and right anchor squares
-              context.fillRect(leftAnchorX - s * 0.5, leftAnchorY - s * 0.5, s, s); // left anchor
-              context.fillStyle = 'red';
-              context.fillRect(rightAnchorX - s * 0.5, rightAnchorY - s * 0.5, s, s); // right anchor
-              
-              // Handles in blue
-              context.fillStyle = 'blue';
-              context.fillRect(leftHandleX - s * 0.5, leftHandleY - s * 0.5, s, s); // left handle
-              context.fillStyle = 'turquoise';
-              context.fillRect(rightHandleX - s * 0.5, rightHandleY - s * 0.5, s, s); // right handle
-              
-              context.restore();
-            }
-          }
-        }
-        
       }
       
       if (params.debug) {
         context.save();
-        context.strokeStyle = 'red';
+        context.strokeStyle = 'purple';
         context.beginPath();
         context.moveTo(0, yTop);
         context.lineTo(width, yTop);
         context.stroke();
+        
+        context.strokeStyle = 'red';
+        context.beginPath();
+        context.moveTo(0, yBottom);
+        context.lineTo(width, yBottom);
+        context.stroke();
         context.restore();
       }
-      
     }
-  };
+    
+    // After drawing all straight lines, overlay the wave:
+    {
+      const i = params.breakRowIndex;
+      const waveTopY = getRowY(i, params.rows, params.horizonY, params.beachHeight, height);
+      const rowHeight = getRowHeight(params.rows, params.horizonY, params.beachHeight, height);
+      const waveBottomY = waveTopY + rowHeight;
+      
+      const waveCenterX = (params.waveCenterX == null) ? (width * 0.5) : params.waveCenterX;
+      const halfWaveWidth = params.waveWidth * 0.5;
+      const waveLeftX = waveCenterX - halfWaveWidth;
+      const waveRightX = waveCenterX + halfWaveWidth;
+      
+      const handleLength = params.waveWidth * params.bezierHandleRatio;
+      
+      for (let l = 0; l < params.linesPerRow; l++) {
+        const yLine = lineYInRow(waveTopY, rowHeight, l, params.linesPerRow);
+        
+        // offset: each line one line height to the right, ending at the right anchor
+        const rightOffset = (l + 1) * (params.waveWidth / params.linesPerRow);
+        
+        const leftAnchorX = waveLeftX;
+        const leftAnchorY = yLine;
+        
+        const rightAnchorX = rightOffset + waveLeftX;
+        const rightAnchorY = waveTopY;
+        
+        const leftHandleX = leftAnchorX + (rightOffset * params.bezierHandleRatio);
+        const leftHandleY = yLine;
+        
+        const rightHandleX = rightAnchorX - (rightOffset * params.bezierHandleRatio);
+        const rightHandleY = waveTopY;
+        
+        context.beginPath();
+        context.moveTo(leftAnchorX, yLine);
+        context.bezierCurveTo(leftHandleX, leftHandleY, rightHandleX, rightHandleY, rightAnchorX, waveTopY);
+        context.stroke();
+        
+        if (params.debug) {
+          // Debug: anchor squares
+          const s = 0.12; // square size (cm)
+          context.save();
+          context.fillStyle = 'purple';
+          // Left and right anchor squares
+          context.fillRect(leftAnchorX - s * 0.5, leftAnchorY - s * 0.5, s, s); // left anchor
+          context.fillStyle = 'red';
+          context.fillRect(rightAnchorX - s * 0.5, rightAnchorY - s * 0.5, s, s); // right anchor
+          
+          // Handles in blue
+          context.fillStyle = 'blue';
+          context.fillRect(leftHandleX - s * 0.5, leftHandleY - s * 0.5, s, s); // left handle
+          context.fillStyle = 'turquoise';
+          context.fillRect(rightHandleX - s * 0.5, rightHandleY - s * 0.5, s, s); // right handle
+          
+          context.restore();
+          
+        }
+      }
+      if (params.debug) {
+        // Wave bounds
+        context.save();
+        context.strokeStyle = 'purple';
+        context.lineWidth = 0.02;
+        context.strokeRect(waveLeftX, waveTopY, params.waveWidth, rowHeight);
+        context.restore();
+      }
+    }
+  }
 };
 
 canvasSketch(sketch, settings);
