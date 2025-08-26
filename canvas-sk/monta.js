@@ -1,5 +1,5 @@
 const canvasSketch = require("canvas-sketch");
-const Random = require("canvas-sketch-util/random");
+const random = require("canvas-sketch-util/random");
 
 const params = {
   // Composition
@@ -41,6 +41,16 @@ function lineYInRow(yTop, rowHeight, l, linesPerRow) {
 
   const t = l / (linesPerRow - 1);
   return yTop + t * rowHeight;
+}
+
+function wavesInRow(rowIndex) {
+  // Never the bottom row
+  if (rowIndex >= params.rows - 1) return 0;
+
+  // Only the last three rows above the bottom row
+  if (rowIndex >= params.rows - 4) {
+    return random.rangeFloor(0, 3);
+  }
 }
 
 class Wave {
@@ -189,19 +199,26 @@ const sketch = (_props) => {
         context.stroke();
         context.restore();
       }
+
+      // After drawing all straight lines, overlay the wave:
+      const nWaves = wavesInRow(i);
+      for (let j = 0; j < nWaves; j++) {
+        let waveX = random.range(0, width - params.waveWidth);
+        // snap to grid of waveWidth + M;
+        const M = 1;
+        waveX =
+          Math.floor(waveX / (params.waveWidth + M)) * (params.waveWidth + M);
+        const wave = new Wave(
+          waveX,
+          getRowY(i, rows, horizonY, beachHeight, height), // Y: height of wave, for now fixed on third row
+          params.waveWidth,
+          rowHeight,
+          params.linesPerRow,
+          params.bezierHandleRatio,
+        );
+        wave.draw(context);
+      }
     }
-
-    // After drawing all straight lines, overlay the wave:
-    const wave = new Wave(
-      width / 2 - params.waveWidth / 2, // X: center of drawing
-      getRowY(2, rows, horizonY, beachHeight, height), // Y: height of wave, for now fixed on third row
-      params.waveWidth,
-      rowHeight,
-      params.linesPerRow,
-      params.bezierHandleRatio,
-    );
-
-    wave.draw(context);
   };
 };
 
