@@ -1,5 +1,4 @@
 const canvasSketch = require("canvas-sketch");
-const { lerp, clamp } = require("canvas-sketch-util/math");
 const Random = require("canvas-sketch-util/random");
 
 const params = {
@@ -68,6 +67,24 @@ class Wave {
 
     const handleLength = params.waveWidth * params.bezierHandleRatio;
 
+    // Background to mask horizontal lines
+    context.save();
+    context.fillStyle = "white";
+    context.beginPath();
+    context.moveTo(waveLeftX, waveBottomY);
+    context.bezierCurveTo(
+      waveLeftX + handleLength,
+      waveBottomY,
+      waveRightX - handleLength,
+      waveTopY,
+      waveRightX,
+      waveTopY,
+    );
+    context.lineTo(waveLeftX, waveTopY);
+    context.fill();
+    context.stroke();
+    context.restore();
+
     for (let l = 0; l < params.linesPerRow; l++) {
       const yLine = lineYInRow(waveTopY, rowHeight, l, params.linesPerRow);
 
@@ -118,6 +135,7 @@ class Wave {
         context.restore();
       }
     }
+
     if (params.debug) {
       // Wave bounds
       context.save();
