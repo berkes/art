@@ -12,8 +12,11 @@ const params = {
 
   // Wave layout
   bezierHandleRatio: 0.65, // handle length as fraction of waveWidth
+  
+  // Perspective
+  perspectiveFactor: 0.3, // Strength of the perspective between 0  - no perspective and 10
 
-  lineWidth: 0.07, // Width of a single line in <units>
+  lineWidth: 0.02, // Width of a single line in <units>
 
   debug: false,
 };
@@ -26,13 +29,13 @@ const settings = {
   units: "cm",
 };
 
-function getRowHeight(rowIndex, totalRows, totalHeight, perspectiveFactor = -0.6) {
+function getRowHeight(rowIndex, totalRows, totalHeight, perspectiveFactor) {
   let seriesSum = 0;
   for (let exponent = 0; exponent < totalRows; exponent++) {
     seriesSum += Math.pow(1 - perspectiveFactor, exponent);
   }
-
-  return (totalHeight * Math.pow(1 - perspectiveFactor, rowIndex)) / seriesSum;
+  const reversedIndex = totalRows - 1 - rowIndex;
+  return (totalHeight * Math.pow(1 - perspectiveFactor, reversedIndex)) / seriesSum;
 }
 
 function lineYInRow(rowY, rowHeight, l, linesPerRow) {
@@ -45,6 +48,9 @@ function lineYInRow(rowY, rowHeight, l, linesPerRow) {
 function wavesInRow(rowIndex) {
   // Never the bottom row
   if (rowIndex >= params.rows - 1) return 0;
+  
+  // Never in the top two rows, row 0 and 1
+  if (rowIndex <= 1) return 0;
 
   // Only the last three rows above the bottom row
   if (rowIndex >= params.rows - 4) {
@@ -65,7 +71,6 @@ class Wave {
   }
 
   draw(context) {
-    console.debug(this);
     const waveTopY = this.y;
     const rowHeight = this.height;
 
@@ -124,34 +129,6 @@ class Wave {
         waveTopY,
       );
       context.stroke();
-
-      if (params.debug) {
-        // Debug: anchor squares
-        const s = 0.12; // square size (cm)
-        context.save();
-        context.fillStyle = "purple";
-        // Left and right anchor squares
-        context.fillRect(leftAnchorX - s * 0.5, leftAnchorY - s * 0.5, s, s); // left anchor
-        context.fillStyle = "red";
-        context.fillRect(rightAnchorX - s * 0.5, rightAnchorY - s * 0.5, s, s); // right anchor
-
-        // Handles in blue
-        context.fillStyle = "blue";
-        context.fillRect(leftHandleX - s * 0.5, leftHandleY - s * 0.5, s, s); // left handle
-        context.fillStyle = "turquoise";
-        context.fillRect(rightHandleX - s * 0.5, rightHandleY - s * 0.5, s, s); // right handle
-
-        context.restore();
-      }
-    }
-
-    if (params.debug) {
-      // Wave bounds
-      context.save();
-      context.strokeStyle = "purple";
-      context.lineWidth = 0.02;
-      context.strokeRect(waveLeftX, waveTopY, params.waveWidth, rowHeight);
-      context.restore();
     }
   }
 }
@@ -166,13 +143,13 @@ const sketch = (_props) => {
     context.lineWidth = params.lineWidth;
     context.strokeStyle = "black";
 
-    const { rows, linesPerRow, horizonY, beachY } = params;
+    const { rows, linesPerRow, horizonY, beachY, perspectiveFactor } = params;
 
     const availableHeight = (height - horizonY - beachY);
     let rowY = horizonY; 
     
     for (let i = 0; i < rows; i++) {
-      const rowHeight = getRowHeight(i, rows, availableHeight);
+      const rowHeight = getRowHeight(i, rows, availableHeight, perspectiveFactor);
 
       for (let l = 0; l < linesPerRow; l++) {
         const yLine = lineYInRow(rowY, rowHeight, l, linesPerRow);
@@ -182,22 +159,6 @@ const sketch = (_props) => {
         context.lineTo(width, yLine);
         context.stroke();
       }
-
-      // if (params.debug) {
-      //   context.save();
-      //   context.strokeStyle = "purple";
-      //   context.beginPath();
-      //   context.moveTo(0, rowY);
-      //   context.lineTo(width, rowY);
-      //   context.stroke();
-
-      //   context.strokeStyle = "red";
-      //   context.beginPath();
-      //   context.moveTo(0, yBottom);
-      //   context.lineTo(width, yBottom);
-      //   context.stroke();
-      //   context.restore();
-      // }
 
       // After drawing all straight lines, overlay the wave:
       const nWaves = wavesInRow(i);
