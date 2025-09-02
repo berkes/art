@@ -26,21 +26,20 @@ const settings = {
   units: "cm",
 };
 
-function getRowY(i, rows, horizonY, beachY, height) {
-  return horizonY + getRowHeight(rows, horizonY, beachY, height) * i;
+function getRowHeight(rowIndex, totalRows, totalHeight, perspectiveFactor = -0.6) {
+  let seriesSum = 0;
+  for (let exponent = 0; exponent < totalRows; exponent++) {
+    seriesSum += Math.pow(1 - perspectiveFactor, exponent);
+  }
+
+  return (totalHeight * Math.pow(1 - perspectiveFactor, rowIndex)) / seriesSum;
 }
 
-function getRowHeight(rows, horizonY, beachY, height) {
-  const usableHeight = height - horizonY - beachY;
-
-  return usableHeight / rows;
-}
-
-function lineYInRow(yTop, rowHeight, l, linesPerRow) {
-  if (linesPerRow <= 1) return yTop + rowHeight / 2;
+function lineYInRow(rowY, rowHeight, l, linesPerRow) {
+  if (linesPerRow <= 1) return rowY + rowHeight / 2;
 
   const t = l / (linesPerRow - 1);
-  return yTop + t * rowHeight;
+  return rowY + t * rowHeight;
 }
 
 function wavesInRow(rowIndex) {
@@ -169,14 +168,14 @@ const sketch = (_props) => {
 
     const { rows, linesPerRow, horizonY, beachY } = params;
 
-    const rowHeight = getRowHeight(rows, horizonY, beachY, height);
-
+    const availableHeight = (height - horizonY - beachY);
+    let rowY = horizonY; 
+    
     for (let i = 0; i < rows; i++) {
-      const yTop = getRowY(i, rows, horizonY, beachY, height);
-      const yBottom = yTop + rowHeight;
+      const rowHeight = getRowHeight(i, rows, availableHeight);
 
       for (let l = 0; l < linesPerRow; l++) {
-        const yLine = lineYInRow(yTop, rowHeight, l, linesPerRow);
+        const yLine = lineYInRow(rowY, rowHeight, l, linesPerRow);
 
         context.beginPath();
         context.moveTo(0, yLine);
@@ -184,21 +183,21 @@ const sketch = (_props) => {
         context.stroke();
       }
 
-      if (params.debug) {
-        context.save();
-        context.strokeStyle = "purple";
-        context.beginPath();
-        context.moveTo(0, yTop);
-        context.lineTo(width, yTop);
-        context.stroke();
+      // if (params.debug) {
+      //   context.save();
+      //   context.strokeStyle = "purple";
+      //   context.beginPath();
+      //   context.moveTo(0, rowY);
+      //   context.lineTo(width, rowY);
+      //   context.stroke();
 
-        context.strokeStyle = "red";
-        context.beginPath();
-        context.moveTo(0, yBottom);
-        context.lineTo(width, yBottom);
-        context.stroke();
-        context.restore();
-      }
+      //   context.strokeStyle = "red";
+      //   context.beginPath();
+      //   context.moveTo(0, yBottom);
+      //   context.lineTo(width, yBottom);
+      //   context.stroke();
+      //   context.restore();
+      // }
 
       // After drawing all straight lines, overlay the wave:
       const nWaves = wavesInRow(i);
@@ -210,7 +209,7 @@ const sketch = (_props) => {
           Math.floor(waveX / (params.waveWidth + M)) * (params.waveWidth + M);
         const wave = new Wave(
           waveX,
-          getRowY(i, rows, horizonY, beachY, height), // Y: height of wave, for now fixed on third row
+          rowY,
           params.waveWidth,
           rowHeight,
           params.linesPerRow,
@@ -218,6 +217,8 @@ const sketch = (_props) => {
         );
         wave.draw(context);
       }
+      
+      rowY += rowHeight;
     }
   };
 };
