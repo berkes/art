@@ -3,10 +3,10 @@ const random = require("canvas-sketch-util/random");
 
 const params = {
   // Composition
-  rows: 5, // Number of rows. Integer
+  rows: 8, // Number of rows. Integer
   linesPerRow: 5, // Number of lines per row, including the top and bottom lines.
-  horizonY: 10, // Position of the horizon, the top of first row, in <units>
-  beachY: 3, // Position of the beach, the botton of the last row, in <units>
+  horizonY: 9, // Position of the horizon, the top of first row, in <units>
+  beachY: 1, // Position of the beach, the botton of the last row, in <units>
   breakRowIndex: 3, // Tmp hardcoded placement for wave
   waveWidth: 8,
 
