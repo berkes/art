@@ -6,7 +6,7 @@ const params = {
   rows: 5, // Number of rows. Integer
   linesPerRow: 5, // Number of lines per row, including the top and bottom lines.
   horizonY: 10, // Position of the horizon, the top of first row, in <units>
-  beachHeight: 3, // Position of the beach, the botton of the last row, in <units>
+  beachY: 3, // Position of the beach, the botton of the last row, in <units>
   breakRowIndex: 3, // Tmp hardcoded placement for wave
   waveWidth: 8,
 
@@ -26,12 +26,12 @@ const settings = {
   units: "cm",
 };
 
-function getRowY(i, rows, horizonY, beachHeight, height) {
-  return horizonY + getRowHeight(rows, horizonY, beachHeight, height) * i;
+function getRowY(i, rows, horizonY, beachY, height) {
+  return horizonY + getRowHeight(rows, horizonY, beachY, height) * i;
 }
 
-function getRowHeight(rows, horizonY, beachHeight, height) {
-  const usableHeight = height - horizonY - beachHeight;
+function getRowHeight(rows, horizonY, beachY, height) {
+  const usableHeight = height - horizonY - beachY;
 
   return usableHeight / rows;
 }
@@ -167,12 +167,12 @@ const sketch = (_props) => {
     context.lineWidth = params.lineWidth;
     context.strokeStyle = "black";
 
-    const { rows, linesPerRow, horizonY, beachHeight } = params;
+    const { rows, linesPerRow, horizonY, beachY } = params;
 
-    const rowHeight = getRowHeight(rows, horizonY, beachHeight, height);
+    const rowHeight = getRowHeight(rows, horizonY, beachY, height);
 
     for (let i = 0; i < rows; i++) {
-      const yTop = getRowY(i, rows, horizonY, beachHeight, height);
+      const yTop = getRowY(i, rows, horizonY, beachY, height);
       const yBottom = yTop + rowHeight;
 
       for (let l = 0; l < linesPerRow; l++) {
@@ -210,7 +210,7 @@ const sketch = (_props) => {
           Math.floor(waveX / (params.waveWidth + M)) * (params.waveWidth + M);
         const wave = new Wave(
           waveX,
-          getRowY(i, rows, horizonY, beachHeight, height), // Y: height of wave, for now fixed on third row
+          getRowY(i, rows, horizonY, beachY, height), // Y: height of wave, for now fixed on third row
           params.waveWidth,
           rowHeight,
           params.linesPerRow,
