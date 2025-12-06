@@ -47,8 +47,6 @@ class MetaBall implements Mover {
   }
   
   void debug() {
-    //drawVector(position, force, force.mag() * r*2, color(100, 0, 0));
-  
       push();
       noFill();
       stroke(0);
