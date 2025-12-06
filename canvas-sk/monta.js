@@ -16,7 +16,7 @@ const params = {
   // Perspective
   perspectiveFactor: 0.3, // Strength of the perspective between 0  - no perspective and 10
 
-  lineWidth: 0.02, // Width of a single line in <units>
+  lineWidth: 0.03, // Width of a single line in <units>
 
   debug: false,
 };
@@ -54,7 +54,7 @@ function wavesInRow(rowIndex) {
 
   // Only the last three rows above the bottom row
   if (rowIndex >= params.rows - 4) {
-    return random.rangeFloor(0, 3);
+    return random.rangeFloor(1, 4);
   }
 }
 
@@ -106,10 +106,8 @@ class Wave {
       const rightOffset = (l + 1) * (params.waveWidth / params.linesPerRow);
 
       const leftAnchorX = waveLeftX;
-      const leftAnchorY = yLine;
 
       const rightAnchorX = rightOffset + waveLeftX;
-      const rightAnchorY = waveTopY;
 
       const leftHandleX = leftAnchorX + rightOffset * params.bezierHandleRatio;
       const leftHandleY = yLine;
