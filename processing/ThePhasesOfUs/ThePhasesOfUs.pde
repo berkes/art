@@ -4,10 +4,10 @@ final int TOP_RIGHT = 1;
 final int BOTTOM_LEFT = 2;
 final int BOTTOM_RIGHT = 3;
 
-final int N_BALLS = 4;
+final int N_BALLS = 8;
 final int N_CELLS = 10000;
 
-final float MS_THRESHOLD = 0.8;
+final float[] MS_THRESHOLDS = {0.8, 1.0, 1.3, 1.6, 2.0};
 
 final float G = 6.0;
 

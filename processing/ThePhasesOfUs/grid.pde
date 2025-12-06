@@ -55,67 +55,72 @@ class Cell {
     // The polygons - loop over all thresholds
     stroke(0);
     fill(color(200, 100, 100));
-    strokeWeight(4);
-    PVector startp = null;
-    PVector endp = null;
-    switch (marchingSquareType()) {
-      case 0:
-      case 15:
-        break;
-      case 1:
-      case 14:
-        startp = bottom(values[BOTTOM_LEFT], values[BOTTOM_RIGHT]);
-        endp = left(values[TOP_LEFT], values[BOTTOM_LEFT]);
-        break;
-      case 2:
-      case 13:
-        startp = right(values[TOP_RIGHT], values[BOTTOM_RIGHT]);
-        endp = bottom(values[BOTTOM_LEFT], values[BOTTOM_RIGHT]);
-        break;
-      case 3:
-      case 12:
-        startp = left(values[TOP_LEFT], values[BOTTOM_LEFT]);
-        endp = right(values[TOP_RIGHT], values[BOTTOM_RIGHT]);
-        break;
-      case 4:
-      case 11:
-        startp = top(values[TOP_LEFT], values[TOP_RIGHT]);
-        endp = right(values[TOP_RIGHT], values[BOTTOM_RIGHT]);
-        break;
-      case 5:
-        float rightY = map(MS_THRESHOLD, values[TOP_RIGHT], values[BOTTOM_RIGHT], topRight().y, bottomRight().y);
-        float bottomX = map(MS_THRESHOLD, values[BOTTOM_LEFT], values[BOTTOM_RIGHT], bottomLeft().x, bottomRight().x);
-        line(right().x, rightY, bottomX, bottom().y);
+    strokeWeight(2);
+    
+    for (int i = 0; i < MS_THRESHOLDS.length; i++) {
+      float threshold = MS_THRESHOLDS[i];
+      PVector startp = null;
+      PVector endp = null;
+      
+      switch (marchingSquareType(threshold)) {
+        case 0:
+        case 15:
+          break;
+        case 1:
+        case 14:
+          startp = bottom(values[BOTTOM_LEFT], values[BOTTOM_RIGHT], threshold);
+          endp = left(values[TOP_LEFT], values[BOTTOM_LEFT], threshold);
+          break;
+        case 2:
+        case 13:
+          startp = right(values[TOP_RIGHT], values[BOTTOM_RIGHT], threshold);
+          endp = bottom(values[BOTTOM_LEFT], values[BOTTOM_RIGHT], threshold);
+          break;
+        case 3:
+        case 12:
+          startp = left(values[TOP_LEFT], values[BOTTOM_LEFT], threshold);
+          endp = right(values[TOP_RIGHT], values[BOTTOM_RIGHT], threshold);
+          break;
+        case 4:
+        case 11:
+          startp = top(values[TOP_LEFT], values[TOP_RIGHT], threshold);
+          endp = right(values[TOP_RIGHT], values[BOTTOM_RIGHT], threshold);
+          break;
+        case 5:
+          float rightY = map(threshold, values[TOP_RIGHT], values[BOTTOM_RIGHT], topRight().y, bottomRight().y);
+          float bottomX = map(threshold, values[BOTTOM_LEFT], values[BOTTOM_RIGHT], bottomLeft().x, bottomRight().x);
+          line(right().x, rightY, bottomX, bottom().y);
 
-        float leftY = map(MS_THRESHOLD, values[TOP_LEFT], values[BOTTOM_LEFT], topLeft().y, bottomLeft().y);
-        float topX = map(MS_THRESHOLD, values[TOP_LEFT], values[TOP_RIGHT], topLeft().x, topRight().x);
-        line(left().x, leftY, topX, top().y);
-        break;
-      case 6:
-      case 9:
-        startp = top(values[TOP_LEFT], values[TOP_RIGHT]);
-        endp = bottom(values[BOTTOM_LEFT], values[BOTTOM_RIGHT]);
-        break;
-      case 7:
-      case 8:
-        startp = top(values[TOP_LEFT], values[TOP_RIGHT]);
-        endp = left(values[TOP_LEFT], values[BOTTOM_LEFT]);
-        break;
-      case 10:
-        float topXa = map(MS_THRESHOLD, values[TOP_LEFT], values[TOP_RIGHT], topLeft().x, topRight().x);
-        float leftYa = map(MS_THRESHOLD, values[TOP_LEFT], values[BOTTOM_LEFT], topLeft().y, bottomLeft().y);
-        line(topXa, top().y, left().x, leftYa);
+          float leftY = map(threshold, values[TOP_LEFT], values[BOTTOM_LEFT], topLeft().y, bottomLeft().y);
+          float topX = map(threshold, values[TOP_LEFT], values[TOP_RIGHT], topLeft().x, topRight().x);
+          line(left().x, leftY, topX, top().y);
+          break;
+        case 6:
+        case 9:
+          startp = top(values[TOP_LEFT], values[TOP_RIGHT], threshold);
+          endp = bottom(values[BOTTOM_LEFT], values[BOTTOM_RIGHT], threshold);
+          break;
+        case 7:
+        case 8:
+          startp = top(values[TOP_LEFT], values[TOP_RIGHT], threshold);
+          endp = left(values[TOP_LEFT], values[BOTTOM_LEFT], threshold);
+          break;
+        case 10:
+          float topXa = map(threshold, values[TOP_LEFT], values[TOP_RIGHT], topLeft().x, topRight().x);
+          float leftYa = map(threshold, values[TOP_LEFT], values[BOTTOM_LEFT], topLeft().y, bottomLeft().y);
+          line(topXa, top().y, left().x, leftYa);
 
-        float bottomXa = map(MS_THRESHOLD, values[BOTTOM_LEFT], values[BOTTOM_RIGHT], bottomLeft().x, bottomRight().x);
-        float rightYa = map(MS_THRESHOLD, values[TOP_RIGHT], values[BOTTOM_RIGHT], topRight().y, bottomRight().y);
-        line(bottomXa, bottom().y, bottom().x, rightYa);
-        break;
-      default:
-        break;
-    }
+          float bottomXa = map(threshold, values[BOTTOM_LEFT], values[BOTTOM_RIGHT], bottomLeft().x, bottomRight().x);
+          float rightYa = map(threshold, values[TOP_RIGHT], values[BOTTOM_RIGHT], topRight().y, bottomRight().y);
+          line(bottomXa, bottom().y, bottom().x, rightYa);
+          break;
+        default:
+          break;
+      }
 
-    if (startp != null && endp != null) {
-      line(startp.x, startp.y, endp.x, endp.y);
+      if (startp != null && endp != null) {
+        line(startp.x, startp.y, endp.x, endp.y);
+      }
     }
     pop();
   }
@@ -162,39 +167,39 @@ void debug() {
     }
   }
 
-  private int marchingSquareType() {
+  private int marchingSquareType(float threshold) {
     int[] corners = new int[4];
     for (int i = 0; i < 4; i++) {
-      corners[i] = this.values[i] > MS_THRESHOLD ? 1 : 0;
+      corners[i] = this.values[i] > threshold ? 1 : 0;
     }
 
     int type = corners[TOP_LEFT] * 8 + corners[TOP_RIGHT] * 4 + corners[BOTTOM_RIGHT] * 2 + corners[BOTTOM_LEFT] * 1;
     return type;
   }
 
-  private PVector top(float leftValue, float rightValue) {
-    float x = map(MS_THRESHOLD, leftValue, rightValue, topLeft().x, topRight().x);
+  private PVector top(float leftValue, float rightValue, float threshold) {
+    float x = map(threshold, leftValue, rightValue, topLeft().x, topRight().x);
     return new PVector(x, topLeft().y);
   }
   private PVector top() {
     return new PVector(topLeft().x + cwidth/2, topLeft().y);
   }
-  private PVector right(float topValue, float bottomValue) {
-    float y = map(MS_THRESHOLD, topValue, bottomValue, topRight().y, bottomRight().y);
+  private PVector right(float topValue, float bottomValue, float threshold) {
+    float y = map(threshold, topValue, bottomValue, topRight().y, bottomRight().y);
     return new PVector(topRight().x, y);
   }
   private PVector right() {
     return new PVector(topRight().x, topRight().y + cheight/2);
   }
-  private PVector bottom(float leftValue, float rightValue) {
-    float x = map(MS_THRESHOLD, leftValue, rightValue, bottomLeft().x, bottomRight().x);
+  private PVector bottom(float leftValue, float rightValue, float threshold) {
+    float x = map(threshold, leftValue, rightValue, bottomLeft().x, bottomRight().x);
     return new PVector(x, bottomLeft().y);
   }
   private PVector bottom() {
     return new PVector(bottomLeft().x + cwidth/2, bottomLeft().y);
   }
-  private PVector left(float topValue, float bottomValue) {
-    float y = map(MS_THRESHOLD, topValue, bottomValue, topLeft().y, bottomLeft().y);
+  private PVector left(float topValue, float bottomValue, float threshold) {
+    float y = map(threshold, topValue, bottomValue, topLeft().y, bottomLeft().y);
     return new PVector(topLeft().x, y);
   }
   private PVector left() {
@@ -230,4 +235,3 @@ void debug() {
     return p.x >= 0 && p.x < width && p.y >= 0 && p.y < height;
   }
 }
-
