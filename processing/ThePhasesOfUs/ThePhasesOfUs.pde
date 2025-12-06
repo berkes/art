@@ -1,3 +1,6 @@
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 // Consts for the corner indexes
 final int TOP_LEFT = 0;
 final int TOP_RIGHT = 1;
@@ -25,6 +28,7 @@ boolean debug = false;
 ArrayList<MetaBall> balls = new ArrayList<MetaBall>();
 Grid grid;
 Attraction attraction;
+final LocalDateTime now = LocalDateTime.now();
 
 void setup() {
   colorMode(HSB, 360, 100, 100);
@@ -103,6 +107,10 @@ void keyPressed() {
   }
   if (key == 'd') {
      debug = !debug;
+  }
+  
+  if (key == 's') {
+    saveFrame("frames/snap-" + now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")) + "-" + frameCount + ".png");
   }
 }
 
