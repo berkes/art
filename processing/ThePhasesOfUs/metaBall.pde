@@ -44,6 +44,14 @@ class MetaBall implements Mover {
   }
 
   void display() {
+      // Balls are displayed through the grid, as isolines
+      // but here we draw the center
+      push();
+      fill(360);
+      strokeWeight(2);
+      stroke(0);
+      ellipse(position.x, position.y, 10, 10);
+      pop();
   }
   
   void debug() {

@@ -51,18 +51,23 @@ class Cell {
     }
 
     void display() {
-        push();
-        stroke(0);
-        fill(color(200, 100, 100));
-        strokeWeight(2);
-        
         for (int i = 0; i < MS_THRESHOLDS.length; i++) {
-            drawIsoLineForThreshold(MS_THRESHOLDS[i]);
+            drawIsoLineForThreshold(MS_THRESHOLDS[i], i);
         }
-        pop();
     }
     
-    private void drawIsoLineForThreshold(float threshold) {
+    private void drawIsoLineForThreshold(float threshold, int index) {
+        ArrayList<PVector[]> lineSegments = getIsoLinePoints(threshold);
+        
+        for (PVector[] segment : lineSegments) {
+            if (segment != null && segment.length == 2) {
+                drawLine(segment[0], segment[1], index);
+            }
+        }
+    }
+    
+    private ArrayList<PVector[]> getIsoLinePoints(float threshold) {
+        ArrayList<PVector[]> segments = new ArrayList<PVector[]>();
         PVector startp = null;
         PVector endp = null;
         
@@ -91,14 +96,15 @@ class Cell {
             endp = right(values[TOP_RIGHT], values[BOTTOM_RIGHT], threshold);
             break;
             case 5:
-            float rightY = map(threshold, values[TOP_RIGHT], values[BOTTOM_RIGHT], topRight().y, bottomRight().y);
-            float bottomX = map(threshold, values[BOTTOM_LEFT], values[BOTTOM_RIGHT], bottomLeft().x, bottomRight().x);
-            line(right().x, rightY, bottomX, bottom().y);
-
-            float leftY = map(threshold, values[TOP_LEFT], values[BOTTOM_LEFT], topLeft().y, bottomLeft().y);
-            float topX = map(threshold, values[TOP_LEFT], values[TOP_RIGHT], topLeft().x, topRight().x);
-            line(left().x, leftY, topX, top().y);
-            break;
+            // Two line segments
+            PVector rightY = right(values[TOP_RIGHT], values[BOTTOM_RIGHT], threshold);
+            PVector bottomX = bottom(values[BOTTOM_LEFT], values[BOTTOM_RIGHT], threshold);
+            segments.add(new PVector[]{rightY, bottomX});
+            
+            PVector leftY = left(values[TOP_LEFT], values[BOTTOM_LEFT], threshold);
+            PVector topX = top(values[TOP_LEFT], values[TOP_RIGHT], threshold);
+            segments.add(new PVector[]{leftY, topX});
+            return segments;
             case 6:
             case 9:
             startp = top(values[TOP_LEFT], values[TOP_RIGHT], threshold);
@@ -110,21 +116,33 @@ class Cell {
             endp = left(values[TOP_LEFT], values[BOTTOM_LEFT], threshold);
             break;
             case 10:
-            float topXa = map(threshold, values[TOP_LEFT], values[TOP_RIGHT], topLeft().x, topRight().x);
-            float leftYa = map(threshold, values[TOP_LEFT], values[BOTTOM_LEFT], topLeft().y, bottomLeft().y);
-            line(topXa, top().y, left().x, leftYa);
-
-            float bottomXa = map(threshold, values[BOTTOM_LEFT], values[BOTTOM_RIGHT], bottomLeft().x, bottomRight().x);
-            float rightYa = map(threshold, values[TOP_RIGHT], values[BOTTOM_RIGHT], topRight().y, bottomRight().y);
-            line(bottomXa, bottom().y, bottom().x, rightYa);
-            break;
+            // Two line segments
+            PVector topXa = top(values[TOP_LEFT], values[TOP_RIGHT], threshold);
+            PVector leftYa = left(values[TOP_LEFT], values[BOTTOM_LEFT], threshold);
+            segments.add(new PVector[]{topXa, leftYa});
+            
+            PVector bottomXa = bottom(values[BOTTOM_LEFT], values[BOTTOM_RIGHT], threshold);
+            PVector rightYa = right(values[TOP_RIGHT], values[BOTTOM_RIGHT], threshold);
+            segments.add(new PVector[]{bottomXa, rightYa});
+            return segments;
             default:
             break;
         }
-
+        
         if (startp != null && endp != null) {
-            line(startp.x, startp.y, endp.x, endp.y);
+            segments.add(new PVector[]{startp, endp});
         }
+        
+        return segments;
+    }
+    
+    private void drawLine(PVector start, PVector end, int index) {
+        push();
+        fill(color(200, 100, 100));
+        strokeWeight(2);
+        stroke(map(index, 0, MS_THRESHOLDS.length - 1, 340, 100));
+        line(start.x, start.y, end.x, end.y);
+        pop();
     }
 
     void debug() {
