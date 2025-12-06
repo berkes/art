@@ -18,10 +18,10 @@ final float G = 6.0;
 // final int WIDTH = 1080;
 // final int HEIGHT = 1920;
 
-final boolean DEBUG = false;
 final boolean ONTO_GRID = true;
 final boolean SAVE_FRAMES = false;
 
+boolean debug = false;
 ArrayList<MetaBall> balls = new ArrayList<MetaBall>();
 Grid grid;
 Attraction attraction;
@@ -33,20 +33,13 @@ void setup() {
   size(800, 600, P2D);
   grid = new Grid(800, 600, N_CELLS);
 
-  // for (int i = 0; i < N_BALLS; i++) {
-  //   float r = random(15, 20);
-  //   PVector position = new PVector(random(r, width-r), random(r, height-r));
-  //   MetaBall ball = new MetaBall(r, position, str(i));
-  //   ball.applyForce(new PVector(random(-1, 1), random(-1, 1)));
-  //   balls.add(ball);
-  // }
-  MetaBall b1 = new MetaBall(50, new PVector(100, 100), "A");
-  b1.applyForce(new PVector(2, 7));
-  balls.add(b1);
-  MetaBall b2 = new MetaBall(55, new PVector(600, 400), "B");
-  b2.applyForce(new PVector(-2, -9));
-  b2.applyForce(new PVector(-2, -9));
-  balls.add(b2);
+  for (int i = 0; i < N_BALLS; i++) {
+     float r = random(15, 20);
+     PVector position = new PVector(random(r, width-r), random(r, height-r));
+     MetaBall ball = new MetaBall(r, position, str(i));
+     ball.applyForce(new PVector(random(-1, 1), random(-1, 1)));
+     balls.add(ball);
+  }
 }
 
 void draw() {
@@ -54,6 +47,9 @@ void draw() {
 
   if (attraction != null) {
     attraction.update();
+    if (debug) {
+      attraction.debug();
+    }
   }
 
   for (MetaBall ball : balls) {
@@ -62,29 +58,37 @@ void draw() {
 
   if (ONTO_GRID) {
     ArrayList<Float> field = metaBallField();
-    if (DEBUG) {
-      loadPixels();
-      for (int i = 0; i < field.size(); i++) {
-        float hue = map(field.get(i), 0, 3, 0, 360);
-        float sat = 100;// map(field.get(i), 0, 36, 0, 100);
-        float bri = 100; //norm(hue, 0, 360) * 100;//norm(field.get(i), 0, 10) * 100; //map(field.get(i), 0, 36, 0, 100);
-        float alpha = 120;
-        pixels[i] = color(hue, sat, bri, alpha);
-      }
-      updatePixels();
-    }
-
     grid.update(field);
+    
     grid.display();
+    if (debug) {
+      debug(field);
+    }
   }
   
   for (MetaBall ball : balls) {
     ball.display();
+    if (debug) {
+      ball.debug();
+    }
   }
 
   if (SAVE_FRAMES) {
     saveFrame("frames/####.png");
   }
+}
+
+void debug(ArrayList<Float> field) {
+    loadPixels();
+    for (int i = 0; i < field.size(); i++) {
+        float hue = map(field.get(i), 0, 3, 0, 360);
+        float sat = 100;// map(field.get(i), 0, 36, 0, 100);
+        float bri = 100; //norm(hue, 0, 360) * 100;//norm(field.get(i), 0, 10) * 100; //map(field.get(i), 0, 36, 0, 100);
+        float alpha = 120;
+        pixels[i] = color(hue, sat, bri, alpha);
+    }
+    updatePixels();
+    grid.debug();
 }
 
 void keyPressed() {
@@ -96,6 +100,9 @@ void keyPressed() {
     for (MetaBall ball : balls) {
       ball.stop();
     }
+  }
+  if (key == 'd') {
+     debug = !debug;
   }
 }
 

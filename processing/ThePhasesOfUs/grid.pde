@@ -17,10 +17,13 @@ class Grid {
 
   void display() {
     for (Cell cell : cells) {
-      push();
-      noFill();
       cell.display();
-      pop();
+    }
+  }
+  
+  void debug() {
+    for (Cell cell : cells) {
+      cell.debug();
     }
   }
 
@@ -49,33 +52,7 @@ class Cell {
 
   void display() {
     push();
-    if (DEBUG) {
-      ellipse(pos.x, pos.y, 5, 5);
-      rectMode(CORNERS);
-
-      noFill();
-      fill(0);
-      stroke(0);
-      textAlign(LEFT, TOP);
-      // text("TL", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      text(nf(values[TOP_LEFT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      textAlign(RIGHT, TOP);
-      // text("TR", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      text(nf(values[TOP_RIGHT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      textAlign(LEFT, BOTTOM);
-      // text("BL", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      text(nf(values[BOTTOM_LEFT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      textAlign(RIGHT, BOTTOM);
-      // text("BR", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      text(nf(values[BOTTOM_RIGHT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-
-      // stroke(color(30, 100, 100));
-      // rect(topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
-      textAlign(CENTER, CENTER);
-      text(nf(marchingSquareType(), 3, 0), pos.x, pos.y, bottomRight().x, bottomRight().y);
-    }
-
-    // The polygons
+    // The polygons - loop over all thresholds
     stroke(0);
     fill(color(200, 100, 100));
     strokeWeight(4);
@@ -142,6 +119,33 @@ class Cell {
     }
     pop();
   }
+
+void debug() {
+    ellipse(pos.x, pos.y, 5, 5);
+    rectMode(CORNERS);
+
+    noFill();
+    fill(0);
+    stroke(0);
+    textAlign(LEFT, TOP);
+    // text("TL", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
+    text(nf(values[TOP_LEFT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
+    textAlign(RIGHT, TOP);
+    // text("TR", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
+    text(nf(values[TOP_RIGHT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
+    textAlign(LEFT, BOTTOM);
+    // text("BL", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
+    text(nf(values[BOTTOM_LEFT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
+    textAlign(RIGHT, BOTTOM);
+    // text("BR", topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
+    text(nf(values[BOTTOM_RIGHT], 1, 2), topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
+
+    // stroke(color(30, 100, 100));
+    // rect(topLeft(5).x, topLeft(5).y, bottomRight(5).x, bottomRight(5).y);
+    textAlign(CENTER, CENTER);
+    text(nf(marchingSquareType(MS_THRESHOLDS[0]), 3, 0), pos.x, pos.y, bottomRight().x, bottomRight().y);
+}
+
 
   void update(ArrayList<Float> field) {
     if (isInsideCanvas(topLeft())) {

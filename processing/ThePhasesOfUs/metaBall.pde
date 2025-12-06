@@ -27,9 +27,6 @@ class MetaBall implements Mover {
   }
 
   void applyForce(PVector force) {
-    if (DEBUG) {
-      drawVector(position, force, force.mag() * r*2, color(100, 0, 0));
-    }
     PVector appliedAccelleration = PVector.div(force, mass);
     accelleration.add(appliedAccelleration);
   }
@@ -47,7 +44,11 @@ class MetaBall implements Mover {
   }
 
   void display() {
-    if (DEBUG) {
+  }
+  
+  void debug() {
+    //drawVector(position, force, force.mag() * r*2, color(100, 0, 0));
+  
       push();
       noFill();
       stroke(0);
@@ -57,9 +58,8 @@ class MetaBall implements Mover {
       fill(0);
       text(name, position.x, position.y);
       pop();
-    }
   }
-
+  
   String toString() {
     return name;
   }

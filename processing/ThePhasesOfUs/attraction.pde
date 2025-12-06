@@ -75,6 +75,16 @@ public class Attraction {
   private PVector aToB() {
     return PVector.sub(b.getPosition(), a.getPosition());
   }
+
+  public void debug() {
+    push();
+    noFill();
+    textAlign(CENTER, CENTER);
+    fill(0);
+    text("A", a.getPosition().x, a.getPosition().y);
+    text("B", b.getPosition().x, b.getPosition().y);
+    pop();
+  }
 }
 
 public Attraction pickRandom(ArrayList<? extends Mover> movers) {
