@@ -2,18 +2,15 @@
  * Settings
  */
 boolean record = false;
-
+boolean debug = false;
 int FIXED_COMPONENT_SIZE = 5;
-
 PVector direction = new PVector(0, 0);
 
 /**
  * Global Variables
  */
-boolean debug = false;
 PVector center;
 PVector queuePos;
-
 color bgColor;
 color fgColor;
 color dbgColor;
@@ -58,7 +55,6 @@ void draw() {
     line(0, center.y - (100 - ditherWidth * 10), width, center.y - (100 - ditherWidth * 10));
   }
 
-
   for(Bird bird : birds) {
     bird.move(direction);
     bird.display();
@@ -94,7 +90,7 @@ void keyPressed() {
     debug = !debug;
   }
 
-  if (key == 'r' || key == 'R') {
+  if (key == 'r' || key == 'R' || key == ' ') {
     for (Bird bird : birds) {
       bird.randomize();
     }
