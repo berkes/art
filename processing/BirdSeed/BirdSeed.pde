@@ -75,25 +75,11 @@ void draw() {
     }
 
     // Drive animation by calling transition every frame
-    if (bird.body.transitionTarget != null) {
+    if (bird.isTransitioning) {
         bird.transition(targetBird);
     }
 
     bird.display();
-
-    // Automatic bird generation every 5 seconds
-    if (
-        millis() - lastBirdTime > birdInterval &&
-        bird.body.transitionTarget == null
-    ) {
-        lastBirdTime = millis();
-
-        // Create new bird at the same position
-        targetBird = new Bird(bird.pos.copy(), fgColor, 20, 100);
-
-        // Start transition by setting up the target
-        bird.transition(targetBird);
-    }
 
     if (record) {
         saveFrame("frames/####.png");

@@ -4,6 +4,7 @@ class Bird {
     int minSize;
     int maxSize;
     color c;
+    boolean isTransitioning = false;
 
     Body body;
     Feet feet;
@@ -21,15 +22,23 @@ class Bird {
         this.randomize();
     }
 
-    void transition(Bird to) {
-        // Delegate transition to all shapes
-        body.transition(to.body);
-        feet.transition(to.feet);
-        head.transition(to.head);
-        neck.transition(to.neck);
-        eye.transition(to.eye);
-        beak.transition(to.beak);
-        tail.transition(to.tail);
+    // Transition all shapes and track overall completion status
+    // Returns true if all transitions are complete, false if any are still transitioning
+    boolean transition(Bird to) {
+        // Track if all transitions are complete
+        boolean bodyComplete = body.transition(to.body);
+        boolean feetComplete = feet.transition(to.feet);
+        boolean headComplete = head.transition(to.head);
+        boolean neckComplete = neck.transition(to.neck);
+        boolean eyeComplete = eye.transition(to.eye);
+        boolean beakComplete = beak.transition(to.beak);
+        boolean tailComplete = tail.transition(to.tail);
+        
+        // Update overall transitioning status
+        isTransitioning = !(bodyComplete && feetComplete && headComplete && 
+                           neckComplete && eyeComplete && beakComplete && tailComplete);
+        
+        return !isTransitioning; // Return true if all transitions are complete
     }
 
     void display() {
@@ -129,9 +138,10 @@ class Shape {
     }
 
     // Base transition method - handles the common transition logic
-    void transition(Shape target) {
+    // Returns true if transition is complete, false if still transitioning
+    boolean transition(Shape target) {
         if (target == null) {
-            return; // Safety check
+            return true; // Safety check - consider null target as complete
         }
 
         if (transitionTarget == null) {
@@ -142,8 +152,10 @@ class Shape {
         // Perform one step of transition
         if (hasReachedTarget()) {
             completeTransition();
+            return true; // Transition complete
         } else {
             stepTowardsTarget();
+            return false; // Still transitioning
         }
     }
 
