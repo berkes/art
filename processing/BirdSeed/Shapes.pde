@@ -20,16 +20,16 @@ class Bird {
     this.randomize();
   }
 
-  void move(PVector direction) {
-    this.pos.add(direction);
 
-    body.move(direction);
-    feet.move(direction);
-    head.move(direction);
-    neck.move(direction);
-    eye.move(direction);
-    beak.move(direction);
-    tail.move(direction);
+  
+  void transition(Bird to, int inFrames) {
+      body.transition(to.body, inFrames);
+      // feet.transition(to.feet, inFrames);
+      // head.transition(to.head, inFrames);
+      // neck doesn't inherit from Shape so it can't transition
+      // eye.transition(to.eye, inFrames);
+      // beak.transition(to.beak, inFrames);
+      // tail.transition(to.tail, inFrames);
   }
 
   void display() {
@@ -40,6 +40,15 @@ class Bird {
     eye.display();
     beak.display();
     tail.display();
+  }
+
+  void animateStep() {
+    body.animateStep();
+    feet.animateStep();
+    head.animateStep();
+    eye.animateStep();
+    beak.animateStep();
+    tail.animateStep();
   }
 
   void randomize() {
@@ -96,15 +105,24 @@ class Bird {
 
 class Shape {
   PVector pos;
+  boolean isAnimating = false;
+  Shape transitionTarget;
 
   void display() {
     // Abstract method to be implemented by subclasses
   }
-  void move(PVector direction) {
-    this.pos.add(direction);
-    if (debug) {
-      println("Shape pos from: " + pos.x + ", " + pos.y + " to: " + (pos.x + direction.x) + ", " + (pos.y + direction.y));
-    }
+  
+
+  
+  void transition(Shape target, int inFrames) {
+      isAnimating = true;
+      transitionTarget = target;
+      
+      this.animateStep();
+  }
+  
+  void animateStep() {
+      // Implement in subclasses
   }
 }
 
@@ -128,6 +146,24 @@ class Body extends Shape {
     noStroke();
     ellipse(0, 0, radius * 2, radius * 2);
     popMatrix();
+  }
+  
+  void animateStep() {
+      if (!isAnimating) return;
+      
+      if (this.pos.dist(this.transitionTarget.pos) <= 0) {
+          this.isAnimating = false;
+          this.transitionTarget = null;
+      }
+      
+      // One step towards the target position
+      PVector dPos = transitionTarget.pos.sub(this.pos).div(10);
+      
+      if (debug) {
+          println("Body transition from: " + this.pos.x + ", " + this.pos.y + " to: " + transitionTarget.pos.x + ", " + transitionTarget.pos.y);
+          println("Body transition distance: " + dPos.mag());
+          println("Body transition direction: " + dPos.heading());
+      }
   }
 }
 
@@ -164,6 +200,10 @@ class Feet extends Shape {
     line(spacing, 0, spacing, -this.length);
     popMatrix();
   }
+
+  void animateStep() {
+      // Feet don't animate in transitions currently
+  }
 }
 
 class Head extends Shape {
@@ -189,6 +229,10 @@ class Head extends Shape {
     ellipse(0, 0, radius * 2, radius * 2);
     popMatrix();
   }
+
+  void animateStep() {
+      // Head doesn't animate in transitions currently
+  }
 }
 
 class Neck {
@@ -213,10 +257,7 @@ class Neck {
     popMatrix();
   }
 
-  void move(PVector direction) {
-    this.from.add(direction);
-    this.to.add(direction);
-  }
+
 }
 
 class Eye extends Shape {
@@ -242,6 +283,10 @@ class Eye extends Shape {
     noStroke();
     ellipse(0, 0, radius * 2, radius * 2);
     popMatrix();
+  }
+
+  void animateStep() {
+      // Eye doesn't animate in transitions currently
   }
 }
 
@@ -276,6 +321,10 @@ class Beak extends Shape {
     vertex(0, width);
     endShape(CLOSE);
     popMatrix();
+  }
+
+  void animateStep() {
+      // Beak doesn't animate in transitions currently
   }
 }
 
@@ -332,5 +381,9 @@ class Tail extends Shape {
     vertex(corner2.x, corner2.y);
     endShape(CLOSE);
     popMatrix();
+  }
+
+  void animateStep() {
+      // Tail doesn't animate in transitions currently
   }
 }

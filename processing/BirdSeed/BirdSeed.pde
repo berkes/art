@@ -2,20 +2,18 @@
  * Settings
  */
 boolean record = false;
-boolean debug = false;
+boolean debug = true;
 int FIXED_COMPONENT_SIZE = 5;
-PVector direction = new PVector(0, 0);
 
 /**
  * Global Variables
  */
 PVector center;
-PVector queuePos;
 color bgColor;
 color fgColor;
 color dbgColor;
 
-ArrayList<Bird> birds = new ArrayList<Bird>();
+Bird bird;
 
 /**
  * Setup
@@ -29,10 +27,9 @@ void setup() {
   dbgColor = color(0, 100, 100);
 
   center = new PVector(width / 2, height / 2);
-  Bird centerBird = new Bird(center, fgColor, 20, 100);
-  birds.add(centerBird);
+  bird = new Bird(center, fgColor, 20, 100);
 
-  queuePos = new PVector(width + 300, center.y);
+
 }
 
 /**
@@ -55,23 +52,11 @@ void draw() {
     line(0, center.y - (100 - ditherWidth * 10), width, center.y - (100 - ditherWidth * 10));
   }
 
-  for(Bird bird : birds) {
-    bird.move(direction);
-    bird.display();
-  }
-
-  Bird firstBird = birds.get(0);
-  if (firstBird.pos.x % 300 == 0) {
-    Bird newBird = new Bird(queuePos, fgColor, 50, 100);
-    birds.add(newBird);
-  }
+  bird.animateStep();
+  bird.display();
 
   if (record) {
     saveFrame("frames/####.png");
-  }
-
-  if (firstBird.pos.x <  - (width / 2) - 50) {
-    birds.remove(0);
   }
 }
 
@@ -91,9 +76,8 @@ void keyPressed() {
   }
 
   if (key == 'r' || key == 'R' || key == ' ') {
-    for (Bird bird : birds) {
-      bird.randomize();
-    }
+    Bird newBird = new Bird(bird.pos, fgColor, 50, 100);
+    bird.transition(newBird, 10);
   }
 
   if (key == 'a' || key == 'A') {
