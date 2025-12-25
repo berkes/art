@@ -115,6 +115,9 @@ void keyPressed() {
     }
 
     if (key == 'r' || key == 'R' || key == ' ') {
+        if (bird.isTransitioning) {
+            return;
+        }
         Bird newBird = new Bird(bird.pos, fgColor, 50, 100);
         targetBird = newBird;
         bird.transition(newBird);

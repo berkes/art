@@ -33,11 +33,16 @@ class Bird {
         boolean eyeComplete = eye.transition(to.eye);
         boolean beakComplete = beak.transition(to.beak);
         boolean tailComplete = tail.transition(to.tail);
-        
+
         // Update overall transitioning status
-        isTransitioning = !(bodyComplete && feetComplete && headComplete && 
-                           neckComplete && eyeComplete && beakComplete && tailComplete);
-        
+        isTransitioning = !(bodyComplete &&
+            feetComplete &&
+            headComplete &&
+            neckComplete &&
+            eyeComplete &&
+            beakComplete &&
+            tailComplete);
+
         return !isTransitioning; // Return true if all transitions are complete
     }
 
@@ -177,6 +182,20 @@ class Shape {
         // Subclasses should override this to set final values when transition completes
         transitionTarget = null;
     }
+
+    // Interpolation method - wrapper around lerp for transition calculations
+    // This provides a centralized place for interpolation logic that can be extended later
+    float interpolate(float start, float end, float amount) {
+        return lerp(start, end, amount);
+    }
+
+    // Vector interpolation helper for position transitions
+    PVector interpolate(PVector start, PVector end, float amount) {
+        return new PVector(
+            interpolate(start.x, end.x, amount),
+            interpolate(start.y, end.y, amount)
+        );
+    }
 }
 
 class Body extends Shape {
@@ -219,11 +238,10 @@ class Body extends Shape {
         Body targetBody = (Body) transitionTarget;
 
         // Step towards target position
-        this.pos.x = lerp(this.pos.x, targetBody.pos.x, TRANSITION_STEP_SIZE);
-        this.pos.y = lerp(this.pos.y, targetBody.pos.y, TRANSITION_STEP_SIZE);
+        this.pos = interpolate(this.pos, targetBody.pos, TRANSITION_STEP_SIZE);
 
         // Step towards target radius
-        this.radius = lerp(
+        this.radius = interpolate(
             this.radius,
             targetBody.radius,
             TRANSITION_STEP_SIZE
@@ -304,21 +322,20 @@ class Feet extends Shape {
         Feet targetFeet = (Feet) transitionTarget;
 
         // Step towards target position
-        this.pos.x = lerp(this.pos.x, targetFeet.pos.x, TRANSITION_STEP_SIZE);
-        this.pos.y = lerp(this.pos.y, targetFeet.pos.y, TRANSITION_STEP_SIZE);
+        this.pos = interpolate(this.pos, targetFeet.pos, TRANSITION_STEP_SIZE);
 
         // Step towards target attributes
-        this.length = lerp(
+        this.length = interpolate(
             this.length,
             targetFeet.length,
             TRANSITION_STEP_SIZE
         );
-        this.thickness = lerp(
+        this.thickness = interpolate(
             this.thickness,
             targetFeet.thickness,
             TRANSITION_STEP_SIZE
         );
-        this.spacing = lerp(
+        this.spacing = interpolate(
             this.spacing,
             targetFeet.spacing,
             TRANSITION_STEP_SIZE
@@ -389,11 +406,10 @@ class Head extends Shape {
         Head targetHead = (Head) transitionTarget;
 
         // Step towards target position
-        this.pos.x = lerp(this.pos.x, targetHead.pos.x, TRANSITION_STEP_SIZE);
-        this.pos.y = lerp(this.pos.y, targetHead.pos.y, TRANSITION_STEP_SIZE);
+        this.pos = interpolate(this.pos, targetHead.pos, TRANSITION_STEP_SIZE);
 
         // Step towards target radius
-        this.radius = lerp(
+        this.radius = interpolate(
             this.radius,
             targetHead.radius,
             TRANSITION_STEP_SIZE
@@ -464,18 +480,20 @@ class Neck extends Shape {
         Neck targetNeck = (Neck) transitionTarget;
 
         // Step towards target position (midpoint)
-        this.to.x = lerp(this.to.x, targetNeck.to.x, TRANSITION_STEP_SIZE);
-        this.to.y = lerp(this.to.y, targetNeck.to.y, TRANSITION_STEP_SIZE);
-        this.from.x = lerp(this.from.x, targetNeck.from.x, TRANSITION_STEP_SIZE);
-        this.from.y = lerp(this.from.y, targetNeck.from.y, TRANSITION_STEP_SIZE);
+        this.to = interpolate(this.to, targetNeck.to, TRANSITION_STEP_SIZE);
+        this.from = interpolate(
+            this.from,
+            targetNeck.from,
+            TRANSITION_STEP_SIZE
+        );
 
         // Step towards target thickness
-        this.thickness = lerp(
+        this.thickness = interpolate(
             this.thickness,
             targetNeck.thickness,
             TRANSITION_STEP_SIZE
         );
-        
+
         if (debug) {
             println(
                 "Neck transition pos: " +
@@ -526,31 +544,43 @@ class Eye extends Shape {
         ellipse(0, 0, radius * 2, radius * 2);
         popMatrix();
     }
-    
+
     // Override hasReachedTarget to check Eye attributes
     boolean hasReachedTarget() {
         if (transitionTarget == null) return true;
         Eye targetEye = (Eye) transitionTarget;
-        return PVector.dist(this.pos, targetEye.pos) < 0.1 && 
-               abs(this.radius - targetEye.radius) < 0.1;
+        return (
+            PVector.dist(this.pos, targetEye.pos) < 0.1 &&
+            abs(this.radius - targetEye.radius) < 0.1
+        );
     }
-    
+
     // Override stepTowardsTarget for Eye-specific stepping
     void stepTowardsTarget() {
         Eye targetEye = (Eye) transitionTarget;
-        
+
         // Step towards target position
-        this.pos.x = lerp(this.pos.x, targetEye.pos.x, TRANSITION_STEP_SIZE);
-        this.pos.y = lerp(this.pos.y, targetEye.pos.y, TRANSITION_STEP_SIZE);
-        
+        this.pos = interpolate(this.pos, targetEye.pos, TRANSITION_STEP_SIZE);
+
         // Step towards target radius
-        this.radius = lerp(this.radius, targetEye.radius, TRANSITION_STEP_SIZE);
-        
+        this.radius = interpolate(
+            this.radius,
+            targetEye.radius,
+            TRANSITION_STEP_SIZE
+        );
+
         if (debug) {
-            println("Eye transition pos: " + this.pos.x + ", " + this.pos.y + " radius: " + this.radius);
+            println(
+                "Eye transition pos: " +
+                    this.pos.x +
+                    ", " +
+                    this.pos.y +
+                    " radius: " +
+                    this.radius
+            );
         }
     }
-    
+
     // Override completeTransition for Eye-specific completion
     void completeTransition() {
         Eye targetEye = (Eye) transitionTarget;
@@ -596,39 +626,61 @@ class Beak extends Shape {
         endShape(CLOSE);
         popMatrix();
     }
-    
+
     // Override hasReachedTarget to check Beak attributes
     boolean hasReachedTarget() {
         if (transitionTarget == null) return true;
         Beak targetBeak = (Beak) transitionTarget;
-        return PVector.dist(this.pos, targetBeak.pos) < 0.1 && 
-               abs(this.length - targetBeak.length) < 0.1 &&
-               abs(this.width - targetBeak.width) < 0.1 &&
-               abs(this.rotation - targetBeak.rotation) < 0.01;
+        return (
+            PVector.dist(this.pos, targetBeak.pos) < 0.1 &&
+            abs(this.length - targetBeak.length) < 0.1 &&
+            abs(this.width - targetBeak.width) < 0.1 &&
+            abs(this.rotation - targetBeak.rotation) < 0.01
+        );
     }
-    
+
     // Override stepTowardsTarget for Beak-specific stepping
     void stepTowardsTarget() {
         Beak targetBeak = (Beak) transitionTarget;
-        
+
         // Step towards target position
-        this.pos.x = lerp(this.pos.x, targetBeak.pos.x, TRANSITION_STEP_SIZE);
-        this.pos.y = lerp(this.pos.y, targetBeak.pos.y, TRANSITION_STEP_SIZE);
-        
+        this.pos = interpolate(this.pos, targetBeak.pos, TRANSITION_STEP_SIZE);
+
         // Step towards target dimensions
-        this.length = lerp(this.length, targetBeak.length, TRANSITION_STEP_SIZE);
-        this.width = lerp(this.width, targetBeak.width, TRANSITION_STEP_SIZE);
-        
+        this.length = interpolate(
+            this.length,
+            targetBeak.length,
+            TRANSITION_STEP_SIZE
+        );
+        this.width = interpolate(
+            this.width,
+            targetBeak.width,
+            TRANSITION_STEP_SIZE
+        );
+
         // Step towards target rotation (use linear interpolation for angles)
-        this.rotation = lerp(this.rotation, targetBeak.rotation, TRANSITION_STEP_SIZE);
-        
+        this.rotation = interpolate(
+            this.rotation,
+            targetBeak.rotation,
+            TRANSITION_STEP_SIZE
+        );
+
         if (debug) {
-            println("Beak transition pos: " + this.pos.x + ", " + this.pos.y + 
-                   " length: " + this.length + " width: " + this.width + 
-                   " rotation: " + this.rotation);
+            println(
+                "Beak transition pos: " +
+                    this.pos.x +
+                    ", " +
+                    this.pos.y +
+                    " length: " +
+                    this.length +
+                    " width: " +
+                    this.width +
+                    " rotation: " +
+                    this.rotation
+            );
         }
     }
-    
+
     // Override completeTransition for Beak-specific completion
     void completeTransition() {
         Beak targetBeak = (Beak) transitionTarget;
@@ -712,47 +764,75 @@ class Tail extends Shape {
         endShape(CLOSE);
         popMatrix();
     }
-    
+
     // Override hasReachedTarget to check Tail attributes
     boolean hasReachedTarget() {
         if (transitionTarget == null) return true;
         Tail targetTail = (Tail) transitionTarget;
-        return PVector.dist(this.pos, targetTail.pos) < 0.1 && 
-               abs(this.length - targetTail.length) < 0.1 &&
-               abs(this.width - targetTail.width) < 0.1 &&
-               abs(this.angle - targetTail.angle) < 0.01 &&
-               abs(this.distortion - targetTail.distortion) < 0.1;
+        return (
+            PVector.dist(this.pos, targetTail.pos) < 0.1 &&
+            abs(this.length - targetTail.length) < 0.1 &&
+            abs(this.width - targetTail.width) < 0.1 &&
+            abs(this.angle - targetTail.angle) < 0.01 &&
+            abs(this.distortion - targetTail.distortion) < 0.1
+        );
     }
-    
+
     // Override stepTowardsTarget for Tail-specific stepping
     void stepTowardsTarget() {
         Tail targetTail = (Tail) transitionTarget;
-        
+
         // Step towards target position
-        this.pos.x = lerp(this.pos.x, targetTail.pos.x, TRANSITION_STEP_SIZE);
-        this.pos.y = lerp(this.pos.y, targetTail.pos.y, TRANSITION_STEP_SIZE);
-        
+        this.pos = interpolate(this.pos, targetTail.pos, TRANSITION_STEP_SIZE);
+
         // Step towards target dimensions
-        this.length = lerp(this.length, targetTail.length, TRANSITION_STEP_SIZE);
-        this.width = lerp(this.width, targetTail.width, TRANSITION_STEP_SIZE);
-        
+        this.length = interpolate(
+            this.length,
+            targetTail.length,
+            TRANSITION_STEP_SIZE
+        );
+        this.width = interpolate(
+            this.width,
+            targetTail.width,
+            TRANSITION_STEP_SIZE
+        );
+
         // Step towards target angle
-        this.angle = lerp(this.angle, targetTail.angle, TRANSITION_STEP_SIZE);
-        
+        this.angle = interpolate(
+            this.angle,
+            targetTail.angle,
+            TRANSITION_STEP_SIZE
+        );
+
         // Step towards target distortion
-        this.distortion = lerp(this.distortion, targetTail.distortion, TRANSITION_STEP_SIZE);
-        
+        this.distortion = interpolate(
+            this.distortion,
+            targetTail.distortion,
+            TRANSITION_STEP_SIZE
+        );
+
         // Update corners based on new dimensions (without random distortion during transition)
         this.corner1 = new PVector(this.length, -this.width / 2);
         this.corner2 = new PVector(this.length, this.width / 2);
-        
+
         if (debug) {
-            println("Tail transition pos: " + this.pos.x + ", " + this.pos.y + 
-                   " length: " + this.length + " width: " + this.width + 
-                   " angle: " + this.angle + " distortion: " + this.distortion);
+            println(
+                "Tail transition pos: " +
+                    this.pos.x +
+                    ", " +
+                    this.pos.y +
+                    " length: " +
+                    this.length +
+                    " width: " +
+                    this.width +
+                    " angle: " +
+                    this.angle +
+                    " distortion: " +
+                    this.distortion
+            );
         }
     }
-    
+
     // Override completeTransition for Tail-specific completion
     void completeTransition() {
         Tail targetTail = (Tail) transitionTarget;
@@ -763,11 +843,15 @@ class Tail extends Shape {
             this.angle = targetTail.angle;
             this.distortion = targetTail.distortion;
             this.c = targetTail.c;
-            
+
             // Recreate corners with proper distortion from target
             this.corner0 = new PVector(0, 0);
-            this.corner1 = this.distort(new PVector(this.length, -this.width / 2));
-            this.corner2 = this.distort(new PVector(this.length, this.width / 2));
+            this.corner1 = this.distort(
+                new PVector(this.length, -this.width / 2)
+            );
+            this.corner2 = this.distort(
+                new PVector(this.length, this.width / 2)
+            );
         }
         super.completeTransition(); // Call parent to clear transitionTarget
     }
