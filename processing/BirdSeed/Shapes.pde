@@ -22,55 +22,14 @@ class Bird {
     }
 
     void transition(Bird to) {
-        // Perform one frame of body transition with both position and radius
-        if (body.transitionTarget == null) {
-            // First call - set up transition
-            body.transitionTarget = to.body;
-            body.targetRadius = to.body.radius;
-        }
-
-        // Perform one step of transition
-        float stepSize = 0.05; // 5% per frame
-
-        // Check if we've reached the target
-        if (
-            PVector.dist(body.pos, body.transitionTarget.pos) < 0.1 &&
-            abs(body.radius - body.targetRadius) < 0.1
-        ) {
-            // Transition complete
-            body.pos = body.transitionTarget.pos.copy();
-            body.radius = body.targetRadius;
-            body.transitionTarget = null;
-        } else {
-            // Step towards target position
-            body.pos.x = lerp(
-                body.pos.x,
-                body.transitionTarget.pos.x,
-                stepSize
-            );
-            body.pos.y = lerp(
-                body.pos.y,
-                body.transitionTarget.pos.y,
-                stepSize
-            );
-
-            // Step towards target radius
-            body.radius = lerp(body.radius, body.targetRadius, stepSize);
-
-            if (debug) {
-                println(
-                    "Body transition pos: " +
-                        body.pos.x +
-                        ", " +
-                        body.pos.y +
-                        " radius: " +
-                        body.radius
-                );
-            }
-        }
+        // Delegate transition to individual shapes
+        body.transition(to.body);
+        feet.transition(to.feet);
+        head.transition(to.head);
+        neck.transition(to.neck);
 
         // Other parts don't transition (as requested)
-        // feet, head, neck, eye, beak, tail remain unchanged
+        // eye, beak, tail remain unchanged
     }
 
     void display() {
@@ -163,22 +122,48 @@ class Bird {
 class Shape {
 
     PVector pos;
-    boolean isAnimating = false;
     Shape transitionTarget;
 
     void display() {
         // Abstract method to be implemented by subclasses
     }
 
-    void transition(Shape target, int inFrames) {
-        isAnimating = true;
-        transitionTarget = target;
+    // Base transition method - handles the common transition logic
+    void transition(Shape target) {
+        if (target == null) {
+            return; // Safety check
+        }
 
-        this.animateStep();
+        if (transitionTarget == null) {
+            // First call - set up transition
+            transitionTarget = target;
+        }
+
+        // Perform one step of transition
+        if (hasReachedTarget()) {
+            completeTransition();
+        } else {
+            stepTowardsTarget();
+        }
     }
 
-    void animateStep() {
-        // Implement in subclasses
+    // Subclasses must implement this to check if transition is complete
+    boolean hasReachedTarget() {
+        // Subclasses should override this to check all their transitioning attributes
+        // Return true if transition is complete, false otherwise
+        return true;
+    }
+
+    // Subclasses must implement this to perform one step of transition
+    void stepTowardsTarget() {
+        // Subclasses should override this to handle their specific transition logic
+        // This method is called every frame until hasReachedTarget() returns true
+    }
+
+    // Subclasses must implement this to finalize the transition
+    void completeTransition() {
+        // Subclasses should override this to set final values when transition completes
+        transitionTarget = null;
     }
 }
 
@@ -205,6 +190,53 @@ class Body extends Shape {
         noStroke();
         ellipse(0, 0, radius * 2, radius * 2);
         popMatrix();
+    }
+
+    // Override hasReachedTarget to check all Body attributes
+    boolean hasReachedTarget() {
+        if (transitionTarget == null) return true;
+        Body targetBody = (Body) transitionTarget;
+        return (
+            PVector.dist(this.pos, targetBody.pos) < 0.1 &&
+            abs(this.radius - targetBody.radius) < 0.1
+        );
+    }
+
+    // Override stepTowardsTarget for Body-specific stepping
+    void stepTowardsTarget() {
+        Body targetBody = (Body) transitionTarget;
+
+        // Step towards target position
+        this.pos.x = lerp(this.pos.x, targetBody.pos.x, TRANSITION_STEP_SIZE);
+        this.pos.y = lerp(this.pos.y, targetBody.pos.y, TRANSITION_STEP_SIZE);
+
+        // Step towards target radius
+        this.radius = lerp(
+            this.radius,
+            targetBody.radius,
+            TRANSITION_STEP_SIZE
+        );
+
+        if (debug) {
+            println(
+                "Body transition pos: " +
+                    this.pos.x +
+                    ", " +
+                    this.pos.y +
+                    " radius: " +
+                    this.radius
+            );
+        }
+    }
+
+    // Override completeTransition for Body-specific completion
+    void completeTransition() {
+        Body targetBody = (Body) transitionTarget;
+        if (targetBody != null) {
+            this.pos = targetBody.pos.copy();
+            this.radius = targetBody.radius;
+        }
+        super.completeTransition(); // Call parent to clear transitionTarget
     }
 }
 
@@ -242,6 +274,67 @@ class Feet extends Shape {
         line(spacing, 0, spacing, -this.length);
         popMatrix();
     }
+
+    // Override hasReachedTarget to check all Feet attributes
+    boolean hasReachedTarget() {
+        if (transitionTarget == null) return true;
+        Feet targetFeet = (Feet) transitionTarget;
+        return (
+            PVector.dist(this.pos, targetFeet.pos) < 0.1 &&
+            abs(this.length - targetFeet.length) < 0.1 &&
+            abs(this.thickness - targetFeet.thickness) < 0.1 &&
+            abs(this.spacing - targetFeet.spacing) < 0.1
+        );
+    }
+
+    // Override stepTowardsTarget for Feet-specific stepping
+    void stepTowardsTarget() {
+        Feet targetFeet = (Feet) transitionTarget;
+
+        // Step towards target position
+        this.pos.x = lerp(this.pos.x, targetFeet.pos.x, TRANSITION_STEP_SIZE);
+        this.pos.y = lerp(this.pos.y, targetFeet.pos.y, TRANSITION_STEP_SIZE);
+
+        // Step towards target attributes
+        this.length = lerp(
+            this.length,
+            targetFeet.length,
+            TRANSITION_STEP_SIZE
+        );
+        this.thickness = lerp(
+            this.thickness,
+            targetFeet.thickness,
+            TRANSITION_STEP_SIZE
+        );
+        this.spacing = lerp(
+            this.spacing,
+            targetFeet.spacing,
+            TRANSITION_STEP_SIZE
+        );
+
+        if (debug) {
+            println(
+                "Feet transition length: " +
+                    this.length +
+                    " thickness: " +
+                    this.thickness +
+                    " spacing: " +
+                    this.spacing
+            );
+        }
+    }
+
+    // Override completeTransition for Feet-specific completion
+    void completeTransition() {
+        Feet targetFeet = (Feet) transitionTarget;
+        if (targetFeet != null) {
+            this.pos = targetFeet.pos.copy();
+            this.length = targetFeet.length;
+            this.thickness = targetFeet.thickness;
+            this.spacing = targetFeet.spacing;
+        }
+        super.completeTransition(); // Call parent to clear transitionTarget
+    }
 }
 
 class Head extends Shape {
@@ -268,9 +361,56 @@ class Head extends Shape {
         ellipse(0, 0, radius * 2, radius * 2);
         popMatrix();
     }
+
+    // Override hasReachedTarget to check all Head attributes
+    boolean hasReachedTarget() {
+        if (transitionTarget == null) return true;
+        Head targetHead = (Head) transitionTarget;
+        return (
+            PVector.dist(this.pos, targetHead.pos) < 0.1 &&
+            abs(this.radius - targetHead.radius) < 0.1
+        );
+    }
+
+    // Override stepTowardsTarget for Head-specific stepping
+    void stepTowardsTarget() {
+        Head targetHead = (Head) transitionTarget;
+
+        // Step towards target position
+        this.pos.x = lerp(this.pos.x, targetHead.pos.x, TRANSITION_STEP_SIZE);
+        this.pos.y = lerp(this.pos.y, targetHead.pos.y, TRANSITION_STEP_SIZE);
+
+        // Step towards target radius
+        this.radius = lerp(
+            this.radius,
+            targetHead.radius,
+            TRANSITION_STEP_SIZE
+        );
+
+        if (debug) {
+            println(
+                "Head transition pos: " +
+                    this.pos.x +
+                    ", " +
+                    this.pos.y +
+                    " radius: " +
+                    this.radius
+            );
+        }
+    }
+
+    // Override completeTransition for Head-specific completion
+    void completeTransition() {
+        Head targetHead = (Head) transitionTarget;
+        if (targetHead != null) {
+            this.pos = targetHead.pos.copy();
+            this.radius = targetHead.radius;
+        }
+        super.completeTransition(); // Call parent to clear transitionTarget
+    }
 }
 
-class Neck {
+class Neck extends Shape {
 
     PVector from;
     PVector to;
@@ -282,6 +422,9 @@ class Neck {
         this.to = to.copy();
         this.thickness = thickness;
         this.c = c;
+
+        // Set pos to midpoint for transition purposes
+        this.pos = PVector.add(from, to).div(2);
     }
 
     void display() {
@@ -291,6 +434,60 @@ class Neck {
         stroke(c);
         line(from.x, from.y, to.x, to.y);
         popMatrix();
+    }
+
+    // Override hasReachedTarget to check all Neck attributes
+    boolean hasReachedTarget() {
+        if (transitionTarget == null) return true;
+        Neck targetNeck = (Neck) transitionTarget;
+        return (
+            PVector.dist(this.pos, targetNeck.pos) < 0.1 &&
+            abs(this.thickness - targetNeck.thickness) < 0.1
+        );
+    }
+
+    // Override stepTowardsTarget for Neck-specific stepping
+    void stepTowardsTarget() {
+        Neck targetNeck = (Neck) transitionTarget;
+
+        // Step towards target position (midpoint)
+        this.pos.x = lerp(this.pos.x, targetNeck.pos.x, TRANSITION_STEP_SIZE);
+        this.pos.y = lerp(this.pos.y, targetNeck.pos.y, TRANSITION_STEP_SIZE);
+
+        // Step towards target thickness
+        this.thickness = lerp(
+            this.thickness,
+            targetNeck.thickness,
+            TRANSITION_STEP_SIZE
+        );
+
+        // Update from/to positions based on new midpoint
+        PVector offset = PVector.sub(this.to, this.from).div(2);
+        this.from = PVector.sub(this.pos, offset);
+        this.to = PVector.add(this.pos, offset);
+
+        if (debug) {
+            println(
+                "Neck transition pos: " +
+                    this.pos.x +
+                    ", " +
+                    this.pos.y +
+                    " thickness: " +
+                    this.thickness
+            );
+        }
+    }
+
+    // Override completeTransition for Neck-specific completion
+    void completeTransition() {
+        Neck targetNeck = (Neck) transitionTarget;
+        if (targetNeck != null) {
+            this.pos = targetNeck.pos.copy();
+            this.thickness = targetNeck.thickness;
+            this.from = targetNeck.from.copy();
+            this.to = targetNeck.to.copy();
+        }
+        super.completeTransition(); // Call parent to clear transitionTarget
     }
 }
 
