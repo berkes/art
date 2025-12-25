@@ -2,8 +2,14 @@
  * Settings
  */
 boolean record = false;
-boolean debug = true;
+boolean debug = false;
 int FIXED_COMPONENT_SIZE = 5;
+
+/**
+ * Timing for automatic bird generation
+ */
+float lastBirdTime = 0;
+float birdInterval = 5000; // 5 seconds in milliseconds
 
 /**
  * Global Variables
@@ -14,6 +20,7 @@ color fgColor;
 color dbgColor;
 
 Bird bird;
+Bird targetBird;
 
 /**
  * Setup
@@ -28,8 +35,6 @@ void setup() {
 
   center = new PVector(width / 2, height / 2);
   bird = new Bird(center, fgColor, 20, 100);
-
-
 }
 
 /**
@@ -52,8 +57,23 @@ void draw() {
     line(0, center.y - (100 - ditherWidth * 10), width, center.y - (100 - ditherWidth * 10));
   }
 
-  bird.animateStep();
+  // Drive animation by calling transition every frame
+  if (bird.body.transitionTarget != null) {
+    bird.transition(targetBird);
+  }
+  
   bird.display();
+
+  // Automatic bird generation every 5 seconds
+  if (millis() - lastBirdTime > birdInterval && bird.body.transitionTarget == null) {
+    lastBirdTime = millis();
+    
+    // Create new bird at the same position
+    targetBird = new Bird(bird.pos.copy(), fgColor, 20, 100);
+    
+    // Start transition by setting up the target
+    bird.transition(targetBird);
+  }
 
   if (record) {
     saveFrame("frames/####.png");
@@ -77,7 +97,8 @@ void keyPressed() {
 
   if (key == 'r' || key == 'R' || key == ' ') {
     Bird newBird = new Bird(bird.pos, fgColor, 50, 100);
-    bird.transition(newBird, 10);
+    targetBird = newBird;
+    bird.transition(newBird);
   }
 
   if (key == 'a' || key == 'A') {
