@@ -441,7 +441,8 @@ class Neck extends Shape {
         if (transitionTarget == null) return true;
         Neck targetNeck = (Neck) transitionTarget;
         return (
-            PVector.dist(this.pos, targetNeck.pos) < 0.1 &&
+            PVector.dist(this.to, targetNeck.to) < 0.1 &&
+            PVector.dist(this.from, targetNeck.from) < 0.1 &&
             abs(this.thickness - targetNeck.thickness) < 0.1
         );
     }
@@ -451,8 +452,10 @@ class Neck extends Shape {
         Neck targetNeck = (Neck) transitionTarget;
 
         // Step towards target position (midpoint)
-        this.pos.x = lerp(this.pos.x, targetNeck.pos.x, TRANSITION_STEP_SIZE);
-        this.pos.y = lerp(this.pos.y, targetNeck.pos.y, TRANSITION_STEP_SIZE);
+        this.to.x = lerp(this.to.x, targetNeck.to.x, TRANSITION_STEP_SIZE);
+        this.to.y = lerp(this.to.y, targetNeck.to.y, TRANSITION_STEP_SIZE);
+        this.from.x = lerp(this.from.x, targetNeck.from.x, TRANSITION_STEP_SIZE);
+        this.from.y = lerp(this.from.y, targetNeck.from.y, TRANSITION_STEP_SIZE);
 
         // Step towards target thickness
         this.thickness = lerp(
@@ -460,12 +463,7 @@ class Neck extends Shape {
             targetNeck.thickness,
             TRANSITION_STEP_SIZE
         );
-
-        // Update from/to positions based on new midpoint
-        PVector offset = PVector.sub(this.to, this.from).div(2);
-        this.from = PVector.sub(this.pos, offset);
-        this.to = PVector.add(this.pos, offset);
-
+        
         if (debug) {
             println(
                 "Neck transition pos: " +
