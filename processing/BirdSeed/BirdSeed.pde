@@ -10,7 +10,7 @@ int FIXED_COMPONENT_SIZE = 5;
 /**
  * Transition Settings
  */
-// TRANSITION_STEP_SIZE is now defined in the Shape class (Shapes.pde)
+float TRANSITION_STEP_SIZE = 0.1;
 
 /**
  * Timing for automatic bird generation

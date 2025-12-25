@@ -137,6 +137,7 @@ class Shape {
 
     PVector pos;
     Shape transitionTarget;
+    float transitionProgress = 0; // Tracks overall progress from 0 to 1
 
     void display() {
         // Abstract method to be implemented by subclasses
@@ -152,6 +153,7 @@ class Shape {
         if (transitionTarget == null) {
             // First call - set up transition
             transitionTarget = target;
+            transitionProgress = 0; // Reset progress for new transition
         }
 
         // Perform one step of transition
@@ -159,6 +161,8 @@ class Shape {
             completeTransition();
             return true; // Transition complete
         } else {
+            // Increment progress by step size
+            transitionProgress = min(1.0, transitionProgress + TRANSITION_STEP_SIZE);
             stepTowardsTarget();
             return false; // Still transitioning
         }
@@ -183,22 +187,27 @@ class Shape {
         transitionTarget = null;
     }
 
-    // Default transition step size - centralized for easy adjustment
-    final float TRANSITION_STEP_SIZE = 0.05; // 5% per frame
-
     // Interpolation method - wrapper around lerp for transition calculations
     // This provides a centralized place for interpolation logic that can be extended later
+    // Optional min/max parameters allow clamping to prevent negative values or other constraints
     float interpolate(float start, float end) {
-        // Apply elastic easing to the default step size
-        float easedAmount = elasticEase(TRANSITION_STEP_SIZE);
-        return lerp(start, end, easedAmount);
+        return interpolate(start, end, 0.0f, 0.0f, false, false);
     }
 
-    // Overloaded version that allows custom amount for special cases
-    float interpolate(float start, float end, float amount) {
-        // Apply elastic easing to the custom amount
-        float easedAmount = elasticEase(amount);
-        return lerp(start, end, easedAmount);
+    // Version with optional min/max clamping
+    float interpolate(float start, float end, float minVal, float maxVal, boolean useMin, boolean useMax) {
+        float easedAmount = elasticEase(transitionProgress);
+        float result = lerp(start, end, easedAmount);
+        
+        // Apply clamping if requested
+        if (useMin) {
+            result = max(minVal, result);
+        }
+        if (useMax) {
+            result = min(maxVal, result);
+        }
+        
+        return result;
     }
 
     // Vector interpolation helper for position transitions (using default step size)
@@ -206,14 +215,6 @@ class Shape {
         return new PVector(
             interpolate(start.x, end.x),
             interpolate(start.y, end.y)
-        );
-    }
-
-    // Overloaded vector version that allows custom amount for special cases
-    PVector interpolate(PVector start, PVector end, float amount) {
-        return new PVector(
-            interpolate(start.x, end.x, amount),
-            interpolate(start.y, end.y, amount)
         );
     }
 }
@@ -260,10 +261,11 @@ class Body extends Shape {
         // Step towards target position
         this.pos = interpolate(this.pos, targetBody.pos);
 
-        // Step towards target radius
+        // Step towards target radius (with min clamping to prevent negative values)
         this.radius = interpolate(
             this.radius,
-            targetBody.radius
+            targetBody.radius,
+            1.0f, 0.0f, true, false
         );
 
         if (debug) {
@@ -343,18 +345,21 @@ class Feet extends Shape {
         // Step towards target position
         this.pos = interpolate(this.pos, targetFeet.pos);
 
-        // Step towards target attributes
+        // Step towards target attributes (with min clamping to prevent negative values)
         this.length = interpolate(
             this.length,
-            targetFeet.length
+            targetFeet.length,
+            1.0f, 0.0f, true, false
         );
         this.thickness = interpolate(
             this.thickness,
-            targetFeet.thickness
+            targetFeet.thickness,
+            1.0f, 0.0f, true, false
         );
         this.spacing = interpolate(
             this.spacing,
-            targetFeet.spacing
+            targetFeet.spacing,
+            1.0f, 0.0f, true, false
         );
 
         if (debug) {
@@ -424,10 +429,11 @@ class Head extends Shape {
         // Step towards target position
         this.pos = interpolate(this.pos, targetHead.pos);
 
-        // Step towards target radius
+        // Step towards target radius (with min clamping to prevent negative values)
         this.radius = interpolate(
             this.radius,
-            targetHead.radius
+            targetHead.radius,
+            1.0f, 0.0f, true, false
         );
 
         if (debug) {
@@ -501,10 +507,11 @@ class Neck extends Shape {
             targetNeck.from
         );
 
-        // Step towards target thickness
+        // Step towards target thickness (with min clamping to prevent negative values)
         this.thickness = interpolate(
             this.thickness,
-            targetNeck.thickness
+            targetNeck.thickness,
+            1.0f, 0.0f, true, false
         );
 
         if (debug) {
@@ -575,10 +582,11 @@ class Eye extends Shape {
         // Step towards target position
         this.pos = interpolate(this.pos, targetEye.pos);
 
-        // Step towards target radius
+        // Step towards target radius (with min clamping to prevent negative values)
         this.radius = interpolate(
             this.radius,
-            targetEye.radius
+            targetEye.radius,
+            1.0f, 0.0f, true, false
         );
 
         if (debug) {
@@ -658,14 +666,16 @@ class Beak extends Shape {
         // Step towards target position
         this.pos = interpolate(this.pos, targetBeak.pos);
 
-        // Step towards target dimensions
+        // Step towards target dimensions (with min clamping to prevent negative values)
         this.length = interpolate(
             this.length,
-            targetBeak.length
+            targetBeak.length,
+            1.0f, 0.0f, true, false
         );
         this.width = interpolate(
             this.width,
-            targetBeak.width
+            targetBeak.width,
+            1.0f, 0.0f, true, false
         );
 
         // Step towards target rotation (use linear interpolation for angles)
@@ -794,14 +804,16 @@ class Tail extends Shape {
         // Step towards target position
         this.pos = interpolate(this.pos, targetTail.pos);
 
-        // Step towards target dimensions
+        // Step towards target dimensions (with min clamping to prevent negative values)
         this.length = interpolate(
             this.length,
-            targetTail.length
+            targetTail.length,
+            1.0f, 0.0f, true, false
         );
         this.width = interpolate(
             this.width,
-            targetTail.width
+            targetTail.width,
+            1.0f, 0.0f, true, false
         );
 
         // Step towards target angle
@@ -810,7 +822,7 @@ class Tail extends Shape {
             targetTail.angle
         );
 
-        // Step towards target distortion
+        // Step towards target distortion (allow negative for distortion effect)
         this.distortion = interpolate(
             this.distortion,
             targetTail.distortion
