@@ -183,13 +183,33 @@ class Shape {
         transitionTarget = null;
     }
 
+    // Default transition step size - centralized for easy adjustment
+    final float TRANSITION_STEP_SIZE = 0.05; // 5% per frame
+
     // Interpolation method - wrapper around lerp for transition calculations
     // This provides a centralized place for interpolation logic that can be extended later
-    float interpolate(float start, float end, float amount) {
-        return lerp(start, end, amount);
+    float interpolate(float start, float end) {
+        // Apply elastic easing to the default step size
+        float easedAmount = elasticEase(TRANSITION_STEP_SIZE);
+        return lerp(start, end, easedAmount);
     }
 
-    // Vector interpolation helper for position transitions
+    // Overloaded version that allows custom amount for special cases
+    float interpolate(float start, float end, float amount) {
+        // Apply elastic easing to the custom amount
+        float easedAmount = elasticEase(amount);
+        return lerp(start, end, easedAmount);
+    }
+
+    // Vector interpolation helper for position transitions (using default step size)
+    PVector interpolate(PVector start, PVector end) {
+        return new PVector(
+            interpolate(start.x, end.x),
+            interpolate(start.y, end.y)
+        );
+    }
+
+    // Overloaded vector version that allows custom amount for special cases
     PVector interpolate(PVector start, PVector end, float amount) {
         return new PVector(
             interpolate(start.x, end.x, amount),
@@ -238,13 +258,12 @@ class Body extends Shape {
         Body targetBody = (Body) transitionTarget;
 
         // Step towards target position
-        this.pos = interpolate(this.pos, targetBody.pos, TRANSITION_STEP_SIZE);
+        this.pos = interpolate(this.pos, targetBody.pos);
 
         // Step towards target radius
         this.radius = interpolate(
             this.radius,
-            targetBody.radius,
-            TRANSITION_STEP_SIZE
+            targetBody.radius
         );
 
         if (debug) {
@@ -322,23 +341,20 @@ class Feet extends Shape {
         Feet targetFeet = (Feet) transitionTarget;
 
         // Step towards target position
-        this.pos = interpolate(this.pos, targetFeet.pos, TRANSITION_STEP_SIZE);
+        this.pos = interpolate(this.pos, targetFeet.pos);
 
         // Step towards target attributes
         this.length = interpolate(
             this.length,
-            targetFeet.length,
-            TRANSITION_STEP_SIZE
+            targetFeet.length
         );
         this.thickness = interpolate(
             this.thickness,
-            targetFeet.thickness,
-            TRANSITION_STEP_SIZE
+            targetFeet.thickness
         );
         this.spacing = interpolate(
             this.spacing,
-            targetFeet.spacing,
-            TRANSITION_STEP_SIZE
+            targetFeet.spacing
         );
 
         if (debug) {
@@ -406,13 +422,12 @@ class Head extends Shape {
         Head targetHead = (Head) transitionTarget;
 
         // Step towards target position
-        this.pos = interpolate(this.pos, targetHead.pos, TRANSITION_STEP_SIZE);
+        this.pos = interpolate(this.pos, targetHead.pos);
 
         // Step towards target radius
         this.radius = interpolate(
             this.radius,
-            targetHead.radius,
-            TRANSITION_STEP_SIZE
+            targetHead.radius
         );
 
         if (debug) {
@@ -480,18 +495,16 @@ class Neck extends Shape {
         Neck targetNeck = (Neck) transitionTarget;
 
         // Step towards target position (midpoint)
-        this.to = interpolate(this.to, targetNeck.to, TRANSITION_STEP_SIZE);
+        this.to = interpolate(this.to, targetNeck.to);
         this.from = interpolate(
             this.from,
-            targetNeck.from,
-            TRANSITION_STEP_SIZE
+            targetNeck.from
         );
 
         // Step towards target thickness
         this.thickness = interpolate(
             this.thickness,
-            targetNeck.thickness,
-            TRANSITION_STEP_SIZE
+            targetNeck.thickness
         );
 
         if (debug) {
@@ -560,13 +573,12 @@ class Eye extends Shape {
         Eye targetEye = (Eye) transitionTarget;
 
         // Step towards target position
-        this.pos = interpolate(this.pos, targetEye.pos, TRANSITION_STEP_SIZE);
+        this.pos = interpolate(this.pos, targetEye.pos);
 
         // Step towards target radius
         this.radius = interpolate(
             this.radius,
-            targetEye.radius,
-            TRANSITION_STEP_SIZE
+            targetEye.radius
         );
 
         if (debug) {
@@ -644,25 +656,22 @@ class Beak extends Shape {
         Beak targetBeak = (Beak) transitionTarget;
 
         // Step towards target position
-        this.pos = interpolate(this.pos, targetBeak.pos, TRANSITION_STEP_SIZE);
+        this.pos = interpolate(this.pos, targetBeak.pos);
 
         // Step towards target dimensions
         this.length = interpolate(
             this.length,
-            targetBeak.length,
-            TRANSITION_STEP_SIZE
+            targetBeak.length
         );
         this.width = interpolate(
             this.width,
-            targetBeak.width,
-            TRANSITION_STEP_SIZE
+            targetBeak.width
         );
 
         // Step towards target rotation (use linear interpolation for angles)
         this.rotation = interpolate(
             this.rotation,
-            targetBeak.rotation,
-            TRANSITION_STEP_SIZE
+            targetBeak.rotation
         );
 
         if (debug) {
@@ -783,32 +792,28 @@ class Tail extends Shape {
         Tail targetTail = (Tail) transitionTarget;
 
         // Step towards target position
-        this.pos = interpolate(this.pos, targetTail.pos, TRANSITION_STEP_SIZE);
+        this.pos = interpolate(this.pos, targetTail.pos);
 
         // Step towards target dimensions
         this.length = interpolate(
             this.length,
-            targetTail.length,
-            TRANSITION_STEP_SIZE
+            targetTail.length
         );
         this.width = interpolate(
             this.width,
-            targetTail.width,
-            TRANSITION_STEP_SIZE
+            targetTail.width
         );
 
         // Step towards target angle
         this.angle = interpolate(
             this.angle,
-            targetTail.angle,
-            TRANSITION_STEP_SIZE
+            targetTail.angle
         );
 
         // Step towards target distortion
         this.distortion = interpolate(
             this.distortion,
-            targetTail.distortion,
-            TRANSITION_STEP_SIZE
+            targetTail.distortion
         );
 
         // Update corners based on new dimensions (without random distortion during transition)
