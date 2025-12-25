@@ -2,7 +2,9 @@
  * Settings
  */
 boolean record = false;
+
 boolean debug = false;
+
 int FIXED_COMPONENT_SIZE = 5;
 
 /**
@@ -14,16 +16,22 @@ final float TRANSITION_STEP_SIZE = 0.05; // 5% per frame
  * Timing for automatic bird generation
  */
 float lastBirdTime = 0;
+
 float birdInterval = 5000; // 5 seconds in milliseconds
 
 /**
  * Global Variables
  */
 PVector center;
+
 color bgColor;
+
 color fgColor;
+
 color dbgColor;
+
 Bird bird;
+
 Bird targetBird;
 
 /**

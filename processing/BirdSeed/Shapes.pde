@@ -22,14 +22,14 @@ class Bird {
     }
 
     void transition(Bird to) {
-        // Delegate transition to individual shapes
+        // Delegate transition to all shapes
         body.transition(to.body);
         feet.transition(to.feet);
         head.transition(to.head);
         neck.transition(to.neck);
-
-        // Other parts don't transition (as requested)
-        // eye, beak, tail remain unchanged
+        eye.transition(to.eye);
+        beak.transition(to.beak);
+        tail.transition(to.tail);
     }
 
     void display() {
@@ -514,6 +514,41 @@ class Eye extends Shape {
         ellipse(0, 0, radius * 2, radius * 2);
         popMatrix();
     }
+    
+    // Override hasReachedTarget to check Eye attributes
+    boolean hasReachedTarget() {
+        if (transitionTarget == null) return true;
+        Eye targetEye = (Eye) transitionTarget;
+        return PVector.dist(this.pos, targetEye.pos) < 0.1 && 
+               abs(this.radius - targetEye.radius) < 0.1;
+    }
+    
+    // Override stepTowardsTarget for Eye-specific stepping
+    void stepTowardsTarget() {
+        Eye targetEye = (Eye) transitionTarget;
+        
+        // Step towards target position
+        this.pos.x = lerp(this.pos.x, targetEye.pos.x, TRANSITION_STEP_SIZE);
+        this.pos.y = lerp(this.pos.y, targetEye.pos.y, TRANSITION_STEP_SIZE);
+        
+        // Step towards target radius
+        this.radius = lerp(this.radius, targetEye.radius, TRANSITION_STEP_SIZE);
+        
+        if (debug) {
+            println("Eye transition pos: " + this.pos.x + ", " + this.pos.y + " radius: " + this.radius);
+        }
+    }
+    
+    // Override completeTransition for Eye-specific completion
+    void completeTransition() {
+        Eye targetEye = (Eye) transitionTarget;
+        if (targetEye != null) {
+            this.pos = targetEye.pos.copy();
+            this.radius = targetEye.radius;
+            this.c = targetEye.c;
+        }
+        super.completeTransition(); // Call parent to clear transitionTarget
+    }
 }
 
 class Beak extends Shape {
@@ -548,6 +583,51 @@ class Beak extends Shape {
         vertex(0, width);
         endShape(CLOSE);
         popMatrix();
+    }
+    
+    // Override hasReachedTarget to check Beak attributes
+    boolean hasReachedTarget() {
+        if (transitionTarget == null) return true;
+        Beak targetBeak = (Beak) transitionTarget;
+        return PVector.dist(this.pos, targetBeak.pos) < 0.1 && 
+               abs(this.length - targetBeak.length) < 0.1 &&
+               abs(this.width - targetBeak.width) < 0.1 &&
+               abs(this.rotation - targetBeak.rotation) < 0.01;
+    }
+    
+    // Override stepTowardsTarget for Beak-specific stepping
+    void stepTowardsTarget() {
+        Beak targetBeak = (Beak) transitionTarget;
+        
+        // Step towards target position
+        this.pos.x = lerp(this.pos.x, targetBeak.pos.x, TRANSITION_STEP_SIZE);
+        this.pos.y = lerp(this.pos.y, targetBeak.pos.y, TRANSITION_STEP_SIZE);
+        
+        // Step towards target dimensions
+        this.length = lerp(this.length, targetBeak.length, TRANSITION_STEP_SIZE);
+        this.width = lerp(this.width, targetBeak.width, TRANSITION_STEP_SIZE);
+        
+        // Step towards target rotation (use linear interpolation for angles)
+        this.rotation = lerp(this.rotation, targetBeak.rotation, TRANSITION_STEP_SIZE);
+        
+        if (debug) {
+            println("Beak transition pos: " + this.pos.x + ", " + this.pos.y + 
+                   " length: " + this.length + " width: " + this.width + 
+                   " rotation: " + this.rotation);
+        }
+    }
+    
+    // Override completeTransition for Beak-specific completion
+    void completeTransition() {
+        Beak targetBeak = (Beak) transitionTarget;
+        if (targetBeak != null) {
+            this.pos = targetBeak.pos.copy();
+            this.length = targetBeak.length;
+            this.width = targetBeak.width;
+            this.rotation = targetBeak.rotation;
+            this.c = targetBeak.c;
+        }
+        super.completeTransition(); // Call parent to clear transitionTarget
     }
 }
 
@@ -619,5 +699,64 @@ class Tail extends Shape {
         vertex(corner2.x, corner2.y);
         endShape(CLOSE);
         popMatrix();
+    }
+    
+    // Override hasReachedTarget to check Tail attributes
+    boolean hasReachedTarget() {
+        if (transitionTarget == null) return true;
+        Tail targetTail = (Tail) transitionTarget;
+        return PVector.dist(this.pos, targetTail.pos) < 0.1 && 
+               abs(this.length - targetTail.length) < 0.1 &&
+               abs(this.width - targetTail.width) < 0.1 &&
+               abs(this.angle - targetTail.angle) < 0.01 &&
+               abs(this.distortion - targetTail.distortion) < 0.1;
+    }
+    
+    // Override stepTowardsTarget for Tail-specific stepping
+    void stepTowardsTarget() {
+        Tail targetTail = (Tail) transitionTarget;
+        
+        // Step towards target position
+        this.pos.x = lerp(this.pos.x, targetTail.pos.x, TRANSITION_STEP_SIZE);
+        this.pos.y = lerp(this.pos.y, targetTail.pos.y, TRANSITION_STEP_SIZE);
+        
+        // Step towards target dimensions
+        this.length = lerp(this.length, targetTail.length, TRANSITION_STEP_SIZE);
+        this.width = lerp(this.width, targetTail.width, TRANSITION_STEP_SIZE);
+        
+        // Step towards target angle
+        this.angle = lerp(this.angle, targetTail.angle, TRANSITION_STEP_SIZE);
+        
+        // Step towards target distortion
+        this.distortion = lerp(this.distortion, targetTail.distortion, TRANSITION_STEP_SIZE);
+        
+        // Update corners based on new dimensions (without random distortion during transition)
+        this.corner1 = new PVector(this.length, -this.width / 2);
+        this.corner2 = new PVector(this.length, this.width / 2);
+        
+        if (debug) {
+            println("Tail transition pos: " + this.pos.x + ", " + this.pos.y + 
+                   " length: " + this.length + " width: " + this.width + 
+                   " angle: " + this.angle + " distortion: " + this.distortion);
+        }
+    }
+    
+    // Override completeTransition for Tail-specific completion
+    void completeTransition() {
+        Tail targetTail = (Tail) transitionTarget;
+        if (targetTail != null) {
+            this.pos = targetTail.pos.copy();
+            this.length = targetTail.length;
+            this.width = targetTail.width;
+            this.angle = targetTail.angle;
+            this.distortion = targetTail.distortion;
+            this.c = targetTail.c;
+            
+            // Recreate corners with proper distortion from target
+            this.corner0 = new PVector(0, 0);
+            this.corner1 = this.distort(new PVector(this.length, -this.width / 2));
+            this.corner2 = this.distort(new PVector(this.length, this.width / 2));
+        }
+        super.completeTransition(); // Call parent to clear transitionTarget
     }
 }
