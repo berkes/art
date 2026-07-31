@@ -4,7 +4,9 @@
   "description": "",
   "main": "kroos.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "monta": "canvas-sketch monta.js",
+    "kroos": "canvas-sketch kroos.js",
+    "swirl": "canvas-sketch swirl.js"
   },
   "keywords": [],
   "author": "",

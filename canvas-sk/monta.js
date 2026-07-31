@@ -12,11 +12,11 @@ const params = {
 
   // Wave layout
   bezierHandleRatio: 0.65, // handle length as fraction of waveWidth
-  
+
   // Perspective
   perspectiveFactor: 0.3, // Strength of the perspective between 0  - no perspective and 10
 
-  lineWidth: 0.03, // Width of a single line in <units>
+  lineWidth: 0.02, // Width of a single line in <units>
 
   debug: false,
 };
@@ -48,7 +48,7 @@ function lineYInRow(rowY, rowHeight, l, linesPerRow) {
 function wavesInRow(rowIndex) {
   // Never the bottom row
   if (rowIndex >= params.rows - 1) return 0;
-  
+
   // Never in the top two rows, row 0 and 1
   if (rowIndex <= 1) return 0;
 
@@ -144,8 +144,8 @@ const sketch = (_props) => {
     const { rows, linesPerRow, horizonY, beachY, perspectiveFactor } = params;
 
     const availableHeight = (height - horizonY - beachY);
-    let rowY = horizonY; 
-    
+    let rowY = horizonY;
+
     for (let i = 0; i < rows; i++) {
       const rowHeight = getRowHeight(i, rows, availableHeight, perspectiveFactor);
 
@@ -176,7 +176,7 @@ const sketch = (_props) => {
         );
         wave.draw(context);
       }
-      
+
       rowY += rowHeight;
     }
   };
