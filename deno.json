@@ -1,0 +1,22 @@
+{
+  "name": "Using Vormen to create svgs",
+  "exports": {
+    "./arc_eyes.ts": "./arc_eyes.ts"
+  },
+  "tasks": {
+    "dev": "deno run --watch --allow-all main.ts render --outfile ./saves/latest.svg"
+  },
+  "imports": {
+    "@svgdotjs/svg.filter.js": "npm:@svgdotjs/svg.filter.js@^3.0.10",
+    "@svgdotjs/svg.js": "npm:@svgdotjs/svg.js@^3.2.8"
+  },
+  "links": ["../vormen"],
+  "permissions": {
+    "default": {
+      "env": true,
+      "net": true,
+      "read": true,
+      "write": true
+    }
+  }
+}
