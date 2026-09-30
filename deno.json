@@ -8,7 +8,8 @@
   },
   "imports": {
     "@svgdotjs/svg.filter.js": "npm:@svgdotjs/svg.filter.js@^3.0.10",
-    "@svgdotjs/svg.js": "npm:@svgdotjs/svg.js@^3.2.8"
+    "@svgdotjs/svg.js": "npm:@svgdotjs/svg.js@^3.2.8",
+    "svgdom": "npm:svgdom@^0.1.29"
   },
   "links": ["../vormen"],
   "permissions": {

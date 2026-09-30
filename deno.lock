@@ -349,7 +349,8 @@
   "workspace": {
     "dependencies": [
       "npm:@svgdotjs/svg.filter.js@^3.0.10",
-      "npm:@svgdotjs/svg.js@^3.2.8"
+      "npm:@svgdotjs/svg.js@^3.2.8",
+      "npm:svgdom@~0.1.29"
     ],
     "links": {
       "jsr:@berkes/create-vormen@0.1.1": {
