@@ -41,8 +41,17 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
   pairwise(points).forEach(([a, b]) => {
     const radiusAdjust = rand.between(1, 10);
     const pathOuter = new PathArray([
-      "M", a.x, a.y,
-      "A", radius, radius * radiusAdjust, 0, 1, 1, b.x, b.y,
+      "M",
+      a.x,
+      a.y,
+      "A",
+      radius,
+      radius * radiusAdjust,
+      0,
+      1,
+      1,
+      b.x,
+      b.y,
     ]);
     canvas
       .path(pathOuter)
@@ -54,8 +63,17 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
   const first = points[0];
   const last = points[points.length - 1];
   const pathOuter = new PathArray([
-    "M", last.x, last.y,
-    "A", radius * 3, radius * 3, 0, 1, 1, first.x, first.y,
+    "M",
+    last.x,
+    last.y,
+    "A",
+    radius * 3,
+    radius * 3,
+    0,
+    1,
+    1,
+    first.x,
+    first.y,
   ]);
   canvas
     .path(pathOuter)
@@ -75,12 +93,12 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
     const jitter = rand.between(sunDiameter / 4, (sunDiameter / 2) - 5);
     const innerX = Math.cos(i * 2 * Math.PI / 100) * (jitter - 10);
     const innerY = Math.sin(i * 2 * Math.PI / 100) * (jitter - 10);
-    const outerX = Math.cos(i * 2 * Math.PI / 100) * (jitter);
-    const outerY = Math.sin(i * 2 * Math.PI / 100) * (jitter);
+    const outerX = Math.cos(i * 2 * Math.PI / 100) * jitter;
+    const outerY = Math.sin(i * 2 * Math.PI / 100) * jitter;
 
     canvas
       .line(cx, cy, innerX + cx, innerY + cy)
-      .stroke({ color: settings.getString("bg"), width: 1 })
+      .stroke({ color: settings.getString("bg"), width: 1 });
     canvas
       .circle(2)
       .cx(outerX + cx)
@@ -99,7 +117,7 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
   const textY = drawing.getInnerHeight() - 30;
   const text = new Text()
     .text(`Drawing ${rand.seed}`)
-    .font({ size: 12, family: "Ubuntu Mono", anchor: "middle", weight: "bold"})
+    .font({ size: 12, family: "Ubuntu Mono", anchor: "middle", weight: "bold" })
     .fill(settings.getString("accent"))
     .x(textX)
     .y(textY);
