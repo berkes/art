@@ -3,6 +3,7 @@
   "specifiers": {
     "jsr:@std/assert@^1.0.19": "1.0.19",
     "jsr:@std/cli@^1.0.32": "1.0.32",
+    "jsr:@std/collections@^1.4.0": "1.4.0",
     "jsr:@std/fmt@^1.0.10": "1.0.10",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
@@ -27,6 +28,9 @@
         "jsr:@std/fmt",
         "jsr:@std/internal@^1.0.14"
       ]
+    },
+    "@std/collections@1.4.0": {
+      "integrity": "bd7f74966e11de11b1f0420b7e8cb7bb381d8af7872b738443b92050db28c9c0"
     },
     "@std/fmt@1.0.10": {
       "integrity": "90dfba288802ac6de82fb31d0917eb9e4450b9925b954d5e51fc29ac07419db5"
@@ -348,6 +352,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@std/collections@^1.4.0",
       "npm:@svgdotjs/svg.filter.js@^3.0.10",
       "npm:@svgdotjs/svg.js@^3.2.8",
       "npm:svgdom@~0.1.29"

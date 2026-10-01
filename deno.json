@@ -4,9 +4,10 @@
     "./arc_eyes.ts": "./arc_eyes.ts"
   },
   "tasks": {
-    "dev": "deno run --watch --allow-all main.ts render --outfile ./saves/latest.svg"
+    "dev:snake": "deno run --watch --allow-all snake.ts render --outfile ./saves/latest.svg"
   },
   "imports": {
+    "@std/collections": "jsr:@std/collections@^1.4.0",
     "@svgdotjs/svg.filter.js": "npm:@svgdotjs/svg.filter.js@^3.0.10",
     "@svgdotjs/svg.js": "npm:@svgdotjs/svg.js@^3.2.8",
     "svgdom": "npm:svgdom@^0.1.29"
