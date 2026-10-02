@@ -1,6 +1,7 @@
 import {
   type DrawFunction,
   Drawing,
+  PathBuilder,
   Point,
   Random,
   Settings,
@@ -8,128 +9,68 @@ import {
 } from "@berkes/vormen";
 
 const settings = new Settings({
-  seed: "1234567890",
+  seed: "1234567890B",
   color_bg: "black",
   color_fg: "white",
+  rounding: 10,
+  snap: 20,
+  line_width: 1,
 });
-
-interface Pointy {
-  x: number;
-  y: number;
-}
-
-class PathData {
-  private _points: Pointy[];
-
-  constructor(points: Pointy[]) {
-    this._points = points;
-  }
-
-  push(point: Pointy): PathData {
-    this._points.push(point);
-    return this;
-  }
-
-  get(idx: number): Pointy {
-    if (idx < 0 || idx >= this._points.length) {
-      throw new Error(
-        `Index ${idx} out of bounds: 0..${this._points.length - 1}`,
-      );
-    }
-    return this._points[idx];
-  }
-
-  tryGet(idx: number): Pointy | undefined {
-    return this._points[idx];
-  }
-
-  getCyclic(idx: number): Pointy {
-    if (this._points.length <= 0) {
-      throw new Error("No points in path");
-    }
-    if (idx < 0) {
-      return this.getCyclic(this._points.length + idx);
-    } else if (idx >= this._points.length) {
-      return this.getCyclic(idx - this._points.length);
-    } else {
-      return this.get(idx);
-    }
-  }
-
-  indexOf(point: Pointy): number {
-    return this._points.indexOf(point);
-  }
-
-  get points(): Pointy[] {
-    return this._points;
-  }
-
-  get start(): Pointy {
-    return this._points[0]!;
-  }
-
-  get end(): Pointy {
-    return this._points[this._points.length - 1]!;
-  }
-
-  get asDataString(): string {
-    let out = `M ${this.start.x} ${this.start.y}`;
-    this._points.forEach((point) => {
-      out += ` L ${point.x} ${point.y}`;
-    });
-    return out;
-  }
-}
 
 const draw: DrawFunction = (settings: Settings) => {
   const drawing = new Drawing()
-    .withSize(1080, 1080)
+    .withSize(1200, 1200)
     .withMargin(20)
     .withBackgroundColor(settings.getString("color_bg"));
 
   const canvas = drawing.build();
 
   const rand = new Random(settings.getString("seed"));
-
-  const points: PathData = new PathData([
-    new Point(
+  const startingPoint = new Point(
       rand.between(0, drawing.getInnerWidth()),
       rand.between(0, drawing.getInnerHeight()),
-    ),
-  ]);
+    );
+  const pathBuilder: PathBuilder = new PathBuilder([startingPoint])
+    .withClosed(true)
+    .withRounding(settings.getInt("rounding"))
+    .withRoundingConstrained(true);
 
   let dir: "x" | "y" = "x";
-  for (let i = 1; i < 200; i++) {
+  for (let i = 1; i < 70; i++) {
     let newPoint;
 
-    const lastPoint = points.get(i - 1);
-    if (dir === "x") { // We change the X
-      const upper = drawing.getInnerWidth() - lastPoint.x; // We can move at most to the right border
-      const lower = -lastPoint.x; // We can move at most to 0
-      const move = rand.between(lower, upper);
+    const lastPoint = pathBuilder.get(i - 1);
+    if (dir === "x") { // A horizontal line
+      // A random number to move X between 0 and the width of the canvas
+      const upper = drawing.getInnerWidth() - lastPoint.x;
+      const lower = -lastPoint.x;
+      const move = Math.round(rand.between(lower, upper) / settings.getInt('snap')) * settings.getInt('snap');
       newPoint = new Point(lastPoint.x + move, lastPoint.y);
       dir = "y";
-    } else { // We change the Y
+    } else { // A vertical line
+      // A random number to move Y between 0 and the height of the canvas
       const upper = drawing.getInnerHeight() - lastPoint.y;
       const lower = -lastPoint.y;
-      const move = rand.between(lower, upper);
+      const move = Math.round(rand.between(lower, upper) / settings.getInt('snap')) * settings.getInt('snap');
       newPoint = new Point(lastPoint.x, lastPoint.y + move);
       dir = "x";
     }
 
-    points.push(newPoint);
+    pathBuilder.push(newPoint);
+  }
+  // And finally add a point that shares an X with the last point and a Y with the first, so we close the loop in a perpendicular angle
+  pathBuilder.push(new Point(pathBuilder.end.x, pathBuilder.start.y));
+
+  const rounding = settings.getInt("rounding");
+  for (let i=rounding; i <= rounding + 100; i+=10) {
+    const data = pathBuilder.withRounding(i).build();
+    canvas.path(data).fill("none").stroke({
+      color: settings.getString("color_fg"),
+      width: settings.getInt("line_width"),
+    });
   }
 
-  points.points.forEach((point) => {
-    const nextPoint = points.tryGet(points.indexOf(point) + 1);
-    if (!nextPoint) return;
-    canvas.line(point.x, point.y, nextPoint.x, nextPoint.y).stroke({
-      color: settings.getString("color_fg"),
-      width: 1,
-    });
-  });
-
   return drawing;
-};
+}
 
 Vormen(draw, settings);
