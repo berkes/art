@@ -4,6 +4,7 @@
     "./arc_eyes.ts": "./arc_eyes.ts"
   },
   "tasks": {
+    "dev:maze": "deno run --watch --allow-all maze.ts render --outfile ./saves/latest.svg",
     "dev:snake": "deno run --watch --allow-all snake.ts render --outfile ./saves/latest.svg"
   },
   "imports": {
