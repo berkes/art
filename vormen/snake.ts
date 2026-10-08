@@ -1,7 +1,7 @@
 import {
   type DrawFunction,
   Drawing,
-  PathBuilder,
+  RoundedPathBuilder,
   Point,
   Random,
   Settings,
@@ -30,7 +30,7 @@ const draw: DrawFunction = (settings: Settings) => {
     rand.between(0, drawing.getInnerWidth()),
     rand.between(0, drawing.getInnerHeight()),
   );
-  const pathBuilder: PathBuilder = new PathBuilder([startingPoint])
+  const pathBuilder: RoundedPathBuilder = new RoundedPathBuilder([startingPoint])
     .withClosed(true)
     .withRounding(settings.getInt("rounding"))
     .withRoundingConstrained(true);
