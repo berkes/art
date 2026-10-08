@@ -4,6 +4,7 @@
     "./arc_eyes.ts": "./arc_eyes.ts"
   },
   "tasks": {
+    "dev:churro": "deno run --watch --allow-all churro.ts render --outfile ./saves/latest.svg",
     "dev:maze": "deno run --watch --allow-all maze.ts render --outfile ./saves/latest.svg",
     "dev:snake": "deno run --watch --allow-all snake.ts render --outfile ./saves/latest.svg"
   },
@@ -13,7 +14,7 @@
     "@svgdotjs/svg.js": "npm:@svgdotjs/svg.js@^3.2.8",
     "svgdom": "npm:svgdom@^0.1.29"
   },
-  "links": ["../vormen"],
+  "links": ["../../vormen"],
   "permissions": {
     "default": {
       "env": true,

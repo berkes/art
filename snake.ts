@@ -27,9 +27,9 @@ const draw: DrawFunction = (settings: Settings) => {
 
   const rand = new Random(settings.getString("seed"));
   const startingPoint = new Point(
-      rand.between(0, drawing.getInnerWidth()),
-      rand.between(0, drawing.getInnerHeight()),
-    );
+    rand.between(0, drawing.getInnerWidth()),
+    rand.between(0, drawing.getInnerHeight()),
+  );
   const pathBuilder: PathBuilder = new PathBuilder([startingPoint])
     .withClosed(true)
     .withRounding(settings.getInt("rounding"))
@@ -44,14 +44,18 @@ const draw: DrawFunction = (settings: Settings) => {
       // A random number to move X between 0 and the width of the canvas
       const upper = drawing.getInnerWidth() - lastPoint.x;
       const lower = -lastPoint.x;
-      const move = Math.round(rand.between(lower, upper) / settings.getInt('snap')) * settings.getInt('snap');
+      const move =
+        Math.round(rand.between(lower, upper) / settings.getInt("snap")) *
+        settings.getInt("snap");
       newPoint = new Point(lastPoint.x + move, lastPoint.y);
       dir = "y";
     } else { // A vertical line
       // A random number to move Y between 0 and the height of the canvas
       const upper = drawing.getInnerHeight() - lastPoint.y;
       const lower = -lastPoint.y;
-      const move = Math.round(rand.between(lower, upper) / settings.getInt('snap')) * settings.getInt('snap');
+      const move =
+        Math.round(rand.between(lower, upper) / settings.getInt("snap")) *
+        settings.getInt("snap");
       newPoint = new Point(lastPoint.x, lastPoint.y + move);
       dir = "x";
     }
@@ -62,7 +66,7 @@ const draw: DrawFunction = (settings: Settings) => {
   pathBuilder.push(new Point(pathBuilder.end.x, pathBuilder.start.y));
 
   const rounding = settings.getInt("rounding");
-  for (let i=rounding; i <= rounding + 100; i+=10) {
+  for (let i = rounding; i <= rounding + 100; i += 10) {
     const data = pathBuilder.withRounding(i).build();
     canvas.path(data).fill("none").stroke({
       color: settings.getString("color_fg"),
@@ -71,6 +75,6 @@ const draw: DrawFunction = (settings: Settings) => {
   }
 
   return drawing;
-}
+};
 
 Vormen(draw, settings);
