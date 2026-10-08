@@ -1,4 +1,5 @@
 static final float G = 20; // Gravitational constant
+static final float ORBITAL_DISTANCE = 10;
 
 public class Attraction {
   Mover a, b;
@@ -17,53 +18,57 @@ public class Attraction {
     a.applyForce(nudgeOutward);
     b.applyForce(nudgeOutward.mult(-1));
 
-    PVector adjustmentForce = getAdjustmentForce();
-    a.applyForce(adjustmentForce);
-    b.applyForce(adjustmentForce.mult(-1));
+    // PVector adjustmentForce = getAdjustmentForce();
+    // a.applyForce(adjustmentForce);
+    // b.applyForce(adjustmentForce.mult(-1));
   }
 
   public boolean attracts(PVector point) {
     return a == point || b == point;
   }
 
-  // public PVector getSpringForce() {}
-
   public PVector getGravityForce() {
     PVector delta = PVector.sub(b.getPosition(), a.getPosition());
-    float distance = constrain(delta.mag(), 5, 25); // Avoid singularities
+    float distance = constrain(delta.mag(), 5, 150); // Avoid singularities
     delta.normalize();
 
     float strength = (G * a.getMass() * b.getMass()) / (distance * distance);
     return delta.mult(strength);
   }
 
-  public PVector getAdjustmentForce() {
-    PVector delta = PVector.sub(b.getPosition(), a.getPosition());
-    float distance = delta.mag();
-    delta.normalize();
-
-    // Ignore adjustment if particles are too far apart
-    if (distance > 50) return new PVector(0, 0);
-
-    float orbitalVelocity = sqrt(G * (a.getMass() + b.getMass()) / distance);
-
-    PVector relativeVelocity = PVector.sub(b.getVelocity(), a.getVelocity());
-    PVector radialVelocity = delta.copy().mult(PVector.dot(relativeVelocity, delta));
-    PVector tangentialVelocity = PVector.sub(relativeVelocity, radialVelocity);
-
-    // Reduce adjustment influence when particles are further apart
-    float correctionFactor = map(distance, 5, 50, 0.2, 0.008);
-
-    PVector correction = delta.copy().rotate(HALF_PI).setMag(orbitalVelocity - tangentialVelocity.mag());
-
-    // Prevent excessive correction force
-    correction.limit(orbitalVelocity * 0.1);
-
-    return correction.mult(correctionFactor);
+  public PVector getRepellingForce() {
+    return getGravityForce().mult(-1);
   }
 
+  // public PVector getAdjustmentForce() {
+  //   PVector delta = PVector.sub(b.getPosition(), a.getPosition());
+  //   float distance = delta.mag();
+
+  //   // Ignore adjustment if particles are too far apart
+  //   if (distance > ORBITAL_DISTANCE) return new PVector(0, 0);
+
+  //   delta.normalize();
+  //   float orbitalVelocity = sqrt(G * (a.getMass() + b.getMass()) / distance);
+
+  //   PVector relativeVelocity = PVector.sub(b.getVelocity(), a.getVelocity());
+  //   PVector radialVelocity = delta.copy().mult(PVector.dot(relativeVelocity, delta));
+  //   PVector tangentialVelocity = PVector.sub(relativeVelocity, radialVelocity);
+
+  //   // Reduce adjustment influence when particles are further apart
+  //   float correctionFactor = map(distance, 5, 50, 0.2, 0.008);
+
+  //   PVector correction = delta.copy().rotate(HALF_PI).setMag(orbitalVelocity - tangentialVelocity.mag());
+
+  //   float adjustment = map(mouseY, 0, height, 0, 1.0);
+  //   // Prevent excessive correction force
+  //   println(adjustment);
+  //   correction.limit(orbitalVelocity * adjustment);
+
+  //   return correction.mult(correctionFactor);
+  // }
+
   public PVector getNudgeOutward() {
-    float minOrbitDistance = 15; // Desired stable orbit distance
+    float minOrbitDistance = 20;
 
     PVector delta = PVector.sub(b.getPosition(), a.getPosition());
     float distance = delta.mag();
@@ -72,11 +77,11 @@ public class Attraction {
     if (distance > minOrbitDistance) {
       return new PVector(0, 0);
     }
-    float repellingStrength = map(distance, 5, minOrbitDistance, 2.0, 0.1);
+    float repellingStrength = map(distance, 2, minOrbitDistance, 2.0, 0.1);
+
     PVector repellingForce = delta.copy().mult(-repellingStrength);
     return repellingForce;
   }
-  // public PVector getDragForce() {}
 }
 
 public Attraction pickRandom(ArrayList<? extends Mover> movers) {
@@ -89,7 +94,7 @@ public Attraction pickRandom(ArrayList<? extends Mover> movers) {
   Mover a = null;
   Mover b = null;
 
-  while(!picked) {
+  while (!picked) {
     int i = (int)random(movers.size());
     int j = (int)random(movers.size());
     a = movers.get(i);

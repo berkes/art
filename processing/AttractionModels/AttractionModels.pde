@@ -1,6 +1,7 @@
 // Settings
-static final int NUM_PARTICLES = 2;
-static final boolean RECORD = true;
+static final int NUM_PARTICLES = 4;
+static final boolean RECORD = false;
+static final float DRAG_COEFFICIENT = 0.01;
 
 ArrayList<Particle> particles = new ArrayList<Particle>();
 Attraction attraction;
@@ -8,8 +9,11 @@ Attraction attraction;
 
 void setup() {
   // INSTA STORY 1080x1920
-  size(1080, 1920, P2D);
+  // SIMPLE SQ 980x980
+  size(980, 980, P2D);
   background(0);
+
+  frameRate(60);
 
   // A force outwards
   for (int i = 0; i < NUM_PARTICLES; i++) {
@@ -19,7 +23,7 @@ void setup() {
     // outwards force
     PVector force = PVector.sub(particle.position, new PVector(width / 2, height / 2));
     force.normalize();
-    force.mult(6);
+    force.mult(random(4, 8));
     particle.applyForce(force);
   }
 }
@@ -38,15 +42,20 @@ void draw() {
 
     // Apply a drag force as if the particles are moving through a viscous medium
     PVector dragForce = particle.getVelocity().copy();
-    dragForce.mult(-0.01); // Adjust the drag coefficient as needed
+    dragForce.mult(-1 * DRAG_COEFFICIENT);
     particle.applyForce(dragForce);
-  }
 
-  if (attraction != null) {
-    attraction.update();
-  }
+    // for (Particle other : particles) {
+    //   if (other != particle) {
+    //     Attraction pair = new Attraction(particle, other);
+    //     pair.update();
+    //   }
+    // }
 
-  for (Particle particle : particles) {
+    if (attraction != null) {
+      attraction.update();
+    }
+
     particle.update();
     particle.display();
   }
@@ -54,7 +63,9 @@ void draw() {
   if (RECORD) {
     saveFrame("frames/####.png");
   }
+
 }
+
 
 void keyPressed() {
   // attract
@@ -102,7 +113,7 @@ class Particle implements Mover {
   PVector acceleration;
   float mass;
   float radius;
-  
+
   Particle(PVector position, float mass) {
     this.position = position;
     this.mass = mass;
@@ -110,17 +121,17 @@ class Particle implements Mover {
     this.velocity = new PVector(0, 0);
     this.acceleration = new PVector(0, 0);
   }
-  
+
   public void update() {
     velocity.add(acceleration);
     position.add(velocity);
     acceleration.mult(0); // Reset acceleration
   }
-  
+
   public void stop() {
     velocity.mult(0);
   }
-  
+
   public void applyForce(PVector force) {
     PVector f = force.copy();
     f.div(mass);
