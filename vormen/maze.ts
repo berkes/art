@@ -120,7 +120,7 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
 
   // const forks: MazeCell[] = [];
   // let deadEnd = false;
-  let lastFork: MazeCell | undefined;
+  // let lastFork: MazeCell | undefined;
   visited.forEach((mc, i) => {
     const cell = mc.cell;
     const nextCell = visited[i + 1]?.cell;
@@ -129,7 +129,7 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
     let color = "black";
     if (forks.includes(mc)) {
       color = "blue";
-      lastFork = mc;
+      // lastFork = mc;
     }
 
     canvas.line(cell.centerX, cell.centerY, nextCell.centerX, nextCell.centerY)
