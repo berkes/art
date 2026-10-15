@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="800" height="800" version="1.1" viewBox="0 0 800 800"
+  xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <g id="arcs" stroke="#000" fill="#fff" stroke-width="20">
+      <path d="m697 0c0 386.6-312.95 700-700 700" />
+      <path d="m197 0c0 110.46-89.095 200-200 200" />
+      <path d="m597 0c0 331.37-268.63 600-600 600" />
+      <path d="m497 0c0 276.14-223.41 500-500 500" />
+      <path d="m397 0c0 220.91-178.64 400-400 400" />
+      <path d="m297 0c0 165.69-134.09 300-300 300" />
+      <path d="m100 0c0 55.228-44.324 100-100 100" />
+    </g>
+  </defs>
+
+  <use href="#arcs" transform="rotate(180 400 400)" />
+  <use href="#arcs" />
+</svg>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="800" height="800" version="1.1" viewBox="0 0 800 800"
+  xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <g stroke="#000" stroke-width="20" id="lines">
+      <path d="m700 2v800" />
+      <path d="m200 2v800" />
+      <path d="m600 2v800" />
+      <path d="m500 2v800" />
+      <path d="m400 2v800" />
+      <path d="m300 2v800" />
+      <path d="m100 2v800" />
+    </g>
+  </defs>
+
+  <use href="#lines" />
+  <rect x="0" y="90" width="800" height="610" fill="#fff" stroke="none" />
+  <use href="#lines" transform="rotate(90 400 400)" />
+</svg>
