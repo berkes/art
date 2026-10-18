@@ -5,6 +5,7 @@
   },
   "tasks": {
     "dev:churro": "deno run --watch --allow-all churro.ts render --outfile ./saves/latest.svg",
+    "dev:cyclopean": "deno run --watch --allow-all cyclopean.ts render --outfile ./saves/latest.svg",
     "dev:maze": "deno run --watch --allow-all maze.ts render --outfile ./saves/latest.svg",
     "dev:snake": "deno run --watch --allow-all snake.ts render --outfile ./saves/latest.svg"
   },
