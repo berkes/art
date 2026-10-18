@@ -3,19 +3,21 @@ import {
   Drawing,
   Random,
   Settings,
+  type SettingsData,
   Vormen,
 } from "@berkes/vormen";
 import { G, type Rect, Text } from "@svgdotjs/svg.js";
 import { config } from "svgdom";
 
-const settings = new Settings({
+const defaultSettings = {
+  seed: 123000,
   bg: "rgb(69, 6, 147)",
   main: "rgb(140, 0, 255)",
   support: "rgb(255, 63, 127)",
   accent: "rgb(255, 196, 0)",
   maxDepth: 16,
   strokeWidth: 0.5,
-});
+};
 
 config
   .setFontDir("./")
@@ -24,13 +26,14 @@ config
   })
   .preloadFonts();
 
-const draw: DrawFunction = (settings: Settings): Drawing => {
+const draw: DrawFunction = (rawSettings: SettingsData): string => {
+  const settings = Settings.parse(defaultSettings, rawSettings);
   function split(rect: Rect, g: G, depth: number) {
     console.log(depth);
     if (depth <= 0) return;
     const height = Math.abs(Number(rect.height()));
     const width = Math.abs(Number(rect.width()));
-    if (Math.min(width, height) < settings.getInt("strokeWidth") * 3) return;
+    if (Math.min(width, height) < settings.strokeWidth * 3) return;
 
     // split across the shorter axis
     const direction = height > width ? "horizontal" : "vertical";
@@ -53,11 +56,11 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
       .y(y)
       .width(newWidth)
       .height(newHeight)
-      .fill(settings.getString("support"))
+      .fill(settings.support)
       .opacity(4 / depth)
       .stroke({
-        color: settings.getString("accent"),
-        width: settings.getInt("strokeWidth"),
+        color: settings.accent,
+        width: settings.strokeWidth,
       });
 
     split(newRect, g, depth - 1);
@@ -67,10 +70,10 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
     .withSize(1800, 1800)
     // .withA4Size()
     .withMargin(40)
-    .withBackgroundColor(settings.getString("bg"));
+    .withBackgroundColor(settings.bg);
 
   const canvas = drawing.build();
-  const rand = new Random(settings.getString("seed"));
+  const rand = new Random(settings.seed);
 
   const gs = [];
   for (let i = 0; i < 4; i++) {
@@ -81,13 +84,13 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
     )
       .x(drawing.getInnerWidth() / 2)
       .y(drawing.getInnerHeight() / 2)
-      .fill(settings.getString("main"))
+      .fill(settings.main)
       .stroke({
-        color: settings.getString("main"),
-        width: settings.getInt("strokeWidth"),
+        color: settings.main,
+        width: settings.strokeWidth,
       });
 
-    split(rect, g, settings.getInt("maxDepth"));
+    split(rect, g, settings.maxDepth);
     gs.push(g);
   }
 
@@ -123,7 +126,7 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
   const text = new Text()
     .text(`Drawing ${rand.seed}`)
     .font({ size: 12, family: "Mono", anchor: "middle" })
-    .fill(settings.getString("accent"))
+    .fill(settings.accent)
     .x(textX)
     .y(textY);
 
@@ -131,17 +134,17 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
 
   canvas
     .rect(text.bbox().width + 12, text.bbox().height + 6)
-    .fill(settings.getString("bg"))
+    .fill(settings.bg)
     .stroke("none")
     .radius(4)
     .x(textX - 6)
     .y(textY - 3);
   canvas.add(text);
 
-  return drawing;
+  return drawing.svg();
 };
 
-Vormen(draw, settings);
+Vormen(draw, defaultSettings);
 
 // function* pairwise<T>(iterable: T[]): Generator<[T, T], void> {
 //   const iterator = iterable[Symbol.iterator]();

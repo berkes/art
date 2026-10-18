@@ -9,6 +9,7 @@ import {
   Vormen,
 } from "@berkes/vormen";
 import { Text } from "@svgdotjs/svg.js";
+import type { SettingsData } from "../../vormen/src/vormen/types.ts";
 
 class MazeCell {
   public possibleNeighbors = [
@@ -44,19 +45,20 @@ class MazeCell {
   }
 }
 
-const settings = new Settings({
+const defaultSettings = {
   seed: 74729448528,
   bg: "rgb(69, 6, 147)",
   main: "rgb(140, 0, 255)",
   support: "rgb(255, 63, 127)",
   accent: "rgb(255, 196, 0)",
-});
+};
 
-const draw: DrawFunction = (settings: Settings): Drawing => {
+const draw: DrawFunction = (rawSettings: SettingsData): string => {
+  const settings = Settings.parse(defaultSettings, rawSettings);
   const drawing = new Drawing()
     .withSize(1080, 1080)
     .withMargin(0)
-    .withBackgroundColor(settings.getString("bg"));
+    .withBackgroundColor(settings.bg);
 
   const grid = new Grid()
     .withCols(6)
@@ -64,7 +66,7 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
     .withSize(drawing.getInnerWidth(), drawing.getInnerHeight());
 
   const canvas = drawing.build();
-  const rand = new Random(settings.getString("seed"));
+  const rand = new Random(settings.seed);
 
   // Maze.
   const todo = [...grid.cells().map((c) => new MazeCell(c))];
@@ -149,13 +151,13 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
   const text = new Text()
     .text(`Drawing ${rand.seed}`)
     .font({ size: 12, family: "Ubuntu Mono", anchor: "middle", weight: "bold" })
-    .fill(settings.getString("accent"))
+    .fill(settings.accent)
     .x(textX)
     .y(textY);
 
   canvas
     .rect(text.bbox().width + 20, text.bbox().height + 8)
-    .fill(settings.getString("bg"))
+    .fill(settings.bg)
     .stroke("none")
     .radius(4)
     .x(textX - 10)
@@ -163,10 +165,10 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
   canvas.add(text);
 
   canvas.add(grid.toSvg({}));
-  return drawing;
+  return drawing.svg();
 };
 
-Vormen(draw, settings);
+Vormen(draw, defaultSettings);
 
 // function* pairwise<T>(iterable: T[]): Generator<[T, T], void> {
 //   const iterator = iterable[Symbol.iterator]();

@@ -9,16 +9,18 @@ import {
   Grid,
   Random,
   readSvg,
+  type SettingsData,
   Settings,
   Vormen,
 } from "@berkes/vormen";
 import { config } from 'svgdom';
 
-const settings = new Settings({
+
+const defaultSettings = {
   seed: "noodle-love",
   columns: 20,
   rows: 25,
-});
+};
 
 config
   .setFontDir('./assets')
@@ -26,9 +28,9 @@ config
     'Doto-Medium': 'Doto-Medium.ttf',
   })
   .preloadFonts();
-console.log(config.getFonts());
 
-function draw(settings: Settings): Drawing {
+function draw(rawSettings: SettingsData): string {
+  const settings = Settings.parse(defaultSettings, rawSettings);
   const drawing = new Drawing()
     .withA4Size()
     .withMargin(20)
@@ -38,11 +40,11 @@ function draw(settings: Settings): Drawing {
 
   const grid = new Grid()
     .withSize(drawing.getInnerWidth(), drawing.getInnerHeight())
-    .withCols(settings.getInt("columns"))
-    .withRows(settings.getInt("rows"))
+    .withCols(settings.columns)
+    .withRows(settings.rows)
     .withSquareCells();
 
-  const rand = new Random(settings.getString("seed"));
+  const rand = new Random(settings.seed);
   const tileNames = ["tile_round", "tile_cross"];
   const tiles = tileNames.map((tileName) => {
     const tile = readSvg(`assets/${tileName}.svg`);
@@ -66,8 +68,8 @@ function draw(settings: Settings): Drawing {
 
   // Our center tile is 3 x 2 cells we add our center over the grid at this position
   const centerCell = grid.pickCell(
-    Math.floor(settings.getInt("columns") / 2) - 2,
-    Math.floor(settings.getInt("rows") / 2) - 1,
+    Math.floor(settings.columns / 2) - 2,
+    Math.floor(settings.rows / 2) - 1,
   )!;
   const centerTileX = centerCell.x;
   const centerTileY = centerCell.y;
@@ -95,8 +97,6 @@ function draw(settings: Settings): Drawing {
     .ax(drawing.getInnerWidth().toString())
     .ay(drawing.getInnerHeight().toString());
 
-  console.log(text.font('family'));
-
   const bbox = text.bbox();
   canvas.rect(bbox.width, bbox.height)
     .x(bbox.x)
@@ -105,7 +105,7 @@ function draw(settings: Settings): Drawing {
     .radius(4);
   canvas.add(text);
 
-  return drawing;
+  return drawing.svg();
 }
 
-Vormen(draw, settings);
+Vormen(draw, defaultSettings);
