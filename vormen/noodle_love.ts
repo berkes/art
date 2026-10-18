@@ -9,12 +9,11 @@ import {
   Grid,
   Random,
   readSvg,
-  type SettingsData,
   Settings,
+  type SettingsData,
   Vormen,
 } from "@berkes/vormen";
-import { config } from 'svgdom';
-
+import { config } from "svgdom";
 
 const defaultSettings = {
   seed: "noodle-love",
@@ -23,9 +22,9 @@ const defaultSettings = {
 };
 
 config
-  .setFontDir('./assets')
+  .setFontDir("./assets")
   .setFontFamilyMappings({
-    'Doto-Medium': 'Doto-Medium.ttf',
+    "Doto-Medium": "Doto-Medium.ttf",
   })
   .preloadFonts();
 
