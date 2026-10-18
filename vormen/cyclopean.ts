@@ -3,21 +3,24 @@ import {
   constrain,
   Drawing,
   Grid,
+  map,
+  Noise,
   Point,
   Random,
   RoundedPathBuilder,
   Settings,
+  type SettingsData,
   Vector,
   Vormen,
-  type SettingsData,
 } from "@berkes/vormen";
 
-
 const defaultSettings = {
-  seed: "cyclopedia",
-  columns: 8,
-  rows: 8,
-  innerMargin: 5,
+  seed: Math.random(),
+  columns: 60,
+  rows: 60,
+  innerMargin: 2,
+  roundingRadius: 2,
+  noiseScale: 0.005,
   bw: false,
 };
 
@@ -28,35 +31,52 @@ function draw(rawSettings: SettingsData): string {
   if (settings.bw) {
     bg = "#fff";
   } else {
-    bg =  "#FFF4BF";
+    bg = "#FFF4BF";
   }
   const colors = [
-      "#FFBEFB",
-      "#DC95FF",
-      "#8C56D4"
-    ];
+    "#FFBEFB",
+    "#DC95FF",
+    "#8C56D4",
+  ];
 
   const drawing = new Drawing()
-    .withSize(1200,1200)
-    .withMargin(20)
+    .withSize(1200, 1200)
+    .withMargin(30)
     .withBackgroundColor(bg);
   const canvas = drawing.build();
+
+  const noise = new Noise(settings.seed);
+  const rand = new Random(settings.seed);
 
   const grid = new Grid()
     .withCols(settings.columns)
     .withRows(settings.rows)
     .withPadding(0)
-    .withSize(drawing.getInnerWidth(), drawing.getInnerHeight());
-  const rand = new Random(settings.seed);
+    .withSize(drawing.width, drawing.height);
 
   const cellWidth = grid.cellWidth;
   const cellHeight = grid.cellHeight;
 
   const intersections = grid.intersections();
   const movedIntersections = intersections.map((point) => {
-    const xOffset = rand.between(0, cellWidth / 2);
-    const yOffset = rand.between(0, cellHeight / 2);
-    const p = new Point(constrain(point.x + xOffset, 0, drawing.getInnerWidth()), constrain(point.y + yOffset, 0, drawing.getInnerHeight()));
+    const xOffset = map(
+      noise.get(point.x, point.y, settings.noiseScale),
+      0,
+      1,
+      0,
+      cellWidth / 1,
+    );
+    const yOffset = map(
+      noise.get(point.x, point.y, settings.noiseScale),
+      0,
+      1,
+      0,
+      cellHeight / 1,
+    );
+    const p = new Point(
+      constrain(point.x + xOffset, -drawing.margin, drawing.outerWidth),
+      constrain(point.y + yOffset, -drawing.margin, drawing.outerHeight),
+    );
     return p;
   });
 
@@ -67,34 +87,47 @@ function draw(rawSettings: SettingsData): string {
     const strokeColor = settings.bw ? "black" : rand.pick(colors);
 
     const cornerIdx = {
-      topLeft: intersections.findIndex((p) => p.x === point.x && p.y === point.y),
-      topRight: intersections.findIndex((p) => almostEqual(p.x, point.x + grid.cellWidth) && p.y === point.y),
-      bottomLeft: intersections.findIndex((p) => p.x === point.x && almostEqual(p.y, point.y + grid.cellHeight)),
-      bottomRight: intersections.findIndex((p) => almostEqual(p.x, point.x + grid.cellWidth) && almostEqual(p.y, point.y + grid.cellHeight)),
-    }
+      topLeft: intersections.findIndex((p) =>
+        p.x === point.x && p.y === point.y
+      ),
+      topRight: intersections.findIndex((p) =>
+        almostEqual(p.x, point.x + grid.cellWidth) && p.y === point.y
+      ),
+      bottomLeft: intersections.findIndex((p) =>
+        p.x === point.x && almostEqual(p.y, point.y + grid.cellHeight)
+      ),
+      bottomRight: intersections.findIndex((p) =>
+        almostEqual(p.x, point.x + grid.cellWidth) &&
+        almostEqual(p.y, point.y + grid.cellHeight)
+      ),
+    };
 
-    for (let i = settings.innerMargin; i < Math.min(grid.cellWidth / 2.3, grid.cellHeight / 2.3); i += settings.innerMargin) {
-      const corners = {
-        topLeft: movedIntersections[cornerIdx.topLeft].add(new Vector(i, i)),
-        topRight: movedIntersections[cornerIdx.topRight].add(new Vector(-i, i)),
-        bottomLeft: movedIntersections[cornerIdx.bottomLeft].add(new Vector(i, -i)),
-        bottomRight: movedIntersections[cornerIdx.bottomRight].add(new Vector(-i, -i)),
-      };
+    const i = settings.innerMargin;
+    const corners = {
+      topLeft: movedIntersections[cornerIdx.topLeft].add(new Vector(i, i)),
+      topRight: movedIntersections[cornerIdx.topRight].add(new Vector(-i, i)),
+      bottomLeft: movedIntersections[cornerIdx.bottomLeft].add(
+        new Vector(i, -i),
+      ),
+      bottomRight: movedIntersections[cornerIdx.bottomRight].add(
+        new Vector(-i, -i),
+      ),
+    };
 
-      const pathBuilder = new RoundedPathBuilder([
-        corners.topLeft,
-        corners.topRight,
-        corners.bottomRight,
-        corners.bottomLeft,
-      ]);
+    const pathBuilder = new RoundedPathBuilder([
+      corners.topLeft,
+      corners.topRight,
+      corners.bottomRight,
+      corners.bottomLeft,
+    ]);
 
-      const pathData = pathBuilder.withClosed(true).withRounding(Math.min(grid.cellHeight, grid.cellWidth)).withRoundingConstrained(true).build();
+    const pathData = pathBuilder.withClosed(true).withRounding(3)
+      .withRoundingConstrained(true).build();
 
-      canvas.path(pathData).fill(color).stroke({width: 1, color: strokeColor});
-    }
+    canvas.path(pathData).fill(color).stroke({ width: 1, color: strokeColor });
   });
 
   return drawing.svg();
 }
 
-Vormen(draw, defaultSettings)
+Vormen(draw, defaultSettings);
