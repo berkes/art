@@ -5,6 +5,7 @@ import {
   Grid,
   map,
   Noise,
+  PathBuilder,
   Point,
   Random,
   RoundedPathBuilder,
@@ -15,11 +16,12 @@ import {
 } from "@berkes/vormen";
 
 const defaultSettings = {
-  seed: Math.random(),
-  columns: 60,
-  rows: 60,
-  innerMargin: 2,
-  roundingRadius: 2,
+  seed: "cyclopean",
+  columns: 8,
+  rows: 8,
+  innerMargin: 4,
+  roundingRadius: 10,
+  strokeWidth: 2,
   noiseScale: 0.005,
   bw: false,
 };
@@ -45,7 +47,6 @@ function draw(rawSettings: SettingsData): string {
     .withBackgroundColor(bg);
   const canvas = drawing.build();
 
-  const noise = new Noise(settings.seed);
   const rand = new Random(settings.seed);
 
   const grid = new Grid()
@@ -59,23 +60,11 @@ function draw(rawSettings: SettingsData): string {
 
   const intersections = grid.intersections();
   const movedIntersections = intersections.map((point) => {
-    const xOffset = map(
-      noise.get(point.x, point.y, settings.noiseScale),
-      0,
-      1,
-      0,
-      cellWidth / 1,
-    );
-    const yOffset = map(
-      noise.get(point.x, point.y, settings.noiseScale),
-      0,
-      1,
-      0,
-      cellHeight / 1,
-    );
+    const xOffset = rand.between(-cellWidth / 2, cellWidth / 2);
+    const yOffset = rand.between(-cellHeight / 2, cellHeight / 2);
     const p = new Point(
-      constrain(point.x + xOffset, -drawing.margin, drawing.outerWidth),
-      constrain(point.y + yOffset, -drawing.margin, drawing.outerHeight),
+      constrain(point.x + xOffset, 0, drawing.width),
+      constrain(point.y + yOffset, 0, drawing.height)
     );
     return p;
   });
@@ -84,7 +73,7 @@ function draw(rawSettings: SettingsData): string {
     const point = { x: cell.x, y: cell.y };
 
     const color = settings.bw ? "none" : rand.pick(colors);
-    const strokeColor = settings.bw ? "black" : rand.pick(colors);
+    const strokeColor = settings.bw ? "black" : rand.pick(colors.filter((c) => c !== color));
 
     const cornerIdx = {
       topLeft: intersections.findIndex((p) =>
@@ -102,29 +91,51 @@ function draw(rawSettings: SettingsData): string {
       ),
     };
 
-    const i = settings.innerMargin;
-    const corners = {
-      topLeft: movedIntersections[cornerIdx.topLeft].add(new Vector(i, i)),
-      topRight: movedIntersections[cornerIdx.topRight].add(new Vector(-i, i)),
-      bottomLeft: movedIntersections[cornerIdx.bottomLeft].add(
-        new Vector(i, -i),
-      ),
-      bottomRight: movedIntersections[cornerIdx.bottomRight].add(
-        new Vector(-i, -i),
-      ),
-    };
+    for (let i = settings.innerMargin; i <= cell.width / 2; i += settings.innerMargin) {
+      const corners = {
+        topLeft: movedIntersections[cornerIdx.topLeft].add(new Vector(i, i)),
+        topRight: movedIntersections[cornerIdx.topRight].add(new Vector(-i, i)),
+        bottomLeft: movedIntersections[cornerIdx.bottomLeft].add(
+          new Vector(i, -i),
+        ),
+        bottomRight: movedIntersections[cornerIdx.bottomRight].add(
+          new Vector(-i, -i),
+        ),
+      };
 
-    const pathBuilder = new RoundedPathBuilder([
-      corners.topLeft,
-      corners.topRight,
-      corners.bottomRight,
-      corners.bottomLeft,
-    ]);
+      const bigEnough = [
+          corners.topLeft.dist(corners.topRight),
+          corners.topLeft.dist(corners.bottomLeft),
+          corners.topRight.dist(corners.bottomRight),
+          corners.bottomLeft.dist(corners.bottomRight),
+          corners.topLeft.dist(corners.bottomRight),
+          corners.topRight.dist(corners.bottomLeft),
+        ].every((d) => d >= 0);
 
-    const pathData = pathBuilder.withClosed(true).withRounding(3)
-      .withRoundingConstrained(true).build();
+      const topologyStable = [
+        corners.topLeft.x < corners.topRight.x,
+        corners.topLeft.y < corners.bottomLeft.y,
+        corners.topRight.y < corners.bottomRight.y,
+        corners.bottomLeft.x < corners.bottomRight.x,
+        ].every((b) => b);
 
-    canvas.path(pathData).fill(color).stroke({ width: 1, color: strokeColor });
+      if (!bigEnough || !topologyStable) {
+        continue;
+      }
+
+      let pathBuilder = new PathBuilder([
+        corners.topLeft,
+        corners.topRight,
+        corners.bottomRight,
+        corners.bottomLeft,
+      ]);
+
+      pathBuilder = pathBuilder.withClosed(true); //.withRounding(settings.roundingRadius)
+        // .withRoundingConstrained(true);
+
+      canvas.path(pathBuilder.build()).fill(color).stroke({ width: settings.strokeWidth, color: strokeColor });
+      // canvas.addTo(pathBuilder.toSvg());
+    }
   });
 
   return drawing.svg();
