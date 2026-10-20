@@ -3,9 +3,6 @@ import {
   constrain,
   Drawing,
   Grid,
-  map,
-  Noise,
-  PathBuilder,
   Point,
   Random,
   RoundedPathBuilder,
@@ -20,7 +17,7 @@ const defaultSettings = {
   columns: 8,
   rows: 8,
   innerMargin: 4,
-  roundingRadius: 10,
+  roundingRadius: 30,
   strokeWidth: 2,
   noiseScale: 0.005,
   bw: false,
@@ -123,18 +120,17 @@ function draw(rawSettings: SettingsData): string {
         continue;
       }
 
-      let pathBuilder = new PathBuilder([
+      const pathBuilder = new RoundedPathBuilder([
         corners.topLeft,
         corners.topRight,
         corners.bottomRight,
         corners.bottomLeft,
-      ]);
-
-      pathBuilder = pathBuilder.withClosed(true); //.withRounding(settings.roundingRadius)
-        // .withRoundingConstrained(true);
+      ])
+      .withClosed(true)
+      .withRounding(settings.roundingRadius)
+      .withRoundingConstrained(true);
 
       canvas.path(pathBuilder.build()).fill(color).stroke({ width: settings.strokeWidth, color: strokeColor });
-      // canvas.addTo(pathBuilder.toSvg());
     }
   });
 
