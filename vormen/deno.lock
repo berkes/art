@@ -121,13 +121,13 @@
       "npm:svgdom@~0.1.29"
     ],
     "links": {
-      "jsr:@berkes/create-vormen@0.5.0": {
+      "jsr:@berkes/create-vormen@0.7.0": {
         "dependencies": [
           "npm:commander@15"
         ]
       },
-      "jsr:@berkes/vormen-examples@0.5.0": {},
-      "jsr:@berkes/vormen@0.5.0": {
+      "jsr:@berkes/vormen-examples@0.7.0": {},
+      "jsr:@berkes/vormen@0.7.0": {
         "dependencies": [
           "jsr:@std/assert@^1.0.19",
           "jsr:@std/cli@^1.0.32",
