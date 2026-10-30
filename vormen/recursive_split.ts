@@ -79,11 +79,11 @@ const draw: DrawFunction = (rawSettings: SettingsData): string => {
   for (let i = 0; i < 4; i++) {
     const g = new G().id(`rect-${i}`);
     const rect = g.rect(
-      drawing.getInnerWidth() / 2,
-      drawing.getInnerHeight() / 2,
+      drawing.width / 2,
+      drawing.height / 2,
     )
-      .x(drawing.getInnerWidth() / 2)
-      .y(drawing.getInnerHeight() / 2)
+      .x(drawing.width / 2)
+      .y(drawing.height / 2)
       .fill(settings.main)
       .stroke({
         color: settings.main,
@@ -101,19 +101,19 @@ const draw: DrawFunction = (rawSettings: SettingsData): string => {
     }),
   );
   canvas.add(
-    gs[1].clone().x(drawing.getInnerWidth() / 2).y(0).transform({
+    gs[1].clone().x(drawing.width / 2).y(0).transform({
       scale: [1, -1],
       origin: "center",
     }),
   );
   canvas.add(
-    gs[2].clone().x(0).y(drawing.getInnerHeight() / 2).transform({
+    gs[2].clone().x(0).y(drawing.height / 2).transform({
       scale: [-1, 1],
       origin: "center",
     }),
   );
   canvas.add(
-    gs[3].clone().x(drawing.getInnerWidth() / 2).y(drawing.getInnerHeight() / 2)
+    gs[3].clone().x(drawing.width / 2).y(drawing.height / 2)
       .transform({
         scale: [1, 1],
         origin: "center",
@@ -122,7 +122,7 @@ const draw: DrawFunction = (rawSettings: SettingsData): string => {
 
   // A text across the bottom
   const textX = 30;
-  const textY = drawing.getInnerHeight() - 30;
+  const textY = drawing.height - 30;
   const text = new Text()
     .text(`Drawing ${rand.seed}`)
     .font({ size: 12, family: "Mono", anchor: "middle" })

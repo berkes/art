@@ -11,6 +11,7 @@ import {
   readSvg,
   Settings,
   type SettingsData,
+  StandardSize,
   Vormen,
 } from "@berkes/vormen";
 import { config } from "svgdom";
@@ -31,14 +32,14 @@ config
 function draw(rawSettings: SettingsData): string {
   const settings = Settings.parse(defaultSettings, rawSettings);
   const drawing = new Drawing()
-    .withA4Size()
+    .withStandardSize(StandardSize.A4)
     .withMargin(20)
     .withBackgroundColor("#fff");
 
   const canvas = drawing.build();
 
   const grid = new Grid()
-    .withSize(drawing.getInnerWidth(), drawing.getInnerHeight())
+    .withSize(drawing.width, drawing.height)
     .withCols(settings.columns)
     .withRows(settings.rows)
     .withSquareCells();
@@ -60,7 +61,7 @@ function draw(rawSettings: SettingsData): string {
   });
 
   grid.cells().forEach((cell) => {
-    const tile = canvas.add(tiles[rand.between(0, tiles.length - 1)]);
+    const tile = canvas.use(tileNames[rand.between(0, tileNames.length - 1)]);
     tile.x(cell.x).y(cell.y).width(cell.width).height(cell.height);
     tile.rotate(rand.between(0, 3) * 90, cell.centerX, cell.centerY);
   });
@@ -93,8 +94,8 @@ function draw(rawSettings: SettingsData): string {
       anchor: "end",
     })
     .fill("black")
-    .ax(drawing.getInnerWidth().toString())
-    .ay(drawing.getInnerHeight().toString());
+    .ax(drawing.width.toString())
+    .ay(drawing.height.toString());
 
   const bbox = text.bbox();
   canvas.rect(bbox.width, bbox.height)

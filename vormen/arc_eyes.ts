@@ -3,34 +3,36 @@ import {
   Drawing,
   Random,
   Settings,
+  type SettingsData,
   Vector,
   Vormen,
 } from "@berkes/vormen";
 import { PathArray, Text } from "@svgdotjs/svg.js";
 
-const settings = new Settings({
+const defaultSettings = {
   seed: 74729448528,
   bg: "rgb(69, 6, 147)",
   main: "rgb(140, 0, 255)",
   support: "rgb(255, 63, 127)",
   accent: "rgb(255, 196, 0)",
-});
+};
 
-const draw: DrawFunction = (settings: Settings): Drawing => {
+const draw: DrawFunction = (rawSettings: SettingsData): string => {
+  const settings = Settings.parse(defaultSettings, rawSettings);
   const drawing = new Drawing()
     .withSize(1080, 1080)
     .withMargin(0)
-    .withBackgroundColor(settings.getString("bg"));
+    .withBackgroundColor(settings.bg);
 
   const canvas = drawing.build();
-  const rand = new Random(settings.getString("seed"));
+  const rand = new Random(settings.seed);
 
-  const cx = drawing.getInnerWidth() / 2;
-  const cy = drawing.getInnerHeight() / 2;
+  const cx = drawing.width / 2;
+  const cy = drawing.height / 2;
 
   // Draw a hundred points on a circle
   const points = [];
-  const radius = drawing.getInnerWidth() / 4;
+  const radius = drawing.width / 4;
   for (let i = 0; i < 200; i++) {
     const angle = (i / 200) * Math.PI * 2;
     const x = cx + Math.cos(angle) * radius;
@@ -56,7 +58,7 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
     canvas
       .path(pathOuter)
       .fill("none")
-      .stroke({ color: settings.getString("support"), width: 1 });
+      .stroke({ color: settings.support, width: 1 });
   });
 
   // Close the gap
@@ -78,7 +80,7 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
   canvas
     .path(pathOuter)
     .fill("none")
-    .stroke({ color: settings.getString("support"), width: 1 });
+    .stroke({ color: settings.support, width: 1 });
 
   // Sun
   const sunDiameter = (radius * 2) - 90;
@@ -86,7 +88,7 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
     .circle(sunDiameter)
     .cx(cx)
     .cy(cy)
-    .fill(settings.getString("main"))
+    .fill(settings.main)
     .stroke("none");
   // Dots around the border of the sun
   for (let i = 0; i < 100; i++) {
@@ -98,43 +100,43 @@ const draw: DrawFunction = (settings: Settings): Drawing => {
 
     canvas
       .line(cx, cy, innerX + cx, innerY + cy)
-      .stroke({ color: settings.getString("bg"), width: 1 });
+      .stroke({ color: settings.bg, width: 1 });
     canvas
       .circle(2)
       .cx(outerX + cx)
       .cy(outerY + cy)
-      .fill(settings.getString("accent"));
+      .fill(settings.accent);
   }
   canvas
     .circle(sunDiameter / 4)
     .cx(cx)
     .cy(cy)
-    .fill(settings.getString("bg"))
+    .fill(settings.bg)
     .stroke("none");
 
   // A text across the bottom
   const textX = 30;
-  const textY = drawing.getInnerHeight() - 30;
+  const textY = drawing.height - 30;
   const text = new Text()
     .text(`Drawing ${rand.seed}`)
     .font({ size: 12, family: "Ubuntu Mono", anchor: "middle", weight: "bold" })
-    .fill(settings.getString("accent"))
+    .fill(settings.accent)
     .x(textX)
     .y(textY);
 
   canvas
     .rect(text.bbox().width + 20, text.bbox().height + 8)
-    .fill(settings.getString("bg"))
+    .fill(settings.bg)
     .stroke("none")
     .radius(4)
     .x(textX - 10)
     .y(textY - 3);
   canvas.add(text);
 
-  return drawing;
+  return drawing.svg();
 };
 
-Vormen(draw, settings);
+Vormen(draw, defaultSettings);
 
 function* pairwise<T>(iterable: T[]): Generator<[T, T], void> {
   const iterator = iterable[Symbol.iterator]();

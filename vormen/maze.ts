@@ -6,10 +6,10 @@ import {
   Grid,
   Random,
   Settings,
+  type SettingsData,
   Vormen,
 } from "@berkes/vormen";
 import { Text } from "@svgdotjs/svg.js";
-import type { SettingsData } from "../../vormen/src/vormen/types.ts";
 
 class MazeCell {
   public possibleNeighbors = [
@@ -63,7 +63,7 @@ const draw: DrawFunction = (rawSettings: SettingsData): string => {
   const grid = new Grid()
     .withCols(6)
     .withRows(6)
-    .withSize(drawing.getInnerWidth(), drawing.getInnerHeight());
+    .withSize(drawing.width, drawing.height);
 
   const canvas = drawing.build();
   const rand = new Random(settings.seed);
@@ -147,7 +147,7 @@ const draw: DrawFunction = (rawSettings: SettingsData): string => {
 
   // A text across the bottom
   const textX = 30;
-  const textY = drawing.getInnerHeight() - 30;
+  const textY = drawing.height - 30;
   const text = new Text()
     .text(`Drawing ${rand.seed}`)
     .font({ size: 12, family: "Ubuntu Mono", anchor: "middle", weight: "bold" })

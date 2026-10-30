@@ -5,6 +5,8 @@ import {
   Point,
   Random,
   Settings,
+  type SettingsData,
+  StandardSize,
   Vector,
   Vormen,
 } from "@berkes/vormen";
@@ -42,7 +44,7 @@ class BodyPart {
   }
 }
 
-const settings = new Settings({
+const defaultSettings = {
   seed: "123",
   line_width: 2,
   distance: 15,
@@ -51,13 +53,14 @@ const settings = new Settings({
   color_primary: "#F3E6D5",
   color_primary_l: "#FFF9F2",
   color_secondary: "#D45060",
-});
+};
 
-const draw: DrawFunction = (settings: Settings) => {
+const draw: DrawFunction = (rawSettings: SettingsData): string => {
+  const settings = Settings.parse(defaultSettings, rawSettings);
   const drawing = new Drawing()
-    .withA4Size()
+    .withStandardSize(StandardSize.A4)
     .withMargin(20)
-    .withBackgroundColor(settings.getString("color_bg"));
+    .withBackgroundColor(settings.color_bg);
 
   const canvas = drawing.build();
 
@@ -65,8 +68,8 @@ const draw: DrawFunction = (settings: Settings) => {
 
   const bodies = [
     new BodyPart(
-      new Point(70, drawing.getInnerHeight() / 2),
-      settings.getInt("radius"),
+      new Point(70, drawing.height / 2),
+      settings.radius,
       new Vector(1, 0),
     ),
   ];
@@ -81,24 +84,24 @@ const draw: DrawFunction = (settings: Settings) => {
   for (let i = 0; i < 14; i++) {
     const previousBody = bodies[i];
     const newDirection = previousBody.direction.rotate(
-      rand.betweenFloat(-Math.PI / 4, Math.PI / 4),
+      rand.between(-Math.PI / 4, Math.PI / 4),
     );
     const nextBody = bodies[i].next(
-      settings.getInt("radius"),
+      settings.radius,
       newDirection,
-      settings.getInt("distance"),
+      settings.distance,
     );
 
     // Push onto canvas
     const centerX = constrain(
       nextBody.center.x,
       0 + nextBody.radius,
-      drawing.getInnerWidth() - nextBody.radius,
+      drawing.width - nextBody.radius,
     );
     const centerY = constrain(
       nextBody.center.y,
       0 + nextBody.radius,
-      drawing.getInnerHeight() - nextBody.radius,
+      drawing.height - nextBody.radius,
     );
     nextBody.center = new Point(centerX, centerY);
     bodies.push(nextBody);
@@ -111,10 +114,10 @@ const draw: DrawFunction = (settings: Settings) => {
   bodies.forEach((body) => {
     canvas.circle(body.radius * 2).center(body.center.x, body.center.y).fill(
       "none",
-    ).stroke(settings.getString("color_primary"));
+    ).stroke(settings.color_primary);
     const top = body.pointA;
     // controlpoint for smooth curve is tangent of the point on the circle and half a radius in opposite direction of the body
-    // const controlP = top.add(body.direction.rotate(Math.PI).multiply(settings.getInt("distance")/2));
+    // const controlP = top.add(body.direction.rotate(Math.PI).multiply(settings.distance/2));
     // canvas.line(top.x, top.y, controlP.x, controlP.y).stroke("black");
     // canvas.circle(5).center(controlP.x, controlP.y).fill("red");
     // dataString += `S ${controlP.x},${controlP.y},${top.x}, ${top.y}`;
@@ -132,11 +135,11 @@ const draw: DrawFunction = (settings: Settings) => {
   dataString += " Z";
   console.log(dataString);
   canvas.path(dataString).fill("none").stroke({
-    color: settings.getString("color_primary"),
-    width: settings.getInt("line_width"),
+    color: settings.color_primary,
+    width: settings.line_width,
   });
 
-  return drawing;
+  return drawing.svg();
 };
 
-Vormen(draw, settings);
+Vormen(draw, defaultSettings);
