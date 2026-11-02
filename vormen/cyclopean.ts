@@ -8,6 +8,7 @@ import {
   RoundedPathBuilder,
   Settings,
   type SettingsData,
+  StandardSize,
   Vector,
   Vormen,
 } from "@berkes/vormen";
@@ -20,6 +21,7 @@ const defaultSettings = {
   roundingRadius: 30,
   strokeWidth: 2,
   noiseScale: 0.005,
+  limitInsets: false,
   bw: false,
 };
 
@@ -39,8 +41,8 @@ function draw(rawSettings: SettingsData): string {
   ];
 
   const drawing = new Drawing()
-    .withSize(1200, 1200)
-    .withMargin(30)
+    .withStandardSize(StandardSize.A5)
+    .withMargin(15)
     .withBackgroundColor(bg);
   const canvas = drawing.build();
 
@@ -100,24 +102,26 @@ function draw(rawSettings: SettingsData): string {
         ),
       };
 
-      const bigEnough = [
+      if (settings.limitInsets) {
+        const bigEnough = [
           corners.topLeft.dist(corners.topRight),
           corners.topLeft.dist(corners.bottomLeft),
           corners.topRight.dist(corners.bottomRight),
           corners.bottomLeft.dist(corners.bottomRight),
           corners.topLeft.dist(corners.bottomRight),
           corners.topRight.dist(corners.bottomLeft),
-        ].every((d) => d >= 0);
+          ].every((d) => d >= 0);
 
-      const topologyStable = [
-        corners.topLeft.x < corners.topRight.x,
-        corners.topLeft.y < corners.bottomLeft.y,
-        corners.topRight.y < corners.bottomRight.y,
-        corners.bottomLeft.x < corners.bottomRight.x,
-        ].every((b) => b);
+        const topologyStable = [
+          corners.topLeft.x < corners.topRight.x,
+          corners.topLeft.y < corners.bottomLeft.y,
+          corners.topRight.y < corners.bottomRight.y,
+          corners.bottomLeft.x < corners.bottomRight.x,
+          ].every((b) => b);
 
-      if (!bigEnough || !topologyStable) {
-        continue;
+        if (!bigEnough || !topologyStable) {
+          continue;
+        }
       }
 
       const pathBuilder = new RoundedPathBuilder([
