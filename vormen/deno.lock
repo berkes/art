@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/cli@^1.0.32": "1.0.32",
     "jsr:@std/collections@^1.4.0": "1.4.0",
     "npm:@svgdotjs/svg.filter.js@^3.0.10": "3.0.10_@svgdotjs+svg.js@3.2.8",
     "npm:@svgdotjs/svg.js@^3.2.8": "3.2.8",
@@ -11,6 +12,9 @@
     "npm:svgdom@~0.1.29": "0.1.29"
   },
   "jsr": {
+    "@std/cli@1.0.32": {
+      "integrity": "188b3a100d6202d64e3f5bd3d799c7fa4f6d77f92cc65eb7f641c1fa0aa92a66"
+    },
     "@std/collections@1.4.0": {
       "integrity": "bd7f74966e11de11b1f0420b7e8cb7bb381d8af7872b738443b92050db28c9c0"
     }
