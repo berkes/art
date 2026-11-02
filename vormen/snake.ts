@@ -6,6 +6,7 @@ import {
   RoundedPathBuilder,
   Settings,
   type SettingsData,
+  StandardSize,
   Vormen,
 } from "@berkes/vormen";
 
@@ -13,16 +14,16 @@ const defaultSettings = {
   seed: "1234567890B",
   color_bg: "black",
   color_fg: "white",
-  rounding: 10,
-  snap: 20,
+  rounding: 8,
+  snap: 10,
   line_width: 1,
 };
 
 const draw: DrawFunction = (rawSettings: SettingsData): string => {
   const settings = Settings.parse(defaultSettings, rawSettings);
   const drawing = new Drawing()
-    .withSize(1200, 1200)
-    .withMargin(20)
+    .withStandardSize(StandardSize.A5)
+    .withMargin(10)
     .withBackgroundColor(settings.color_bg);
 
   const canvas = drawing.build();
@@ -40,7 +41,7 @@ const draw: DrawFunction = (rawSettings: SettingsData): string => {
     .withRoundingConstrained(true);
 
   let dir: "x" | "y" = "x";
-  for (let i = 1; i < 70; i++) {
+  for (let i = 1; i < 40; i++) {
     let newPoint;
 
     const lastPoint = pathBuilder.get(i - 1);
