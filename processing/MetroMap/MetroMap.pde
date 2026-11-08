@@ -5,19 +5,11 @@ int lineWidth = 10;
 int outlineWidth = 2;
 int margin = 20;
 
-PShape tile;
 color startColor;
 color backgroundColor;
 
 void setup() {
   size(1200, 1200);
-  tile = loadShape("tile.svg");
-  int tileWidth = int(tile.width);
-  int tileHeight = int(tile.height);
-
-  float scaleX = float(cellWidth) / tileWidth;
-  float scaleY = float(cellHeight) / tileHeight;
-  tile.scale(scaleX, scaleY);
 
   colorMode(HSB, 360, 100, 100);
   startColor = color(360, 40, 100);
@@ -41,10 +33,6 @@ void draw() {
 
     for (int y = margin; y < height -(cellHeight + margin); y += cellHeight) {
       if (points.size() == 0) {
-        // if (random(1) <= 0.5) {
-        //   continue;
-        // }
-
         // First point needs additional two points for curveVertex
         points.add(new PVector(cumx, y - cellHeight));
         points.add(new PVector(cumx, y));
@@ -67,7 +55,6 @@ void draw() {
     if (points.size() == 0) {
       continue;
     }
-
 
     // Termination station
     float terminal_y = points.get(points.size() - 1).y;
