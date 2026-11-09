@@ -1,28 +1,32 @@
 import {
   almostEqual,
+  CaptionBuilder,
+  CaptionPosition,
   constrain,
   Drawing,
   Grid,
+  MetadataBuilder,
   Point,
   Random,
   RoundedPathBuilder,
   Settings,
   type SettingsData,
   StandardSize,
+  SvgFont,
   Vector,
   Vormen,
 } from "@berkes/vormen";
 
 const defaultSettings = {
-  seed: "cyclopean",
-  columns: 8,
-  rows: 8,
-  innerMargin: 4,
+  seed: "198400042",
+  columns: 5,
+  rows: 6,
+  innerMargin: 3,
   roundingRadius: 30,
-  strokeWidth: 2,
-  noiseScale: 0.005,
+  strokeWidth: 1,
+  noiseScale: 0.004,
   limitInsets: false,
-  bw: false,
+  bw: true,
 };
 
 function draw(rawSettings: SettingsData): string {
@@ -40,10 +44,32 @@ function draw(rawSettings: SettingsData): string {
     "#8C56D4",
   ];
 
+  const metadata = new MetadataBuilder()
+    .title("Cyclopean masonry")
+    .description("A grid of rounded rectangles with a noise-based offset")
+    .author("Bèr Kessels")
+    .copyright("Copyright 2026 Bèr Kessels")
+    .date(new Date())
+    .url("https://github.com/berkes/art/vormen/")
+    .license("https://creativecommons.org/licenses/by/4.0/")
+    .keywords(["generative", "plotter"])
+    .settings(settings.asRecord()) // store the seed and other settings as JSON
+    .build();
+
+  const caption = new CaptionBuilder()
+    .template("cyclopean {seed}")
+    .position(CaptionPosition.BottomRight)
+    .font(SvgFont.named("EMSCasualHand"))
+    .fontSize(8)
+    .color("#222")
+    .build();
+
   const drawing = new Drawing()
-    .withStandardSize(StandardSize.A5)
-    .withMargin(15)
-    .withBackgroundColor(bg);
+    .withStandardSize(StandardSize.A4)
+    .withMargin(40)
+    .withMetadata(metadata)
+    .withCaption(caption);
+
   const canvas = drawing.build();
 
   const rand = new Random(settings.seed);
