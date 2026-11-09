@@ -11,20 +11,19 @@ import {
 } from "@berkes/vormen";
 
 const defaultSettings = {
-  seed: "1234567890B",
-  color_bg: "black",
-  color_fg: "white",
-  rounding: 8,
-  snap: 10,
+  seed: "198400042",
+  // color_bg: "black",
+  color_fg: "black",
+  rounding: 9,
+  snap: 12,
   line_width: 1,
 };
 
 const draw: DrawFunction = (rawSettings: SettingsData): string => {
   const settings = Settings.parse(defaultSettings, rawSettings);
   const drawing = new Drawing()
-    .withStandardSize(StandardSize.A5)
-    .withMargin(10)
-    .withBackgroundColor(settings.color_bg);
+    .withStandardSize(StandardSize.Postcard)
+    .withMargin(12);
 
   const canvas = drawing.build();
 
@@ -78,6 +77,19 @@ const draw: DrawFunction = (rawSettings: SettingsData): string => {
       width: settings.line_width,
     });
   }
+
+  const text = canvas
+    .text(`Snake ${rand.seed}`)
+    .font({
+      family: "Doto",
+      variant: "Medium",
+      size: 12,
+      anchor: "end",
+    })
+    .fill("black")
+    .ax(drawing.width.toString())
+    .ay(drawing.height.toString());
+  canvas.add(text);
 
   return drawing.svg();
 };
